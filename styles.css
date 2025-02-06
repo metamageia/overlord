@@ -1,613 +1,764 @@
-/* styles.css */
 /* -------------------------------
    GLOBAL LAYOUT & RESPONSIVE DESIGN
 ------------------------------- */
 html, body {
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-  }
-  body {
-    background: #f9f9f9;
-    font-family: Arial, sans-serif;
-    color: #333;
-  }
-  .page-header {
-    background: #333;
-    color: #fff;
-    text-align: center;
-    padding: 15px 10px;
-    margin-bottom: 0;
-    white-space: nowrap;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+body {
+  background: #f9f9f9;
+  font-family: Arial, sans-serif;
+  color: #333;
+}
+.page-header {
+  background: #333;
+  color: #fff;
+  text-align: center;
+  padding: 15px 10px;
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+.page-header h1 {
+  margin: 0;
+  font-size: 4.5em;
+  font-family: 'Cinzel', serif;
+  white-space: nowrap;
+}
+.page-header .subtitle {
+  font-size: 1em;
+  font-weight: normal;
+  display: block;
+  margin-top: 3px;
+  opacity: 0.9;
+  white-space: nowrap;
+}
+.sidebar-toggles {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background: #eee;
+  border-top: 2px solid #333;
+  border-bottom: 2px solid #333;
+}
+.sidebar-toggles .inline-btn {
+  font-size: 0.9em;
+  cursor: pointer;
+  padding: 5px 8px;
+}
+
+/* -------------------------------
+ MAIN CONTAINER & CONTENT
+------------------------------- */
+.main-container {
+  position: relative;
+  padding: 10px;
+  box-sizing: border-box;
+  /* NEW: Ensure the container extends to the bottom of the viewport */
+  min-height: 100vh;
+}
+.content {
+  width: 560px;
+  margin: 0 auto;
+  border: 2px solid #333;
+  background: #fff;
+  padding: 10px;
+  box-sizing: border-box;
+  min-height: 60vh;
+}
+
+/* -------------------------------
+ SIDE BAR STYLES
+------------------------------- */
+.sidebar, .bundles-sidebar {
+  position: absolute;
+  top: 10px;
+  width: 300px;
+  border: 2px solid #333;
+  background: #f7f7f7;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+  max-height: calc(100vh - 20px);
+  overflow-y: auto;
+  z-index: 900;
+}
+.sidebar {
+  left: 10px;
+}
+.bundles-sidebar {
+  right: 10px;
+  padding: 10px;
+}
+.sidebar.collapsed, .bundles-sidebar.collapsed {
+  display: none;
+}
+.sidebar-toggle-container {
+  display: flex;
+  border-bottom: 2px solid #333;
+  background: #eee;
+  width: 100%;
+  box-sizing: border-box;
+}
+.sidebar-toggle {
+  flex: 1;
+  text-align: center;
+  padding: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.95em;
+  border-right: 1px solid #ccc;
+  user-select: none;
+  background: #f7f7f7;
+}
+.sidebar-toggle:last-child {
+  border-right: none;
+}
+.sidebar-toggle.active {
+  background: #ddd;
+}
+.sidebar-panel {
+  display: none;
+  padding: 10px;
+  box-sizing: border-box;
+  width: 100%;
+}
+/* NEW: Only display the active panel */
+.sidebar-panel.active {
+  display: block;
+}
+/* For libraryPanel, when active, use flex layout */
+#libraryPanel.active {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  cursor: ew-resize;
+  background: rgba(0,0,0,0.1);
+  z-index: 10;
+}
+#leftResizeHandle { right: 0; }
+#rightResizeHandle { left: 0; }
+
+/* -------------------------------
+ LEFT SIDEBAR CONTENT
+------------------------------- */
+#libraryPanel .section-title,
+#editorPanel .section-title {
+  font-weight: bold;
+  font-size: 1.1em;
+  background: #333;
+  color: #fff;
+  padding: 5px;
+  margin-bottom: 5px;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  /* NEW: Disable line wrapping so that the title and total count appear on one line */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#libraryTotal {
+  float: right;
+  margin-right: 10px;
+}
+#statblockList {
+  overflow-y: auto;
+  flex: 1;
+}
+#createBundleList {
+  max-height: 300px;
+  overflow-y: auto;
+}
+#bundleListContainer {
+  max-height: 300px;
+  overflow-y: auto;
+  width: 100%;
+  overflow-x: auto;
+}
+#libraryTable table, #createBundleTable {
+  width: auto;
+  border-collapse: collapse;
+}
+#libraryTable th, #libraryTable td,
+#createBundleTable th, #createBundleTable td {
+  text-align: left;
+  font-size: 0.9em;
+  padding: 4px 8px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#libraryTable th, #createBundleTable th {
+  background: #333;
+  color: #fff;
+  position: relative;
+}
+#libraryTable th.sort-asc::after, #createBundleTable th.sort-asc::after {
+  content: " ▲";
+  margin-left: 0.2em;
+}
+#libraryTable th.sort-desc::after, #createBundleTable th.sort-desc::after {
+  content: " ▼";
+  margin-left: 0.2em;
+}
+#libraryTable tbody tr.selected, #createBundleTable tbody tr.selected {
+  background-color: #d0eaff;
+}
+#libraryTable tbody tr:hover,
+#createBundleTable tbody tr:hover {
+  background-color: #e6f7ff;
+}
+.delete-stat-btn {
+  font-size: 0.8em;
+  padding: 2px 4px;
+  margin-left: 5px;
+  cursor: pointer;
+}
+.th-resizer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 5px;
+  cursor: col-resize;
+  user-select: none;
+  height: 100%;
+}
+
+/* -------------------------------
+ NEW: Sticky Header for Statblock Library Table
+------------------------------- */
+#libraryTable thead tr:nth-child(1) th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #333;
+}
+#libraryTable thead tr:nth-child(2) td,
+#libraryTable thead tr:nth-child(2) th {
+  position: sticky;
+  top: 30px;
+  z-index: 2;
+  background: #eee;
+}
+#createBundleTable thead tr:nth-child(1) th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #333;
+  color: #fff;
+}
+#createBundleTable thead tr:nth-child(2) td,
+#createBundleTable thead tr:nth-child(2) th {
+  position: sticky;
+  top: 30px;
+  z-index: 2;
+  background: #eee;
+}
+
+/* -------------------------------
+ NEW: Unified Bundle Table Styles
+------------------------------- */
+#createBundleTable, #bundleListTable {
+  width: auto;
+  border-collapse: collapse;
+}
+#createBundleTable th, #createBundleTable td,
+#bundleListTable th, #bundleListTable td {
+  text-align: left;
+  font-size: 0.9em;
+  padding: 4px 8px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#createBundleTable thead tr:nth-child(1) th,
+#bundleListTable thead tr:nth-child(1) th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #333;
+  color: #fff;
+}
+#createBundleTable thead tr:nth-child(2) td,
+#bundleListTable thead tr:nth-child(2) td {
+  position: sticky;
+  top: 30px;
+  z-index: 2;
+  background: #eee;
+}
+
+/* -------------------------------
+ UPLOADED BUNDLES TABLE STYLES (Manage Bundles) - UPDATED STICKY HEADERS
+------------------------------- */
+#manageBundlesTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+#manageBundlesTable th, 
+#manageBundlesTable td {
+  padding: 4px 8px;
+  border: 1px solid #333;
+  font-size: 0.9em;
+  text-align: left;
+  word-wrap: break-word;
+}
+#manageBundlesTable thead tr:nth-child(1) th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #333;
+  color: #fff;
+}
+#manageBundlesTable thead tr:nth-child(2) td,
+#manageBundlesTable thead tr:nth-child(2) th {
+  position: sticky;
+  top: 30px;
+  z-index: 2;
+  background: #eee;
+}
+
+/* -------------------------------
+ EDITOR PANEL
+------------------------------- */
+.editor-container label {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
+}
+.editor-container input, .editor-container select {
+  width: 100%;
+  padding: 5px;
+  box-sizing: border-box;
+  margin-top: 5px;
+}
+.basic-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.dynamic-list { margin: 5px 0 10px; }
+.dynamic-feature, .dynamic-deed {
+  border: 1px solid #333;
+  background: #f7f7f7;
+  padding: 5px;
+  margin-bottom: 10px;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+.dynamic-deed.light { background: #e0f7fa; }
+.dynamic-deed.heavy { background: #ffecb3; }
+.dynamic-deed.mighty { background: #ffcdd2; }
+.dynamic-deed.tyrant { background: #d1c4e9; }
+.delete-btn, .delete-deed-btn {
+  font-size: 0.8em;
+  padding: 2px 4px;
+  cursor: pointer;
+}
+.delete-deed-btn { position: absolute; top: 2px; right: 2px; }
+.small-btn {
+  padding: 2px 4px;
+  font-size: 0.8em;
+  margin: 10px 0 3px;
+  cursor: pointer;
+}
+.add-btn {
+  margin-top: 5px;
+  padding: 5px 10px;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+.line-colon, .feature-colon { margin: 0 3px; }
+.linesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 10px 0;
+}
+.dynamic-line { display: flex; gap: 5px; align-items: center; }
+.line-title { width: 40%; padding: 3px; }
+.line-content { width: 50%; padding: 3px; }
+
+/* -------------------------------
+ YAML PANEL
+------------------------------- */
+.yaml-panel-container {
+  border: 1px solid #333;
+  background: #fff;
+  padding: 10px;
+  box-sizing: border-box;
+  width: 100%;
+}
+#yamlPanel .section-title {
+  font-weight: bold;
+  font-size: 1.1em;
+  background: #333;
+  color: #fff;
+  padding: 5px;
+  margin-bottom: 5px;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+#yamlArea {
+  width: 100%;
+  height: 120px;
+  box-sizing: border-box;
+  font-family: monospace;
+  font-size: 0.9em;
+  resize: vertical;
+  margin-top: 5px;
+}
+
+/* -------------------------------
+ STATBLOCK PREVIEW & EXPORTER
+------------------------------- */
+.statblock {
+  width: 100%;
+  max-width: 560px;
+  border: 2px solid #333;
+  background: #f9f9f9;
+  padding: 10px;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+  margin: 0 auto 20px auto;
+  box-sizing: border-box;
+}
+.statblock-header {
+  background: #333;
+  color: #fff;
+  padding: 8px 10px;
+  font-size: 1.2em;
+  margin-bottom: 10px;
+  position: relative;
+}
+.statblock-header span#dsb-tr { float: right; }
+.statblock-section h3 {
+  margin: 0;
+  padding: 5px;
+  background: #333;
+  color: #fff;
+  font-size: 1em;
+}
+/* NEW: Add extra whitespace between basic stats and features */
+#dsb-basicSection {
+  margin-bottom: 20px;
+}
+.statblock-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 5px;
+  margin-bottom: 15px;
+}
+.statblock-table th, .statblock-table td {
+  border: 1px solid #333;
+  padding: 4px 8px;
+  text-align: center;
+}
+.statblock-deeds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+/* Added whitespace between the basic stats and the features */
+.statblock-table + .statblock-deeds {
+  margin-top: 20px;
+}
+
+.deed {
+  flex: 1 1 calc(50% - 10px);
+  border: 1px solid #333;
+  background: #fff;
+  padding: 5px;
+  box-sizing: border-box;
+  white-space: pre-wrap;
+}
+.deed.light { background: #e0f7fa; }
+.deed.heavy { background: #ffecb3; }
+.deed.mighty { background: #ffcdd2; }
+.deed.tyrant { background: #d1c4e9; }
+.deed-header {
+  background: #333;
+  color: #fff;
+  font-size: 1em;
+  font-weight: bold;
+  padding: 5px;
+  margin: -5px -5px 5px -5px;
+  text-align: left;
+}
+.deed-title-output {
+  font-size: 1em;
+  font-weight: bold;
+}
+.deed-title-output + hr {
+  border: none;
+  border-top: 1px solid #333;
+  margin: 2px 0 5px 0;
+}
+
+/* -------------------------------
+ SAVE/EXPORT & SHARE CONTROLS
+------------------------------- */
+.save-export-box {
+  border: 1px solid #333;
+  padding: 10px;
+  margin: 0 auto 20px auto;
+  text-align: center;
+  max-width: 560px;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+  background: #f9f9f9;
+}
+.save-export-box select, .save-export-box button {
+  margin: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+.separator {
+  border-top: 1px solid #333;
+  margin: 10px 0;
+}
+
+/* -------------------------------
+ RIGHT SIDEBAR (Library Bundles)
+------------------------------- */
+.bundles-tabs.top-tabs {
+  display: flex;
+  border-bottom: 2px solid #333;
+  margin-bottom: 10px;
+  white-space: nowrap;
+}
+.bundles-tabs.top-tabs .bundles-tab {
+  width: 50%;
+  text-align: center;
+  padding: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  border-right: 1px solid #ccc;
+  user-select: none;
+  background: #f9f9f9;
+}
+.bundles-tabs.top-tabs .bundles-tab:last-child {
+  border-right: none;
+}
+.bundles-tabs.bottom-tabs {
+  display: flex;
+  border-bottom: 2px solid #333;
+  margin-bottom: 10px;
+  white-space: nowrap;
+}
+.bundles-tabs.bottom-tabs .bundles-tab {
+  width: 33.33%;
+  text-align: center;
+  padding: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  border-right: 1px solid #ccc;
+  user-select: none;
+  background: #f9f9f9;
+}
+.bundles-tabs.bottom-tabs .bundles-tab:last-child {
+  border-right: none;
+}
+.bundles-tab.active { background: #ddd; }
+.bundles-panel { display: none; width: 100%; box-sizing: border-box; }
+.bundles-panel.active { display: block; }
+#uploadedBundleList table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+#uploadedBundleList th, #uploadedBundleList td {
+  padding: 4px 8px;
+  border: 1px solid #333;
+  font-size: 0.9em;
+  text-align: left;
+  word-wrap: break-word;
+}
+.vertical-divider { margin: 0 5px; color: #ccc; }
+#uploadedBundleList {
+  overflow-x: auto;
+}
+
+/* -------------------------------
+ SHARE & DECODE BOXES
+------------------------------- */
+.share-box, .decode-box {
+  text-align: center;
+  margin: 10px auto;
+  max-width: 560px;
+}
+.share-box input, .decode-box input {
+  padding: 5px;
+  font-size: 0.9em;
+}
+
+/* -------------------------------
+ MODAL POPUP (OVERWRITE DIALOG)
+------------------------------- */
+#overwriteModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+#overwriteModalContent {
+  background: #fff;
+  padding: 20px;
+  max-width: 400px;
+  width: 90%;
+  border-radius: 5px;
+}
+#overwriteModalContent h2 {
+  margin-top: 0;
+}
+#overwriteList {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  padding: 5px;
+}
+#overwriteList label {
+  display: block;
+  margin-bottom: 5px;
+}
+#overwriteModalContent button {
+  margin-right: 10px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+/* -------------------------------
+ NEW: Black Title Bars for Bundles Sidebar Panels
+------------------------------- */
+#bundlesSidebar .section-title {
+  background: #333;
+  color: #fff;
+  text-align: center;
+  padding: 5px;
+}
+
+/* -------------------------------
+ New Basic Stat Cards Styles
+------------------------------- */
+.basic-stats-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.basic-stat-card {
+  border: 1px solid #333;
+  box-sizing: border-box;
+}
+
+.basic-stat-header {
+  padding: 5px;
+  font-weight: bold;
+  text-align: center;
+  background: #333;
+  color: #fff;
+  border-bottom: 1px solid #333;
+}
+
+.basic-stat-value {
+  padding: 5px;
+  text-align: center;
+}
+
+/* For the first row: three cards */
+.basic-stats-row.first-row .basic-stat-card {
+  flex: 1 1 calc(33.33% - 10px);
+}
+
+/* For the second row: four cards */
+.basic-stats-row.second-row .basic-stat-card {
+  flex: 1 1 calc(25% - 10px);
+}
+
+/* -------------------------------
+ RESPONSIVE MEDIA QUERIES
+------------------------------- */
+/* Medium devices (tablets, max-width: 768px) */
+@media (max-width: 768px) {
+  .page-header, .page-header h1, .page-header .subtitle {
+    white-space: normal;
   }
   .page-header h1 {
-    margin: 0;
-    font-size: 4.5em;
-    font-family: 'Cinzel', serif;
-    white-space: nowrap;
-  }
-  .page-header .subtitle {
-    font-size: 1em;
-    font-weight: normal;
-    display: block;
-    margin-top: 3px;
-    opacity: 0.9;
-    white-space: nowrap;
-  }
-  .sidebar-toggles {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px;
-    background: #eee;
-    border-top: 2px solid #333;
-    border-bottom: 2px solid #333;
-  }
-  .sidebar-toggles .inline-btn {
-    font-size: 0.9em;
-    cursor: pointer;
-    padding: 5px 8px;
-  }
-  
-  /* -------------------------------
-     MAIN CONTAINER & CONTENT
-       - Reduced the width of the content container from 600px to 560px.
-  ------------------------------- */
-  .main-container {
-    position: relative;
-    padding: 10px;
-    box-sizing: border-box;
+    font-size: 3em;
   }
   .content {
-    width: 560px;
-    margin: 0 auto; /* centers the content */
-    border: 2px solid #333;
-    background: #fff;
+    width: 90%;
+    max-width: 560px;
     padding: 10px;
-    box-sizing: border-box;
-    min-height: 60vh;
+    margin: 0 auto;
   }
-  
-  /* -------------------------------
-     SIDE BAR STYLES
-       - Modified sidebars to size vertically based on content.
-  ------------------------------- */
   .sidebar, .bundles-sidebar {
-    position: absolute;
-    top: 10px;
-    /* Removed bottom: 10px to allow vertical resizing */
-    width: 300px;
-    border: 2px solid #333;
-    background: #f7f7f7;
-    box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
-    box-sizing: border-box;
-    transition: all 0.3s ease;
-    max-height: calc(100vh - 20px);
-    overflow-y: auto;
+    width: 80%;
+    left: 10%;
+    right: 10%;
+    z-index: 900;
   }
-  .sidebar {
-    left: 10px;
+  .statblock, .save-export-box, .share-box, .decode-box {
+    max-width: 90%;
   }
-  .bundles-sidebar {
-    right: 10px;
-    padding: 10px;
+}
+
+/* Small devices (phones, max-width: 480px) */
+@media (max-width: 480px) {
+  .page-header h1 {
+    font-size: 2em;
   }
-  .sidebar.collapsed, .bundles-sidebar.collapsed {
-    display: none;
-  }
-  .sidebar-toggle-container {
-    display: flex;
-    border-bottom: 2px solid #333;
-    background: #eee;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  .sidebar-toggle {
-    flex: 1;
-    text-align: center;
-    padding: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 0.95em;
-    border-right: 1px solid #ccc;
-    user-select: none;
-    background: #f7f7f7;
-  }
-  .sidebar-toggle:last-child {
-    border-right: none;
-  }
-  .sidebar-toggle.active {
-    background: #ddd;
-  }
-  .sidebar-panel {
-    display: none;
-    padding: 10px;
-    box-sizing: border-box;
-    width: 100%;
-  }
-  .sidebar-panel.active {
-    display: block;
-  }
-  .resize-handle {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 5px;
-    cursor: ew-resize;
-    background: rgba(0,0,0,0.1);
-    z-index: 10;
-  }
-  #leftResizeHandle { right: 0; }
-  #rightResizeHandle { left: 0; }
   
-  /* -------------------------------
-     LEFT SIDEBAR CONTENT
-  ------------------------------- */
-  /* Both Library and Editor title bars should match */
-  #libraryPanel .section-title,
-  #editorPanel .section-title {
-    font-weight: bold;
-    font-size: 1.1em;
-    background: #333;
-    color: #fff;
-    padding: 5px;
-    margin-bottom: 5px;
+  /* Main Container: full width, no extra padding */
+  .main-container {
     width: 100%;
+    padding: 0;
     box-sizing: border-box;
-    text-align: center;
   }
-  /* Span for total count aligned to right */
-  #libraryTotal {
-    float: right;
-    margin-right: 10px;
-  }
-  #statblockList {
-    overflow-y: auto;
-    max-height: 600px; /* Enough to show approx. 15 rows */
-  }
-  #createBundleList {
-    max-height: 300px; /* Enough to show approx. 6 rows */
-    overflow-y: auto;
-  }
-  /* NEW: Bundle list container style */
-  #bundleListContainer {
-    max-height: 300px;
-    overflow-y: auto;
+  
+  /* Content: fill the entire width and height of main-container */
+  .content {
     width: 100%;
-    overflow-x: auto;
-  }
-  /* Library table styling with nowrap and a colgroup for resizable columns */
-  #libraryTable table, #createBundleTable {
-    width: auto;
-    border-collapse: collapse;
-  }
-  #libraryTable th, #libraryTable td,
-  #createBundleTable th, #createBundleTable td {
-    text-align: left;
-    font-size: 0.9em;
-    padding: 4px 8px;
-    border: none;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  #libraryTable th, #createBundleTable th {
-    background: #333;
-    color: #fff;
-    position: relative;
-  }
-  #libraryTable th.sort-asc::after, #createBundleTable th.sort-asc::after {
-    content: " ▲";
-    margin-left: 0.2em;
-  }
-  #libraryTable th.sort-desc::after, #createBundleTable th.sort-desc::after {
-    content: " ▼";
-    margin-left: 0.2em;
-  }
-  #libraryTable tbody tr.selected, #createBundleTable tbody tr.selected {
-    background-color: #d0eaff;
-  }
-  #libraryTable tbody tr:hover,
-  #createBundleTable tbody tr:hover {
-    background-color: #e6f7ff;
-  }
-  .delete-stat-btn {
-    font-size: 0.8em;
-    padding: 2px 4px;
-    margin-left: 5px;
-    cursor: pointer;
-  }
-  .th-resizer {
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 5px;
-    cursor: col-resize;
-    user-select: none;
     height: 100%;
-  }
-  
-  /* -------------------------------
-     NEW: Sticky Header for Statblock Library Table
-  ------------------------------- */
-  #libraryTable thead tr:nth-child(1) th {
-    position: sticky;
-    top: 0;
-    z-index: 3;
-    background: #333;
-  }
-  #libraryTable thead tr:nth-child(2) td,
-  #libraryTable thead tr:nth-child(2) th {
-    position: sticky;
-    top: 30px;
-    z-index: 2;
-    background: #eee;
-  }
-  /* NEW: Sticky Headers for Create Bundle Table */
-  #createBundleTable thead tr:nth-child(1) th {
-    position: sticky;
-    top: 0;
-    z-index: 3;
-    background: #333;
-    color: #fff;
-  }
-  #createBundleTable thead tr:nth-child(2) td,
-  #createBundleTable thead tr:nth-child(2) th {
-    position: sticky;
-    top: 30px;
-    z-index: 2;
-    background: #eee;
-  }
-  
-  /* -------------------------------
-     NEW: Unified Bundle Table Styles
-  ------------------------------- */
-  #createBundleTable, #bundleListTable {
-    width: auto;
-    border-collapse: collapse;
-  }
-  #createBundleTable th, #createBundleTable td,
-  #bundleListTable th, #bundleListTable td {
-    text-align: left;
-    font-size: 0.9em;
-    padding: 4px 8px;
-    border: none;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  #createBundleTable thead tr:nth-child(1) th,
-  #bundleListTable thead tr:nth-child(1) th {
-    position: sticky;
-    top: 0;
-    z-index: 3;
-    background: #333;
-    color: #fff;
-  }
-  #createBundleTable thead tr:nth-child(2) td,
-  #bundleListTable thead tr:nth-child(2) td {
-    position: sticky;
-    top: 30px;
-    z-index: 2;
-    background: #eee;
-  }
-  
-  /* -------------------------------
-     EDITOR PANEL
-  ------------------------------- */
-  .editor-container label {
-    display: block;
-    margin-top: 10px;
-    font-weight: bold;
-  }
-  .editor-container input, .editor-container select {
-    width: 100%;
-    padding: 5px;
-    box-sizing: border-box;
-    margin-top: 5px;
-  }
-  .basic-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-  }
-  .dynamic-list { margin: 5px 0 10px; }
-  .dynamic-feature, .dynamic-deed {
-    border: 1px solid #333;
-    background: #f7f7f7;
-    padding: 5px;
-    margin-bottom: 10px;
-    position: relative;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  .dynamic-deed.light { background: #e0f7fa; }
-  .dynamic-deed.heavy { background: #ffecb3; }
-  .dynamic-deed.mighty { background: #ffcdd2; }
-  .dynamic-deed.tyrant { background: #d1c4e9; } /* New: Tyrant deed color */
-  .delete-btn, .delete-deed-btn {
-    font-size: 0.8em;
-    padding: 2px 4px;
-    cursor: pointer;
-  }
-  .delete-deed-btn { position: absolute; top: 2px; right: 2px; }
-  .small-btn {
-    padding: 2px 4px;
-    font-size: 0.8em;
-    margin: 10px 0 3px;
-    cursor: pointer;
-  }
-  .add-btn {
-    margin-top: 5px;
-    padding: 5px 10px;
-    font-size: 0.9em;
-    cursor: pointer;
-  }
-  .line-colon, .feature-colon { margin: 0 3px; }
-  .linesContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    margin: 10px 0;
-  }
-  .dynamic-line { display: flex; gap: 5px; align-items: center; }
-  .line-title { width: 40%; padding: 3px; }
-  .line-content { width: 50%; padding: 3px; }
-  
-  /* -------------------------------
-     YAML PANEL
-  ------------------------------- */
-  .yaml-panel-container {
-    border: 1px solid #333;
-    background: #fff;
+    margin: 0;
     padding: 10px;
     box-sizing: border-box;
-    width: 100%;
-  }
-  #yamlPanel .section-title {
-    font-weight: bold;
-    font-size: 1.1em;
-    background: #333;
-    color: #fff;
-    padding: 5px;
-    margin-bottom: 5px;
-    width: 100%;
-    box-sizing: border-box;
-    text-align: center;
-  }
-  #yamlArea {
-    width: 100%;
-    height: 120px;
-    box-sizing: border-box;
-    font-family: monospace;
-    font-size: 0.9em;
-    resize: vertical;
-    margin-top: 5px;
   }
   
-  /* -------------------------------
-     STATBLOCK PREVIEW & EXPORTER
-  ------------------------------- */
+  /* Statblock: fill the entire width of content */
   .statblock {
     width: 100%;
-    max-width: 560px;
-    border: 2px solid #333;
-    background: #f9f9f9;
-    padding: 10px;
-    box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
-    margin: 0 auto 20px auto;
-    box-sizing: border-box;
-  }
-  .statblock-header {
-    background: #333;
-    color: #fff;
-    padding: 8px 10px;
-    font-size: 1.2em;
-    margin-bottom: 10px;
-    position: relative;
-  }
-  .statblock-header span#dsb-tr { float: right; }
-  .statblock-section h3 {
+    max-width: 100%;
     margin: 0;
-    padding: 5px;
-    background: #333;
-    color: #fff;
-    font-size: 1em;
-  }
-  .statblock-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 5px;
-    margin-bottom: 15px;
-  }
-  .statblock-table th, .statblock-table td {
-    border: 1px solid #333;
-    padding: 4px 8px;
-    text-align: center;
-  }
-  .statblock-deeds {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 5px;
-  }
-  .deed {
-    flex: 1 1 calc(50% - 10px);
-    border: 1px solid #333;
-    background: #fff;
-    padding: 5px;
-    box-sizing: border-box;
-    white-space: pre-wrap;
-  }
-  .deed.light { background: #e0f7fa; }
-  .deed.heavy { background: #ffecb3; }
-  .deed.mighty { background: #ffcdd2; }
-  .deed.tyrant { background: #d1c4e9; }
-  .deed-header {
-    background: #333;
-    color: #fff;
-    font-size: 1em;
-    font-weight: bold;
-    padding: 5px;
-    margin: -5px -5px 5px -5px;
-    text-align: left;
-  }
-  .deed-title-output {
-    font-size: 1em;
-    font-weight: bold;
-  }
-  .deed-title-output + hr {
-    border: none;
-    border-top: 1px solid #333;
-    margin: 2px 0 5px 0;
   }
   
-  /* -------------------------------
-     SAVE/EXPORT & SHARE CONTROLS
-  ------------------------------- */
-  .save-export-box {
-    border: 1px solid #333;
-    padding: 10px;
-    margin: 0 auto 20px auto;
-    text-align: center;
-    max-width: 560px;
-    box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
-    background: #f9f9f9;
-  }
-  .save-export-box select, .save-export-box button {
-    margin: 5px;
-    padding: 5px 10px;
-    cursor: pointer;
-    font-size: 0.9em;
-  }
-  .separator {
-    border-top: 1px solid #333;
-    margin: 10px 0;
-  }
-  
-  /* -------------------------------
-     RIGHT SIDEBAR (Library Bundles)
-       - Reorganized into two tab rows.
-  ------------------------------- */
-  .bundles-tabs.top-tabs {
-    display: flex;
-    border-bottom: 2px solid #333;
-    margin-bottom: 10px;
-    white-space: nowrap;
-  }
-  .bundles-tabs.top-tabs .bundles-tab {
-    width: 50%;
-    text-align: center;
-    padding: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    border-right: 1px solid #ccc;
-    user-select: none;
-    background: #f9f9f9;
-  }
-  .bundles-tabs.top-tabs .bundles-tab:last-child {
-    border-right: none;
-  }
-  .bundles-tabs.bottom-tabs {
-    display: flex;
-    border-bottom: 2px solid #333;
-    margin-bottom: 10px;
-    white-space: nowrap;
-  }
-  .bundles-tabs.bottom-tabs .bundles-tab {
-    width: 33.33%;
-    text-align: center;
-    padding: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    border-right: 1px solid #ccc;
-    user-select: none;
-    background: #f9f9f9;
-  }
-  .bundles-tabs.bottom-tabs .bundles-tab:last-child {
-    border-right: none;
-  }
-  .bundles-tab.active { background: #ddd; }
-  .bundles-panel { display: none; width: 100%; box-sizing: border-box; }
-  .bundles-panel.active { display: block; }
-  #uploadedBundleList table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-  }
-  #uploadedBundleList th, #uploadedBundleList td {
-    padding: 4px 8px;
-    border: 1px solid #333;
-    font-size: 0.9em;
-    text-align: left;
-    word-wrap: break-word;
-  }
-  .vertical-divider { margin: 0 5px; color: #ccc; }
-  
-  /* NEW: Limit horizontal scrolling to only the bundle list */
-  #uploadedBundleList {
-    overflow-x: auto;
-  }
-  
-  /* -------------------------------
-     SHARE & DECODE BOXES
-  ------------------------------- */
-  .share-box, .decode-box {
-    text-align: center;
-    margin: 10px auto;
-    max-width: 560px;
-  }
-  .share-box input, .decode-box input {
-    padding: 5px;
-    font-size: 0.9em;
-  }
-  
-  /* -------------------------------
-     MODAL POPUP (OVERWRITE DIALOG)
-  ------------------------------- */
-  #overwriteModal {
-    position: fixed;
+  /* Sidebars: full width and full viewport height */
+  .sidebar, .bundles-sidebar {
+    width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
     top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-  #overwriteModalContent {
-    background: #fff;
-    padding: 20px;
-    max-width: 400px;
-    width: 90%;
-    border-radius: 5px;
-  }
-  #overwriteModalContent h2 {
-    margin-top: 0;
-  }
-  #overwriteList {
-    max-height: 200px;
+    bottom: 0;
+    height: 100vh;
+    max-height: 100vh;
     overflow-y: auto;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    padding: 5px;
+    padding: 10px;
   }
-  #overwriteList label {
-    display: block;
-    margin-bottom: 5px;
-  }
-  #overwriteModalContent button {
-    margin-right: 10px;
-    padding: 5px 10px;
-    cursor: pointer;
-  }
-  
-  /* -------------------------------
-     NEW: Black Title Bars for Bundles Sidebar Panels
-  ------------------------------- */
-  #bundlesSidebar .section-title {
-    background: #333;
-    color: #fff;
-    text-align: center;
-    padding: 5px;
-  }
-  
+}

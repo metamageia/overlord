@@ -1,12 +1,11 @@
-// main.js
 /************************************************
  * ALL JS LOGIC
  ************************************************/
 
 // GLOBALS & DATA STORAGE
 const LOCAL_STORAGE_KEY = "trespasser_statblocks";
+// Removed: const LOCAL_STORAGE_FAVORITES_KEY = "trespasser_favorites";
 const LOCAL_STORAGE_BUNDLES_KEY = "trespasser_uploadedBundles";
-const LOCAL_STORAGE_FAVORITES_KEY = "trespasser_favorites";
 let statblocks = [];
 let uploadedBundles = [];
 let fuseIndex = null;
@@ -34,21 +33,45 @@ let cbFilterBundle = "";
 let masterYamlData = {};
 
 // Global favorites map (keyed by statblockID)
-let favoritesMap = {};
+let favoritesMap = {}; // Now built from library.json favorites array
 
 // Temporary storage for pending upload (used for overwrite modal)
 let pendingUpload = null;
 
+/* ---------------------------------------------
+ * NEW: Set Initial Sidebar Visibility Function
+ * ---------------------------------------------
+ */
+function setInitialSidebarVisibility(){
+  const leftSidebar = document.getElementById("sidebar");
+  const rightSidebar = document.getElementById("bundlesSidebar");
+  // On mobile (max-width 480px), default both sidebars to hidden
+  if(window.matchMedia("(max-width:480px)").matches){
+    leftSidebar.classList.add("collapsed");
+    rightSidebar.classList.add("collapsed");
+  } else {
+    leftSidebar.classList.remove("collapsed");
+    rightSidebar.classList.remove("collapsed");
+  }
+}
+
 window.addEventListener("DOMContentLoaded", () => {
   loadFromLocalStorage();
   loadUploadedBundles();
-  loadFavorites();
+  // Removed: loadFavorites(); since favorites now load with library data.
   initSearch();
   renderStatblockLibrary();
   renderCreateBundleList();
   fillBundleSelect();
   fillManageMergeSelect();
   renderUploadedBundles();
+  
+  // NEW: Set the initial sidebar visibility based on device width
+  setInitialSidebarVisibility();
+  
+  // (Optional) Update sidebar visibility on window resize
+  window.addEventListener("resize", setInitialSidebarVisibility);
+  
   attachEventHandlers();
   renderDefaultDetail();
   switchSidebarTab("library");
@@ -77,18 +100,32 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 /* ---------------------------------------------
- * FAVORITES STORAGE FUNCTIONS
+ * STORAGE FUNCTIONS (Library + Favorites)
  * ---------------------------------------------
  */
-function loadFavorites(){
+function loadFromLocalStorage(){
   try { 
-    favoritesMap = JSON.parse(localStorage.getItem(LOCAL_STORAGE_FAVORITES_KEY)) || {}; 
+    const data = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+    if(data && typeof data === "object" && data.statblocks){
+      statblocks = data.statblocks;
+      const favArray = data.favorites || [];
+      favoritesMap = {};
+      favArray.forEach(id => favoritesMap[id] = true);
+    } else {
+      statblocks = [];
+      favoritesMap = {};
+    }
   } catch(e){ 
-    favoritesMap = {}; 
+    statblocks = [];
+    favoritesMap = {};
   }
 }
-function saveFavorites(){
-  localStorage.setItem(LOCAL_STORAGE_FAVORITES_KEY, JSON.stringify(favoritesMap));
+
+function saveToLocalStorage(){
+  // Generate favorites array from favoritesMap
+  const favArray = Object.keys(favoritesMap).filter(id => favoritesMap[id]);
+  const data = { statblocks, favorites: favArray };
+  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
 }
 
 /* ---------------------------------------------
@@ -159,12 +196,29 @@ function decodeStatblockData(encodedString) {
 }
 
 /* SIDEBAR & TAB SWITCHING */
+
+// --- Revised Toggle Functions ---
 function toggleSidebar(){
-  document.getElementById("sidebar").classList.toggle("collapsed");
+  const leftSidebar = document.getElementById("sidebar");
+  const rightSidebar = document.getElementById("bundlesSidebar");
+  if(window.matchMedia("(max-width:480px)").matches){
+    if(!rightSidebar.classList.contains("collapsed")){
+      rightSidebar.classList.add("collapsed");
+    }
+  }
+  leftSidebar.classList.toggle("collapsed");
 }
 function toggleBundlesSidebar(){
-  document.getElementById("bundlesSidebar").classList.toggle("collapsed");
+  const leftSidebar = document.getElementById("sidebar");
+  const rightSidebar = document.getElementById("bundlesSidebar");
+  if(window.matchMedia("(max-width:480px)").matches){
+    if(!leftSidebar.classList.contains("collapsed")){
+      leftSidebar.classList.add("collapsed");
+    }
+  }
+  rightSidebar.classList.toggle("collapsed");
 }
+
 function switchSidebarTab(tab){
   ["library", "editor", "yaml"].forEach(t => {
     document.getElementById(t + "Toggle").classList.remove("active");
@@ -181,14 +235,7 @@ function switchBundlesTab(tab) {
   document.getElementById("bundles" + tab.charAt(0).toUpperCase() + tab.slice(1) + "Panel").classList.add("active");
 }
 
-/* LOCAL STORAGE */
-function loadFromLocalStorage(){
-  try { statblocks = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || []; }
-  catch(e){ statblocks = []; }
-}
-function saveToLocalStorage(){
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(statblocks));
-}
+/* LOCAL STORAGE FOR BUNDLES */
 function loadUploadedBundles(){
   try { uploadedBundles = JSON.parse(localStorage.getItem(LOCAL_STORAGE_BUNDLES_KEY)) || []; }
   catch(e){ uploadedBundles = []; }
@@ -591,7 +638,7 @@ function renderStatblockLibrary(){
       starSpan.addEventListener("click", (e) => {
         e.stopPropagation();
         favoritesMap[sb.statblockID] = !favoritesMap[sb.statblockID];
-        saveFavorites();
+        saveToLocalStorage(); // Save changes to favorites in library.json
         renderStatblockLibrary();
         renderCreateBundleList();
       });
@@ -891,31 +938,72 @@ function renderBundleList(){
     container.innerHTML = "<p>No statblocks in the bundle.</p>";
     return;
   }
+  // Create a table similar to the library table
   const table = document.createElement("table");
   table.id = "bundleListTable";
+  
+  // Create colgroup matching the library columns
   const colgroup = document.createElement("colgroup");
-  const cols = [
+  const columns = [
+    { field: "favorite", width: 30 },
     { field: "monsterName", width: 150 },
     { field: "level", width: 50 },
     { field: "role", width: 100 },
     { field: "tr", width: 50 },
-    { field: "bundle", width: 100 },
-    { field: "action", width: 60 }
+    { field: "bundle", width: 120 },
+    { field: "action", width: 50 }
   ];
-  cols.forEach(col => {
+  columns.forEach(col => {
     const colEl = document.createElement("col");
     colEl.style.width = col.width + "px";
     colgroup.appendChild(colEl);
   });
   table.appendChild(colgroup);
+  
+  // Create thead with two rows: header row and filter row
   const thead = document.createElement("thead");
+  
+  // Header row with column titles
   const headerRow = document.createElement("tr");
-  headerRow.innerHTML = "<th>Name</th><th>LV</th><th>Role</th><th>TR</th><th>Bundle</th><th>Action</th>";
+  const favTh = document.createElement("th");
+  favTh.textContent = "⭐";
+  headerRow.appendChild(favTh);
+  ["Name", "LV", "Role", "TR", "Bundle", "Action"].forEach(text => {
+    const th = document.createElement("th");
+    th.textContent = text;
+    headerRow.appendChild(th);
+  });
   thead.appendChild(headerRow);
+  
+  // Filter row (disabled inputs to mimic the library table header)
+  const filterRow = document.createElement("tr");
+  // Empty cell for the favorites column
+  filterRow.appendChild(document.createElement("td"));
+  // For each subsequent column add a disabled input
+  ["monsterName", "level", "role", "tr", "bundle", "action"].forEach(() => {
+    const td = document.createElement("td");
+    const input = document.createElement("input");
+    input.type = "text";
+    input.style.width = "100%";
+    input.disabled = true;
+    td.appendChild(input);
+    filterRow.appendChild(td);
+  });
+  thead.appendChild(filterRow);
   table.appendChild(thead);
+  
+  // Create tbody rows for each bundle statblock
   const tbody = document.createElement("tbody");
   bundleList.forEach((sb, index) => {
     const tr = document.createElement("tr");
+    // Favorites cell (non-clickable star display)
+    const favTd = document.createElement("td");
+    const starSpan = document.createElement("span");
+    starSpan.textContent = favoritesMap[sb.statblockID] ? "⭐" : "☆";
+    favTd.appendChild(starSpan);
+    tr.appendChild(favTd);
+    
+    // Other cells: monsterName, level, role, tr, bundle name
     const tdName = document.createElement("td");
     tdName.textContent = sb.monsterName || "";
     const tdLV = document.createElement("td");
@@ -926,6 +1014,9 @@ function renderBundleList(){
     tdTR.textContent = sb.tr || "";
     const tdBundle = document.createElement("td");
     tdBundle.textContent = getBundleName(sb.bundleId) || "";
+    tr.append(tdName, tdLV, tdRole, tdTR, tdBundle);
+    
+    // Action cell with "Remove" button
     const tdAction = document.createElement("td");
     const removeBtn = document.createElement("button");
     removeBtn.textContent = "Remove";
@@ -934,12 +1025,14 @@ function renderBundleList(){
       renderBundleList();
     });
     tdAction.appendChild(removeBtn);
-    tr.append(tdName, tdLV, tdRole, tdTR, tdBundle, tdAction);
+    tr.appendChild(tdAction);
+    
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);
   container.appendChild(table);
 }
+
 
 let bundleListFilters = {
   monsterName: "",
@@ -1468,7 +1561,7 @@ function cancelOverwrite() {
 
 async function exportBackup(){
   const zip = new JSZip();
-  zip.file("library.json", localStorage.getItem(LOCAL_STORAGE_KEY) || "[]");
+  zip.file("library.json", localStorage.getItem(LOCAL_STORAGE_KEY) || "{}");
   zip.file("bundles.json", localStorage.getItem(LOCAL_STORAGE_BUNDLES_KEY) || "[]");
   const blob = await zip.generateAsync({ type: "blob" });
   const a = document.createElement("a");
@@ -1477,6 +1570,7 @@ async function exportBackup(){
   a.click();
   URL.revokeObjectURL(a.href);
 }
+
 async function importBackup(e){
   const file = e.target.files[0];
   if(!file) return;
@@ -1492,7 +1586,17 @@ async function importBackup(e){
     }
     const libData = await libFile.async("string");
     const bundlesData = await bundlesFile.async("string");
-    statblocks = JSON.parse(libData);
+    let parsedLib = JSON.parse(libData);
+    // Backward compatibility: if parsedLib is an array, convert it.
+    if(Array.isArray(parsedLib)){
+      statblocks = parsedLib;
+      favoritesMap = {};
+    } else {
+      statblocks = parsedLib.statblocks || [];
+      const favArray = parsedLib.favorites || [];
+      favoritesMap = {};
+      favArray.forEach(id => favoritesMap[id] = true);
+    }
     uploadedBundles = JSON.parse(bundlesData);
     saveToLocalStorage();
     saveUploadedBundles();

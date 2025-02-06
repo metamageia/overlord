@@ -1,4 +1,3 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -32,12 +31,13 @@
   
   <!-- Sidebar Toggle Buttons -->
   <div class="sidebar-toggles">
-    <button id="toggleSidebarBtn" class="inline-btn">Toggle Statblock Sidebar</button>
-    <button id="toggleBundlesSidebarBtn" class="inline-btn">Toggle Bundles Sidebar</button>
+    <button id="toggleSidebarBtn" class="inline-btn">Toggle Library</button>
+    <button id="toggleBundlesSidebarBtn" class="inline-btn">Toggle Manager</button>
   </div>
 
+  <!-- Shared container for everything below the toggle buttons -->
   <div class="main-container">
-    <!-- LEFT SIDEBAR (absolute positioned) -->
+    <!-- LEFT SIDEBAR (absolute positioned for desktop, relative on mobile) -->
     <div class="sidebar" id="sidebar">
       <div id="leftResizeHandle" class="resize-handle"></div>
       <div class="sidebar-toggle-container">
@@ -45,6 +45,7 @@
         <div id="editorToggle" class="sidebar-toggle">Editor</div>
         <div id="yamlToggle" class="sidebar-toggle">YAML</div>
       </div>
+      <!-- Library Panel updated to use flex for full height -->
       <div class="sidebar-panel active" id="libraryPanel">
         <div class="section-title">
           Statblock Library<span id="libraryTotal"></span>
@@ -151,66 +152,6 @@
         </div>
       </div>
     </div>
-
-    <!-- MAIN CONTENT (centered fixed width) -->
-    <div class="content">
-      <div class="statblock" id="detailStatblock">
-        <div class="statblock-header">
-          <span id="dsb-name">[Monster Name]</span> - <span id="dsb-role">[Role]</span>
-          <span id="dsb-template"></span>
-          <span id="dsb-level"> [LV]</span>
-          <span id="dsb-tr" style="float:right;">[TR]</span>
-        </div>
-        <div id="defaultDetail" style="text-align:center; padding:20px; color:#888;">No statblock selected.</div>
-        <div class="statblock-section" id="dsb-basicSection" style="display:none;">
-          <h3>Basic Stats</h3>
-          <table class="statblock-table">
-            <tr>
-              <th>HP</th><th>INIT</th><th>ACC</th><th>GRD</th><th>RES</th><th>ROLL</th><th>SPD</th>
-            </tr>
-            <tr>
-              <td id="dsb-hp">[HP]</td>
-              <td id="dsb-init">[INIT]</td>
-              <td id="dsb-acc">[ACC]</td>
-              <td id="dsb-grd">[GRD]</td>
-              <td id="dsb-res">[RES]</td>
-              <td id="dsb-roll">[ROLL]</td>
-              <td id="dsb-spd">[SPD]</td>
-            </tr>
-          </table>
-        </div>
-        <div class="statblock-section" id="dsb-featuresSection" style="display:none;">
-          <h3>Features</h3>
-          <div id="dsb-featuresList"></div>
-        </div>
-        <div class="statblock-section" id="dsb-deedsSection" style="display:none;">
-          <h3>Deeds</h3>
-          <div id="dsb-deedsContainer" class="statblock-deeds"></div>
-        </div>
-        <!-- IDs Section -->
-        <div id="dsb-ids" style="font-size:0.7em; color:#555; text-align:center; margin-top:5px;"></div>
-      </div>
-      <div class="separator"></div>
-      <div class="save-export-box">
-        <button id="saveToLibraryBtn" class="inline-btn">Save to Library</button>
-        <select id="exportFormat">
-          <option value="png">PNG</option>
-          <option value="pdf">PDF</option>
-        </select>
-        <button id="exportBtn" class="inline-btn">Export</button>
-      </div>
-      <!-- SHARE & DECODE BOXES -->
-      <div class="share-box">
-        <button id="generateShareLinkBtn" class="inline-btn">Generate Share Link</button>
-        <input type="text" id="shareLinkInput" readonly placeholder="Share link will appear here" style="width:80%;"/>
-      </div>
-      <div class="decode-box">
-        <input type="text" id="decodeInput" placeholder="Paste share link here" style="width:80%;"/>
-        <button id="decodeShareBtn" class="inline-btn">Load Share Link</button>
-      </div>
-    </div>
-
-    <!-- RIGHT SIDEBAR (absolute positioned) -->
     <div class="bundles-sidebar" id="bundlesSidebar">
       <div id="rightResizeHandle" class="resize-handle"></div>
       <div class="section-title" style="text-align:center;">Library Bundles</div>
@@ -286,6 +227,86 @@
         </div>
       </div>
     </div>
+    <!-- MAIN CONTENT (centered fixed width on desktop) -->
+    <div class="content">
+      <div class="statblock" id="detailStatblock">
+        <div class="statblock-header">
+          <span id="dsb-name">[Monster Name]</span> - <span id="dsb-role">[Role]</span>
+          <span id="dsb-template"></span>
+          <span id="dsb-level"> [LV]</span>
+          <span id="dsb-tr" style="float:right;">[TR]</span>
+        </div>
+        <div id="defaultDetail" style="text-align:center; padding:20px; color:#888;">No statblock selected.</div>
+        <!-- Add whitespace after basic stats -->
+        <div class="statblock-section" id="dsb-basicSection" style="display:none;">
+          <h3>Basic Stats</h3>
+          <!-- First Row: HP, INIT, SPD -->
+          <div class="basic-stats-row first-row">
+            <div class="basic-stat-card">
+              <div class="basic-stat-header">HP</div>
+              <div class="basic-stat-value" id="dsb-hp">[HP]</div>
+            </div>
+            <div class="basic-stat-card">
+              <div class="basic-stat-header">INIT</div>
+              <div class="basic-stat-value" id="dsb-init">[INIT]</div>
+            </div>
+            <div class="basic-stat-card">
+              <div class="basic-stat-header">SPD</div>
+              <div class="basic-stat-value" id="dsb-spd">[SPD]</div>
+            </div>
+          </div>
+          <!-- Second Row: ACC, GRD, RES, ROLL -->
+          <div class="basic-stats-row second-row">
+            <div class="basic-stat-card">
+              <div class="basic-stat-header">ACC</div>
+              <div class="basic-stat-value" id="dsb-acc">[ACC]</div>
+            </div>
+            <div class="basic-stat-card">
+              <div class="basic-stat-header">GRD</div>
+              <div class="basic-stat-value" id="dsb-grd">[GRD]</div>
+            </div>
+            <div class="basic-stat-card">
+              <div class="basic-stat-header">RES</div>
+              <div class="basic-stat-value" id="dsb-res">[RES]</div>
+            </div>
+            <div class="basic-stat-card">
+              <div class="basic-stat-header">ROLL</div>
+              <div class="basic-stat-value" id="dsb-roll">[ROLL]</div>
+            </div>
+          </div>
+        </div>                  
+        <div class="statblock-section" id="dsb-featuresSection" style="display:none;">
+          <h3>Features</h3>
+          <div id="dsb-featuresList"></div>
+        </div>
+        <div class="statblock-section" id="dsb-deedsSection" style="display:none;">
+          <h3>Deeds</h3>
+          <div id="dsb-deedsContainer" class="statblock-deeds"></div>
+        </div>
+        <!-- IDs Section -->
+        <div id="dsb-ids" style="font-size:0.7em; color:#555; text-align:center; margin-top:5px;"></div>
+      </div>
+      <div class="separator"></div>
+      <div class="save-export-box">
+        <button id="saveToLibraryBtn" class="inline-btn">Save to Library</button>
+        <select id="exportFormat">
+          <option value="png">PNG</option>
+          <option value="pdf">PDF</option>
+        </select>
+        <button id="exportBtn" class="inline-btn">Export</button>
+      </div>
+      <!-- SHARE & DECODE BOXES -->
+      <div class="share-box">
+        <button id="generateShareLinkBtn" class="inline-btn">Generate Share Link</button>
+        <input type="text" id="shareLinkInput" readonly placeholder="Share link will appear here" style="width:80%;"/>
+      </div>
+      <div class="decode-box">
+        <input type="text" id="decodeInput" placeholder="Paste share link here" style="width:80%;"/>
+        <button id="decodeShareBtn" class="inline-btn">Load Share Link</button>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDEBAR (absolute positioned for desktop, relative on mobile) -->
   </div>
 
   <!-- OVERWRITE MODAL POPUP -->
