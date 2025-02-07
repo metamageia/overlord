@@ -731,20 +731,64 @@ function initThResizer(resizer, th, colId){
   }
 }
 
-function updateSelectedRow(){
-  const rows = document.querySelectorAll("#libraryTable tbody tr");
-  rows.forEach((row) => {
-    const idx = row.getAttribute("data-index");
-    const sb = currentFilteredList[idx];
-    if(sb && sb.statblockID === selectedStatblockID){
-      row.classList.add("selected");
-    } else {
-      row.classList.remove("selected");
+/* Removed: initResizeHandles() function to disable sidebar resizing
+function initResizeHandles(){
+  const leftHandle = document.getElementById("leftResizeHandle");
+  const leftSidebar = document.getElementById("sidebar");
+  let isResizingLeft = false;
+  leftHandle.addEventListener("mousedown", function(e){
+    isResizingLeft = true;
+    document.body.style.cursor = "ew-resize";
+    document.body.style.userSelect = "none";
+  });
+  document.addEventListener("mousemove", function(e){
+    if(!isResizingLeft) return;
+    const content = document.querySelector(".content");
+    const contentRect = content.getBoundingClientRect();
+    const maxWidth = contentRect.left - 20;
+    let newWidth = e.clientX;
+    newWidth = Math.max(200, Math.min(newWidth, maxWidth));
+    leftSidebar.style.width = newWidth + "px";
+  });
+  document.addEventListener("mouseup", function(e){
+    if(isResizingLeft){
+      isResizingLeft = false;
+      document.body.style.cursor = "default";
+      document.body.style.userSelect = "auto";
+    }
+  });
+  
+  const rightHandle = document.getElementById("rightResizeHandle");
+  const rightSidebar = document.getElementById("bundlesSidebar");
+  let isResizingRight = false;
+  rightHandle.addEventListener("mousedown", function(e){
+    isResizingRight = true;
+    document.body.style.cursor = "ew-resize";
+    document.body.style.userSelect = "none";
+  });
+  document.addEventListener("mousemove", function(e){
+    if(!isResizingRight) return;
+    const content = document.querySelector(".content");
+    const contentRect = content.getBoundingClientRect();
+    const gap = 20;
+    const maxWidth = window.innerWidth - contentRect.right - gap;
+    let newWidth = window.innerWidth - e.clientX - gap;
+    newWidth = Math.max(200, Math.min(newWidth, maxWidth));
+    rightSidebar.style.width = newWidth + "px";
+  });
+  document.addEventListener("mouseup", function(e){
+    if(isResizingRight){
+      isResizingRight = false;
+      document.body.style.cursor = "default";
+      document.body.style.userSelect = "auto";
     }
   });
 }
+*/
 
-/* RENDER CREATE BUNDLE TABLE */
+/* -------------------------------
+ RENDER CREATE BUNDLE TABLE
+------------------------------- */
 function renderCreateBundleList(){
   const container = document.getElementById("createBundleList");
   let focusedId = "";
@@ -1739,7 +1783,7 @@ function attachEventHandlers(){
     updateSelectedRow();
   });
   
-  initResizeHandles();
+  // Removed: initResizeHandles(); -- sidebar resizing disabled now
 
   ["cbSearchName", "cbSearchLV", "cbSearchRole", "cbSearchTR", "cbSearchBundle"].forEach(id => {
     const el = document.getElementById(id);
@@ -1824,56 +1868,15 @@ function attachEventHandlers(){
   document.getElementById("confirmOverwriteBtn").addEventListener("click", confirmOverwrite);
   document.getElementById("cancelOverwriteBtn").addEventListener("click", cancelOverwrite);
 }
-
-function initResizeHandles(){
-  const leftHandle = document.getElementById("leftResizeHandle");
-  const leftSidebar = document.getElementById("sidebar");
-  let isResizingLeft = false;
-  leftHandle.addEventListener("mousedown", function(e){
-    isResizingLeft = true;
-    document.body.style.cursor = "ew-resize";
-    document.body.style.userSelect = "none";
-  });
-  document.addEventListener("mousemove", function(e){
-    if(!isResizingLeft) return;
-    const content = document.querySelector(".content");
-    const contentRect = content.getBoundingClientRect();
-    const maxWidth = contentRect.left - 20;
-    let newWidth = e.clientX;
-    newWidth = Math.max(200, Math.min(newWidth, maxWidth));
-    leftSidebar.style.width = newWidth + "px";
-  });
-  document.addEventListener("mouseup", function(e){
-    if(isResizingLeft){
-      isResizingLeft = false;
-      document.body.style.cursor = "default";
-      document.body.style.userSelect = "auto";
-    }
-  });
-  
-  const rightHandle = document.getElementById("rightResizeHandle");
-  const rightSidebar = document.getElementById("bundlesSidebar");
-  let isResizingRight = false;
-  rightHandle.addEventListener("mousedown", function(e){
-    isResizingRight = true;
-    document.body.style.cursor = "ew-resize";
-    document.body.style.userSelect = "none";
-  });
-  document.addEventListener("mousemove", function(e){
-    if(!isResizingRight) return;
-    const content = document.querySelector(".content");
-    const contentRect = content.getBoundingClientRect();
-    const gap = 20;
-    const maxWidth = window.innerWidth - contentRect.right - gap;
-    let newWidth = window.innerWidth - e.clientX - gap;
-    newWidth = Math.max(200, Math.min(newWidth, maxWidth));
-    rightSidebar.style.width = newWidth + "px";
-  });
-  document.addEventListener("mouseup", function(e){
-    if(isResizingRight){
-      isResizingRight = false;
-      document.body.style.cursor = "default";
-      document.body.style.userSelect = "auto";
+function updateSelectedRow(){
+  const rows = document.querySelectorAll("#libraryTable tbody tr");
+  rows.forEach((row) => {
+    const idx = row.getAttribute("data-index");
+    const sb = currentFilteredList[idx];
+    if(sb && sb.statblockID === selectedStatblockID){
+      row.classList.add("selected");
+    } else {
+      row.classList.remove("selected");
     }
   });
 }
