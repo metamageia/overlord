@@ -612,8 +612,9 @@ function renderStatblockLibrary(){
   
   const totalEl = document.getElementById("libraryTotal");
   if(totalEl){
-    totalEl.textContent = " (Total: " + filtered.length + ")";
+    totalEl.textContent = " Total: " + statblocks.length;
   }
+  
   
   const tbody = document.createElement("tbody");
   if(!filtered.length){
