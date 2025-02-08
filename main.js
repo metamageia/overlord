@@ -414,7 +414,7 @@ function updateUIFromMasterYaml(){
       });
     }
   }
-  ["lightDeeds","heavyDeeds","mightyDeeds","tyrantDeeds"].forEach(t => {
+  ["lightDeeds","heavyDeeds","mightyDeeds","tyrantDeeds","specialDeeds"].forEach(t => {
     const container = document.getElementById(t + "Container") || document.getElementById(t + "sContainer");
     container.innerHTML = "";
     let deeds = masterYamlData[t];
@@ -446,6 +446,7 @@ function updateMasterYamlDataFromUI(){
   masterYamlData.heavyDeeds = collectDeedsAsString("heavy");
   masterYamlData.mightyDeeds = collectDeedsAsString("mighty");
   masterYamlData.tyrantDeeds = collectDeedsAsString("tyrant");
+  masterYamlData.specialDeeds = collectDeedsAsString("special"); // NEW: Special Deeds
   updateYamlTextArea();
   updateRenderedStatblock();
 }
@@ -1222,7 +1223,7 @@ function renderDeeds(data){
   const dsbDeedsSec = document.getElementById("dsb-deedsSection");
   dsbDeeds.innerHTML = "";
   let hasDeeds = false;
-  ["lightDeeds","heavyDeeds","mightyDeeds","tyrantDeeds"].forEach(t => {
+  ["lightDeeds","heavyDeeds","mightyDeeds","tyrantDeeds", "specialDeeds"].forEach(t => {
     let arr = data[t];
     if(typeof arr === "string") arr = parseDeedsStringNew(arr);
     if(!Array.isArray(arr)) return;
@@ -1733,6 +1734,10 @@ function attachEventHandlers(){
   });
   document.getElementById("addTyrantDeedBtn").addEventListener("click", () => {
     addDeed("tyrant");
+    uiFieldChanged();
+  });
+  document.getElementById("addSpecialDeedBtn").addEventListener("click", () => {
+    addDeed("special");
     uiFieldChanged();
   });
   document.getElementById("yamlArea").addEventListener("input", updateMasterYamlDataFromYaml);

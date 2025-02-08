@@ -392,6 +392,13 @@ body {
 .dynamic-deed.tyrant {
   background: #d1c4e9;
 }
+/* NEW: Special Deeds Styling */
+.dynamic-deed.special {
+  background: #c8e6c9;
+}
+.deed.special {
+  background: #c8e6c9;
+}
 .delete-btn,
 .delete-deed-btn {
   font-size: 0.8em;
