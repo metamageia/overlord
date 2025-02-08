@@ -40,7 +40,7 @@ OVERLORD provides a complete workflow for managing your statblocks. Whether youâ
 
 ## License
 
-This project is licensed under the **MIT License**. For complete details, please see the [LICENSE.md](LICENSE.md) file.
+This project is licensed under the **MIT License**. For complete details, please see the [LICENSE](LICENSE) file.
 
 ## Attribution
 
