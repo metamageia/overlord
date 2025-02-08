@@ -1363,25 +1363,43 @@ function findDuplicate(statblock) {
   return statblocks.find(s => s.statblockID === id && s !== currentDetail);
 }
 
+// ------------------- Modified saveToLibrary Function -------------------
 function saveToLibrary(){
-  if(!masterYamlData.monsterName){
-    alert("Monster Name is required.");
-    return;
-  }
+  // *** NEW STEP: Always generate statblockID from masterYamlData BEFORE duplicate checking ***
   const newID = generateStatblockID(masterYamlData);
   masterYamlData.statblockID = newID;
+  
+  // Check for duplicate statblock by comparing the freshly generated statblockID
   const duplicate = findDuplicate(masterYamlData);
   if(duplicate){
     alert("A statblock with identical content already exists. Skipping.");
     return;
   }
+  
+  // Remove bundleId before saving (if applicable)
   removeBundleIdForSave(masterYamlData);
+  
+  // Update existing statblock if in edit mode, otherwise add as new
   if(currentDetail && currentDetail.statblockID === newID){
     Object.assign(currentDetail, masterYamlData);
   } else {
     statblocks.push(masterYamlData);
     currentDetail = masterYamlData;
   }
+  
+  selectedStatblockID = currentDetail.statblockID;
+  saveToLocalStorage();
+  
+  // Refresh the UI components and search index
+  initSearch();
+  renderStatblockLibrary();
+  fillBundleSelect();
+  fillManageMergeSelect();
+  renderUploadedBundles();
+  
+  alert("Statblock saved to library!");
+}
+
   selectedStatblockID = currentDetail.statblockID;
   saveToLocalStorage();
   initSearch();
@@ -1390,7 +1408,7 @@ function saveToLibrary(){
   fillManageMergeSelect();
   renderUploadedBundles();
   alert("Statblock saved to library!");
-}
+
 
 function exportCurrentDetail(){
   if(!currentDetail){
