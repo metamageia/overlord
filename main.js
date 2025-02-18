@@ -19,6 +19,7 @@ let bundleList = [];
 let filterName = "";
 let filterLV = "";
 let filterRole = "";
+let filterTemplate = ""; 
 let filterTR = "";
 let filterBundle = "";
 
@@ -26,6 +27,7 @@ let filterBundle = "";
 let cbFilterName = "";
 let cbFilterLV = "";
 let cbFilterRole = "";
+let cbFilterTemplate = ""; 
 let cbFilterTR = "";
 let cbFilterBundle = "";
 
@@ -488,6 +490,7 @@ function renderStatblockLibrary(){
     { field: "monsterName", width: 150 },
     { field: "level",       width: 50 },
     { field: "role",        width: 100 },
+    { field: "template",    width: 100 }, // Add this line
     { field: "tr",          width: 50 },
     { field: "bundle",      width: 120 },
     { field: "action",      width: 50 }
@@ -518,6 +521,7 @@ function renderStatblockLibrary(){
     { field: "monsterName", label: "Name" },
     { field: "level",       label: "LV" },
     { field: "role",        label: "Role" },
+    { field: "template",    label: "Template" }, // Add this line
     { field: "tr",          label: "TR" },
     { field: "bundle",      label: "Bundle" }
   ];
@@ -556,35 +560,63 @@ function renderStatblockLibrary(){
     const input = document.createElement("input");
     input.type = "text";
     input.id = "search" + col.field.charAt(0).toUpperCase() + col.field.slice(1);
-    if(col.field === "monsterName") input.value = filterName;
-    if(col.field === "level") input.value = filterLV;
-    if(col.field === "role") input.value = filterRole;
-    if(col.field === "tr") input.value = filterTR;
-    if(col.field === "bundle") input.value = filterBundle;
+    
+    switch(col.field) {
+      case "monsterName": input.value = filterName; break;
+      case "level": input.value = filterLV; break;
+      case "role": input.value = filterRole; break;
+      case "template": input.value = filterTemplate; break;
+      case "tr": input.value = filterTR; break;
+      case "bundle": input.value = filterBundle; break;
+    }
+    
     input.style.width = "100%";
     input.addEventListener("input", function(){
-      if(col.field === "monsterName") filterName = this.value;
-      if(col.field === "level") filterLV = this.value;
-      if(col.field === "role") filterRole = this.value;
-      if(col.field === "tr") filterTR = this.value;
-      if(col.field === "bundle") filterBundle = this.value;
+      switch(col.field) {
+        case "monsterName": filterName = this.value; break;
+        case "level": filterLV = this.value; break;
+        case "role": filterRole = this.value; break;
+        case "template": filterTemplate = this.value; break;
+        case "tr": filterTR = this.value; break;
+        case "bundle": filterBundle = this.value; break;
+      }
       renderStatblockLibrary();
     });
     td.appendChild(input);
     filterRow.appendChild(td);
   });
-  const emptyTd = document.createElement("td");
-  filterRow.appendChild(emptyTd);
+  const filterActionTd = document.createElement("td");
+  const clearBtn = document.createElement("button");
+  clearBtn.textContent = "Clear";
+  clearBtn.className = "clear-filters-btn";
+  clearBtn.addEventListener("click", () => {
+    // Reset filter variables
+    filterName = "";
+    filterLV = "";
+    filterRole = "";
+    filterTemplate = "";
+    filterTR = "";
+    filterBundle = "";
+    // Clear input values
+    columns.forEach(col => {
+      const input = document.getElementById("search" + col.field.charAt(0).toUpperCase() + col.field.slice(1));
+      if(input) input.value = "";
+    });
+    renderStatblockLibrary();
+  });
+  filterActionTd.appendChild(clearBtn);
+  filterRow.appendChild(filterActionTd);
   thead.appendChild(filterRow);
   table.appendChild(thead);
   let filtered = statblocks.filter(sb => {
     const matchesName = matchesStringQuery(sb.monsterName || "", filterName);
     const matchesRole = matchesStringQuery(sb.role || "", filterRole);
+    const matchesTemplate = matchesStringQuery(sb.template || "", filterTemplate); // Add this line
     const matchesLV = matchesNumericQuery(sb.level, filterLV);
     const matchesTR = matchesNumericQuery(sb.tr, filterTR);
     const bundleName = getBundleName(sb.bundleId);
     const matchesBundle = matchesStringQuery(bundleName, filterBundle);
-    return matchesName && matchesRole && matchesLV && matchesTR && matchesBundle;
+    return matchesName && matchesRole && matchesTemplate && matchesLV && matchesTR && matchesBundle; // Add matchesTemplate
   });
   filtered = filtered.filter(sb => {
     if(sb.bundleId === undefined) return true;
@@ -592,21 +624,29 @@ function renderStatblockLibrary(){
     return bun && bun.active;
   });
   filtered.sort((a,b) => {
-    if(currentSortField === "favorite"){
-      const aFav = favoritesMap[a.statblockID] ? 1 : 0;
-      const bFav = favoritesMap[b.statblockID] ? 1 : 0;
-      if(aFav === bFav) {
-        return a.monsterName.toLowerCase().localeCompare(b.monsterName.toLowerCase());
+    if(currentSortField === "favorite") {
+      const aFav = favoritesMap[a.statblockID] || false;
+      const bFav = favoritesMap[b.statblockID] || false;
+      // If favorite status is the same, maintain relative order
+      if (aFav === bFav) {
+        // Secondary sort by name when favorite status is equal
+        const aName = (a.monsterName || "").toLowerCase();
+        const bName = (b.monsterName || "").toLowerCase();
+        return aName.localeCompare(bName);
       }
-      return currentSortDirection === "asc" ? bFav - aFav : aFav - bFav;
-    } else if(currentSortField === "bundle") {
-      const A = getBundleName(a.bundleId).toLowerCase();
-      const B = getBundleName(b.bundleId).toLowerCase();
-      return (currentSortDirection === "asc") ? A.localeCompare(B) : B.localeCompare(A);
+      // Sort favorites based on direction
+      return currentSortDirection === "asc" 
+        ? (bFav ? 1 : -1) 
+        : (bFav ? -1 : 1);
+    } else if(currentSortField === "tr") {
+      // Safely handle TR values
+      const numA = parseInt(String(a?.tr || 0));
+      const numB = parseInt(String(b?.tr || 0));
+      return currentSortDirection === "asc" ? numA - numB : numB - numA;
     } else {
-      const A = (a[currentSortField]||"").toString().toLowerCase();
-      const B = (b[currentSortField]||"").toString().toLowerCase();
-      return (currentSortDirection === "asc") ? A.localeCompare(B) : B.localeCompare(A);
+      const A = String(a?.[currentSortField] || "");
+      const B = String(b?.[currentSortField] || "");
+      return currentSortDirection === "asc" ? A.localeCompare(B) : B.localeCompare(A);
     }
   });
   currentFilteredList = filtered;
@@ -661,6 +701,7 @@ function renderStatblockLibrary(){
         statblocks = statblocks.filter(x => x !== sb);
         saveToLocalStorage();
         renderStatblockLibrary();
+        fillBundleSelect();
         fillBundleSelect();
         fillManageMergeSelect();
         renderUploadedBundles();
@@ -733,61 +774,6 @@ function initThResizer(resizer, th, colId){
   }
 }
 
-/* Removed: initResizeHandles() function to disable sidebar resizing
-function initResizeHandles(){
-  const leftHandle = document.getElementById("leftResizeHandle");
-  const leftSidebar = document.getElementById("sidebar");
-  let isResizingLeft = false;
-  leftHandle.addEventListener("mousedown", function(e){
-    isResizingLeft = true;
-    document.body.style.cursor = "ew-resize";
-    document.body.style.userSelect = "none";
-  });
-  document.addEventListener("mousemove", function(e){
-    if(!isResizingLeft) return;
-    const content = document.querySelector(".content");
-    const contentRect = content.getBoundingClientRect();
-    const maxWidth = contentRect.left - 20;
-    let newWidth = e.clientX;
-    newWidth = Math.max(200, Math.min(newWidth, maxWidth));
-    leftSidebar.style.width = newWidth + "px";
-  });
-  document.addEventListener("mouseup", function(e){
-    if(isResizingLeft){
-      isResizingLeft = false;
-      document.body.style.cursor = "default";
-      document.body.style.userSelect = "auto";
-    }
-  });
-  
-  const rightHandle = document.getElementById("rightResizeHandle");
-  const rightSidebar = document.getElementById("bundlesSidebar");
-  let isResizingRight = false;
-  rightHandle.addEventListener("mousedown", function(e){
-    isResizingRight = true;
-    document.body.style.cursor = "ew-resize";
-    document.body.style.userSelect = "none";
-  });
-  document.addEventListener("mousemove", function(e){
-    if(!isResizingRight) return;
-    const content = document.querySelector(".content");
-    const contentRect = content.getBoundingClientRect();
-    const gap = 20;
-    const maxWidth = window.innerWidth - contentRect.right - gap;
-    let newWidth = window.innerWidth - e.clientX - gap;
-    newWidth = Math.max(200, Math.min(newWidth, maxWidth));
-    rightSidebar.style.width = newWidth + "px";
-  });
-  document.addEventListener("mouseup", function(e){
-    if(isResizingRight){
-      isResizingRight = false;
-      document.body.style.cursor = "default";
-      document.body.style.userSelect = "auto";
-    }
-  });
-}
-*/
-
 /* -------------------------------
  RENDER CREATE BUNDLE TABLE
 ------------------------------- */
@@ -814,6 +800,7 @@ function renderCreateBundleList(){
     { field: "monsterName", width: 150 },
     { field: "level",       width: 50 },
     { field: "role",        width: 100 },
+    { field: "template",    width: 100 }, // Add this line
     { field: "tr",          width: 50 },
     { field: "bundle",      width: 100 }
   ];
@@ -843,6 +830,7 @@ function renderCreateBundleList(){
     { field: "monsterName", label: "Name" },
     { field: "level",       label: "LV" },
     { field: "role",        label: "Role" },
+    { field: "template",    label: "Template" }, // Add this line
     { field: "tr",          label: "TR" },
     { field: "bundle",      label: "Bundle" }
   ];
@@ -874,34 +862,62 @@ function renderCreateBundleList(){
     const input = document.createElement("input");
     input.type = "text";
     input.id = "cbSearch" + col.field.charAt(0).toUpperCase() + col.field.slice(1);
-    if(col.field === "monsterName") input.value = cbFilterName;
-    if(col.field === "level") input.value = cbFilterLV;
-    if(col.field === "role") input.value = cbFilterRole;
-    if(col.field === "tr") input.value = cbFilterTR;
-    if(col.field === "bundle") input.value = cbFilterBundle;
+    
+    switch(col.field) {
+      case "monsterName": input.value = cbFilterName; break;
+      case "level": input.value = cbFilterLV; break;
+      case "role": input.value = cbFilterRole; break;
+      case "template": input.value = cbFilterTemplate; break;
+      case "tr": input.value = cbFilterTR; break;
+      case "bundle": input.value = cbFilterBundle; break;
+    }
+    
     input.style.width = "100%";
     input.addEventListener("input", function(){
-      if(col.field === "monsterName") cbFilterName = this.value;
-      if(col.field === "level") cbFilterLV = this.value;
-      if(col.field === "role") cbFilterRole = this.value;
-      if(col.field === "tr") cbFilterTR = this.value;
-      if(col.field === "bundle") cbFilterBundle = this.value;
+      switch(col.field) {
+        case "monsterName": cbFilterName = this.value; break;
+        case "level": cbFilterLV = this.value; break;
+        case "role": cbFilterRole = this.value; break;
+        case "template": cbFilterTemplate = this.value; break;
+        case "tr": cbFilterTR = this.value; break;
+        case "bundle": cbFilterBundle = this.value; break;
+      }
       renderCreateBundleList();
     });
     td.appendChild(input);
     filterRow.appendChild(td);
   });
-  const emptyTd = document.createElement("td");
-  filterRow.appendChild(emptyTd);
+  const filterActionTd = document.createElement("td");
+  const clearBtn = document.createElement("button");
+  clearBtn.textContent = "Clear";
+  clearBtn.className = "clear-filters-btn";
+  clearBtn.addEventListener("click", () => {
+    // Reset filter variables
+    cbFilterName = "";
+    cbFilterLV = "";
+    cbFilterRole = "";
+    cbFilterTemplate = "";
+    cbFilterTR = "";
+    cbFilterBundle = "";
+    // Clear input values
+    columns.forEach(col => {
+      const input = document.getElementById("cbSearch" + col.field.charAt(0).toUpperCase() + col.field.slice(1));
+      if(input) input.value = "";
+    });
+    renderCreateBundleList();
+  });
+  filterActionTd.appendChild(clearBtn);
+  filterRow.appendChild(filterActionTd);
   thead.appendChild(filterRow);
   table.appendChild(thead);
   let filtered = statblocks.filter(sb => {
     const matchesName = matchesStringQuery(sb.monsterName || "", cbFilterName);
     const matchesRole = matchesStringQuery(sb.role || "", cbFilterRole);
+    const matchesTemplate = matchesStringQuery(sb.template || "", cbFilterTemplate); // Add this line
     const matchesLV = matchesNumericQuery(sb.level, cbFilterLV);
     const matchesTR = matchesNumericQuery(sb.tr, cbFilterTR);
     const matchesBundle = matchesStringQuery(getBundleName(sb.bundleId), cbFilterBundle);
-    return matchesName && matchesRole && matchesLV && matchesTR && matchesBundle;
+    return matchesName && matchesRole && matchesTemplate && matchesLV && matchesTR && matchesBundle; // Add matchesTemplate
   });
   filtered = filtered.filter(sb => {
     if(sb.bundleId === undefined) return true;
@@ -909,23 +925,31 @@ function renderCreateBundleList(){
     return bun && bun.active;
   });
   filtered.sort((a,b) => {
-    if(currentSortField === "favorite"){
-      const aFav = favoritesMap[a.statblockID] ? 1 : 0;
-      const bFav = favoritesMap[b.statblockID] ? 1 : 0;
-      if(aFav === bFav){
-        return a.monsterName.toLowerCase().localeCompare(b.monsterName.toLowerCase());
+    if(currentSortField === "favorite") {
+      const aFav = favoritesMap[a.statblockID] || false;
+      const bFav = favoritesMap[b.statblockID] || false;
+      // If favorite status is the same, maintain relative order
+      if (aFav === bFav) {
+        // Secondary sort by name when favorite status is equal
+        const aName = (a.monsterName || "").toLowerCase();
+        const bName = (b.monsterName || "").toLowerCase();
+        return aName.localeCompare(bName);
       }
-      return currentSortDirection === "asc" ? bFav - aFav : aFav - bFav;
-    } else if(currentSortField === "bundle") {
-      const A = getBundleName(a.bundleId).toLowerCase();
-      const B = getBundleName(b.bundleId).toLowerCase();
-      return (currentSortDirection === "asc") ? A.localeCompare(B) : B.localeCompare(A);
+      // Sort favorites based on direction
+      return currentSortDirection === "asc" 
+        ? (bFav ? 1 : -1) 
+        : (bFav ? -1 : 1);
+    } else if(currentSortField === "tr") {
+      const numA = parseInt(String(a?.tr || 0));
+      const numB = parseInt(String(b?.tr || 0));
+      return currentSortDirection === "asc" ? numA - numB : numB - numA;
     } else {
-      const A = (a[currentSortField]||"").toString().toLowerCase();
-      const B = (b[currentSortField]||"").toString().toLowerCase();
-      return (currentSortDirection === "asc") ? A.localeCompare(B) : B.localeCompare(A);
+      const A = String(a?.[currentSortField] || "");
+      const B = String(b?.[currentSortField] || "");
+      return currentSortDirection === "asc" ? A.localeCompare(B) : B.localeCompare(A);
     }
   });
+  
   const tbody = document.createElement("tbody");
   if(!filtered.length){
     const tr = document.createElement("tr");
@@ -995,6 +1019,7 @@ function renderBundleList(){
     { field: "monsterName", width: 150 },
     { field: "level", width: 50 },
     { field: "role", width: 100 },
+    { field: "template",    label: "Template" }, // Add this line
     { field: "tr", width: 50 },
     { field: "bundle", width: 120 },
     { field: "action", width: 50 }
@@ -1699,9 +1724,14 @@ function attachEventHandlers(){
   document.getElementById("bundlesMergeTab").addEventListener("click", () => switchBundlesTab("merge"));
 
   document.getElementById("createNewBtn").addEventListener("click", () => {
-    currentDetail = null;
-    clearEditorFields();
-    renderDefaultDetail();
+    if (confirm("Create new empty statblock? Any unsaved changes will be lost.")) {
+      masterYamlData = {};
+      currentDetail = null;
+      selectedStatblockID = null;
+      updateRenderedStatblock();
+      updateUIFromMasterYaml();
+      document.getElementById("yamlInput").value = "";
+    }
   });
   document.getElementById("exportBackupBtn").addEventListener("click", exportBackup);
   document.getElementById("importBackupBtn").addEventListener("click", () => {
@@ -1816,6 +1846,7 @@ function attachEventHandlers(){
         if(id === "cbSearchName") cbFilterName = el.value;
         if(id === "cbSearchLV") cbFilterLV = el.value;
         if(id === "cbSearchRole") cbFilterRole = el.value;
+        if(id === "cbSearchTemplate") cbFilterTemplate = el.value; 
         if(id === "cbSearchTR") cbFilterTR = el.value;
         if(id === "cbSearchBundle") cbFilterBundle = el.value;
         renderCreateBundleList();
@@ -1891,6 +1922,8 @@ function attachEventHandlers(){
   });
   document.getElementById("confirmOverwriteBtn").addEventListener("click", confirmOverwrite);
   document.getElementById("cancelOverwriteBtn").addEventListener("click", cancelOverwrite);
+
+
 }
 function updateSelectedRow(){
   const rows = document.querySelectorAll("#libraryTable tbody tr");
@@ -1914,8 +1947,11 @@ function initSearch(){
 }
 function matchesNumericQuery(value, query) {
   if (!query.trim()) return true;
-  const numVal = Number(value);
+  
+  // Convert value to number, handling undefined/null
+  const numVal = value ? Number(value.toString().replace(/[^\d.-]/g, '')) : 0;
   if (isNaN(numVal)) return false;
+
   const segments = query.split(",").map(s => s.trim()).filter(Boolean);
   for (let seg of segments) {
     if (/^>\s*(\d+)$/.test(seg)) {

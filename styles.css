@@ -856,3 +856,14 @@ body {
     max-width: 100%;
   }
 }
+
+/* -------------------------------
+   NEW: Clear Filters Button
+------------------------------- */
+.clear-filters-btn {
+  font-size: 0.8em;
+  padding: 2px 4px;
+  margin: 0 2px;
+  cursor: pointer;
+  white-space: nowrap;
+}
