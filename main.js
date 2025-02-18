@@ -639,10 +639,15 @@ function renderStatblockLibrary(){
         ? (bFav ? 1 : -1) 
         : (bFav ? -1 : 1);
     } else if(currentSortField === "tr") {
-      // Safely handle TR values
       const numA = parseInt(String(a?.tr || 0));
       const numB = parseInt(String(b?.tr || 0));
       return currentSortDirection === "asc" ? numA - numB : numB - numA;
+    } else if(currentSortField === "bundle") {
+      const bundleNameA = getBundleName(a.bundleId) || "";
+      const bundleNameB = getBundleName(b.bundleId) || "";
+      return currentSortDirection === "asc" 
+        ? bundleNameA.localeCompare(bundleNameB)
+        : bundleNameB.localeCompare(bundleNameA);
     } else {
       const A = String(a?.[currentSortField] || "");
       const B = String(b?.[currentSortField] || "");
@@ -943,6 +948,12 @@ function renderCreateBundleList(){
       const numA = parseInt(String(a?.tr || 0));
       const numB = parseInt(String(b?.tr || 0));
       return currentSortDirection === "asc" ? numA - numB : numB - numA;
+    } else if(currentSortField === "bundle") {
+      const bundleNameA = getBundleName(a.bundleId) || "";
+      const bundleNameB = getBundleName(b.bundleId) || "";
+      return currentSortDirection === "asc" 
+        ? bundleNameA.localeCompare(bundleNameB)
+        : bundleNameB.localeCompare(bundleNameA);
     } else {
       const A = String(a?.[currentSortField] || "");
       const B = String(b?.[currentSortField] || "");
