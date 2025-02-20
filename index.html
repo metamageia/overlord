@@ -120,6 +120,17 @@
               <input type="text" id="spd" placeholder="SPD" />
             </div>
           </div>
+          <div class="basic-stats-controls">
+            <hr class="section-divider">
+            <button type="button" class="inline-btn" id="manageStatsBtn">Manage Basic Stats</button>
+          </div>
+
+          <div class="custom-stats-section">
+            <hr class="section-divider">
+            <label>Custom Stats</label>
+            <div id="customStatsContainer" class="dynamic-list"></div>
+            <button type="button" class="add-btn" id="addCustomStatBtn">Add Custom Stat</button>
+          </div>
           <hr class="section-divider">
           <label>Features</label>
           <div id="featuresContainer" class="dynamic-list"></div>
@@ -327,6 +338,18 @@
       <div>
         <button id="confirmOverwriteBtn">Overwrite Selected</button>
         <button id="cancelOverwriteBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="manageStatsModal">
+    <div id="manageStatsModalContent">
+      <h2>Manage Basic Stats</h2>
+      <p>Select which basic stats to display:</p>
+      <div id="statsList"></div>
+      <div style="margin:10px 0;">
+        <button id="restoreDefaultsBtn">Restore Defaults</button>
+        <button id="closeManageStatsBtn">Close</button>
       </div>
     </div>
   </div>

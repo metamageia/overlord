@@ -40,6 +40,19 @@ let favoritesMap = {}; // Now built from library.json favorites array
 // Temporary storage for pending upload (used for overwrite modal)
 let pendingUpload = null;
 
+// Add these to the global variables section
+const DEFAULT_STATS = {
+  hp: "HP",
+  init: "INIT",
+  acc: "ACC",
+  grd: "GRD",
+  res: "RES",
+  roll: "ROLL",
+  spd: "SPD"
+};
+
+let hiddenStats = new Set();  // Tracks which default stats are hidden
+
 /* ---------------------------------------------
  * NEW: Set Initial Sidebar Visibility Function
  * ---------------------------------------------
@@ -391,19 +404,37 @@ function updateYamlTextArea(){
   }
 }
 
+// Modify updateUIFromMasterYaml to handle custom stats
 function updateUIFromMasterYaml(){
+  // Reset hiddenStats based on masterYamlData
+  hiddenStats.clear();
+  
+  // Update basic info fields
   document.getElementById("monsterName").value = masterYamlData.monsterName || "";
   document.getElementById("role").value = masterYamlData.role || "";
   document.getElementById("template").value = masterYamlData.template || "";
   document.getElementById("level").value = masterYamlData.level || "";
   document.getElementById("tr").value = masterYamlData.tr || "";
-  document.getElementById("hp").value = masterYamlData.hp || "";
-  document.getElementById("init").value = masterYamlData.init || "";
-  document.getElementById("acc").value = masterYamlData.acc || "";
-  document.getElementById("grd").value = masterYamlData.grd || "";
-  document.getElementById("res").value = masterYamlData.res || "";
-  document.getElementById("roll").value = masterYamlData.roll || "";
-  document.getElementById("spd").value = masterYamlData.spd || "";
+
+  // Update basic stats visibility based on masterYamlData
+  Object.keys(DEFAULT_STATS).forEach(key => {
+    const el = document.getElementById(key);
+    if (el) {
+      el.value = masterYamlData[key] || "";
+      // If the stat isn't in masterYamlData, add it to hiddenStats
+      if (!masterYamlData[key]) {
+        hiddenStats.add(key);
+      }
+      el.parentElement.classList.toggle("hidden-stat", hiddenStats.has(key));
+    }
+  });
+
+  // Clear and update custom stats
+  const customStatsContainer = document.getElementById("customStatsContainer");
+  customStatsContainer.innerHTML = "";
+  if (Array.isArray(masterYamlData.customStats)) {
+    masterYamlData.customStats.forEach(stat => addCustomStat(stat));
+  }
 
   const featuresContainer = document.getElementById("featuresContainer");
   featuresContainer.innerHTML = "";
@@ -427,19 +458,46 @@ function updateUIFromMasterYaml(){
   });
 }
 
-function updateMasterYamlDataFromUI(){
+// Modify updateMasterYamlDataFromUI to include custom stats
+function updateMasterYamlDataFromUI() {
+  // Update basic info
   masterYamlData.monsterName = document.getElementById("monsterName").value.trim();
   masterYamlData.role = document.getElementById("role").value;
   masterYamlData.template = document.getElementById("template").value;
   masterYamlData.level = document.getElementById("level").value;
   masterYamlData.tr = document.getElementById("tr").value;
-  masterYamlData.hp = document.getElementById("hp").value;
-  masterYamlData.init = document.getElementById("init").value;
-  masterYamlData.acc = document.getElementById("acc").value;
-  masterYamlData.grd = document.getElementById("grd").value;
-  masterYamlData.res = document.getElementById("res").value;
-  masterYamlData.roll = document.getElementById("roll").value;
-  masterYamlData.spd = document.getElementById("spd").value;
+
+  // Update basic stats, excluding hidden ones
+  Object.keys(DEFAULT_STATS).forEach(key => {
+    if (!hiddenStats.has(key)) {
+      const value = document.getElementById(key).value.trim();
+      if (value) {
+        masterYamlData[key] = value;
+      } else {
+        delete masterYamlData[key];
+      }
+    } else {
+      delete masterYamlData[key];
+    }
+  });
+
+  // Update custom stats
+  const customStats = [];
+  document.querySelectorAll("#customStatsContainer .custom-stat").forEach(div => {
+    const [nameInput, valueInput] = div.querySelectorAll("input");
+    const name = nameInput.value.trim();
+    const value = valueInput.value.trim();
+    if (name && value) {
+      customStats.push({ name, value });
+    }
+  });
+  
+  if (customStats.length > 0) {
+    masterYamlData.customStats = customStats;
+  } else {
+    delete masterYamlData.customStats;
+  }
+
   let featuresArray = collectFeatures();
   let featuresObj = {};
   featuresArray.forEach(f => { if(f.title) featuresObj[f.title] = f.content; });
@@ -1142,6 +1200,11 @@ function removeBundleIdForSave(statblock) {
 }
 function clearEditorFields(){
   masterYamlData = {};
+  hiddenStats.clear(); // Reset hidden stats
+  const customStatsContainer = document.getElementById("customStatsContainer");
+  if (customStatsContainer) {
+    customStatsContainer.innerHTML = ""; // Clear custom stats
+  }
   updateUIFromMasterYaml();
   updateYamlTextArea();
   renderDefaultDetail();
@@ -1184,36 +1247,81 @@ function updateRenderedStatblock(){
     renderDefaultDetail();
     return;
   }
+
+  // Clear previous state
   document.getElementById("defaultDetail").style.display = "none";
   document.getElementById("dsb-basicSection").style.display = "block";
+
+  // Update header information
   document.getElementById("dsb-name").textContent = masterYamlData.monsterName || "[Monster Name]";
   document.getElementById("dsb-role").textContent = masterYamlData.role || "[Role]";
-  if(masterYamlData.template){
+  
+  if(masterYamlData.template) {
     document.getElementById("dsb-template").textContent = " " + masterYamlData.template;
     document.getElementById("dsb-template").style.display = "inline";
   } else {
     document.getElementById("dsb-template").style.display = "none";
   }
+  
   document.getElementById("dsb-level").textContent = masterYamlData.level ? " " + masterYamlData.level : "";
   document.getElementById("dsb-tr").textContent = masterYamlData.tr ? "TR " + masterYamlData.tr : "";
-  ["hp","init","acc","grd","res","roll","spd"].forEach(f => {
-    document.getElementById("dsb-"+f).textContent = masterYamlData[f] || "";
+
+  // Update basic stats display
+  Object.keys(DEFAULT_STATS).forEach(key => {
+    const el = document.getElementById("dsb-" + key);
+    if (el) {
+      if (masterYamlData[key]) {
+        el.parentElement.style.display = "block";
+        el.textContent = masterYamlData[key];
+      } else {
+        el.parentElement.style.display = "none";
+      }
+    }
   });
+
+  // Handle custom stats - SINGLE IMPLEMENTATION
+  const basicSection = document.getElementById("dsb-basicSection");
+  const existingCustomRow = basicSection.querySelector(".custom-stats-row");
+  if (existingCustomRow) {
+    existingCustomRow.remove();
+  }
+
+  if (Array.isArray(masterYamlData.customStats) && masterYamlData.customStats.length > 0) {
+    const customStatsRow = document.createElement("div");
+    customStatsRow.className = "basic-stats-row custom-stats-row";
+    
+    masterYamlData.customStats.forEach(stat => {
+      const card = document.createElement("div");
+      card.className = "basic-stat-card";
+      card.innerHTML = `
+        <div class="basic-stat-header">${stat.name}</div>
+        <div class="basic-stat-value">${stat.value}</div>
+      `;
+      customStatsRow.appendChild(card);
+    });
+    
+    basicSection.appendChild(customStatsRow);
+  }
+
+  // Continue with features and deeds
   renderFeatures(masterYamlData);
   renderDeeds(masterYamlData);
+  
+  // Update IDs section
   const idsDiv = document.getElementById("dsb-ids");
   idsDiv.innerHTML = "";
-  if(masterYamlData.statblockID){
+  if(masterYamlData.statblockID) {
     const statblockIDSpan = document.createElement("div");
     statblockIDSpan.textContent = "statblockID: " + masterYamlData.statblockID;
     idsDiv.appendChild(statblockIDSpan);
   }
-  if(masterYamlData.bundleId){
+  if(masterYamlData.bundleId) {
     const bundleIDSpan = document.createElement("div");
     bundleIDSpan.textContent = "bundleID: " + masterYamlData.bundleId;
     idsDiv.appendChild(bundleIDSpan);
   }
 }
+
 function renderDefaultDetail(){
   document.getElementById("defaultDetail").style.display = "block";
   document.getElementById("dsb-basicSection").style.display = "none";
@@ -1278,7 +1386,7 @@ function renderDeeds(data){
                     (line.content ? `<strong>${line.title}:</strong> ${line.content}` : `<strong>${line.title}</strong>`) +
                     `</div>`;
           }
-        });
+        }); // Added missing closing brace for d.lines.forEach
         const deedDiv = document.createElement("div");
         deedDiv.className = `deed ${color}`;
         deedDiv.innerHTML = html;
@@ -1721,7 +1829,78 @@ function downloadBlob(text, mime, filename){
   URL.revokeObjectURL(url);
 }
 
-/* EVENT HANDLERS */
+// Add new functions for managing custom stats
+function addCustomStat(customStat = null) {
+  const container = document.getElementById("customStatsContainer");
+  const div = document.createElement("div");
+  div.className = "custom-stat";
+  
+  const nameInput = document.createElement("input");
+  nameInput.type = "text";
+  nameInput.placeholder = "Stat Name";
+  nameInput.value = customStat ? customStat.name : "";
+  nameInput.addEventListener("input", uiFieldChanged);
+  
+  const valueInput = document.createElement("input");
+  valueInput.type = "text";
+  valueInput.placeholder = "Value";
+  valueInput.value = customStat ? customStat.value : "";
+  valueInput.addEventListener("input", uiFieldChanged);
+  
+  const removeBtn = document.createElement("button");
+  removeBtn.textContent = "×";
+  removeBtn.className = "delete-btn";
+  removeBtn.addEventListener("click", () => {
+    div.remove();
+    uiFieldChanged();
+  });
+  
+  div.append(nameInput, valueInput, removeBtn);
+  container.appendChild(div);
+}
+
+// Add functions for managing the stats modal
+function showManageStatsModal() {
+  const modal = document.getElementById("manageStatsModal");
+  const list = document.getElementById("statsList");
+  list.innerHTML = "";
+  
+  Object.entries(DEFAULT_STATS).forEach(([key, label]) => {
+    const div = document.createElement("label");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox"; 
+    checkbox.className = "stat-checkbox";
+    checkbox.checked = !hiddenStats.has(key);
+    checkbox.dataset.stat = key;
+    
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) {
+        hiddenStats.delete(key);
+      } else {
+        hiddenStats.add(key);
+      }
+      const statInput = document.getElementById(key);
+      if (statInput && statInput.parentElement) {
+        statInput.parentElement.classList.toggle("hidden-stat", !checkbox.checked);
+      }
+      updateMasterYamlDataFromUI();
+      updateRenderedStatblock();
+    });
+    
+    div.appendChild(checkbox);
+    div.appendChild(document.createTextNode(` ${label}`));
+    list.appendChild(div);
+  });
+  
+  modal.style.display = "flex";
+}
+
+function closeManageStatsModal() {
+  document.getElementById("manageStatsModal").style.display = "none";
+  updateMasterYamlDataFromUI();
+  updateYamlTextArea();
+}
+
 function attachEventHandlers(){
   document.getElementById("toggleSidebarBtn").addEventListener("click", toggleSidebar);
   document.getElementById("libraryToggle").addEventListener("click", () => switchSidebarTab("library"));
@@ -1934,7 +2113,27 @@ function attachEventHandlers(){
   document.getElementById("confirmOverwriteBtn").addEventListener("click", confirmOverwrite);
   document.getElementById("cancelOverwriteBtn").addEventListener("click", cancelOverwrite);
 
+  document.getElementById("addCustomStatBtn")?.addEventListener("click", () => {
+    addCustomStat();
+    uiFieldChanged();
+  });
 
+  document.getElementById("manageStatsBtn")?.addEventListener("click", showManageStatsModal);
+  
+  document.getElementById("closeManageStatsBtn")?.addEventListener("click", closeManageStatsModal);
+
+  document.getElementById("restoreDefaultsBtn")?.addEventListener("click", () => {
+    hiddenStats.clear();
+    Object.keys(DEFAULT_STATS).forEach(key => {
+      const el = document.getElementById(key);
+      if (el && el.parentElement) {
+        el.parentElement.classList.remove("hidden-stat");
+      }
+    });
+    updateMasterYamlDataFromUI();
+    updateRenderedStatblock();
+    updateYamlTextArea();
+  });
 }
 function updateSelectedRow(){
   const rows = document.querySelectorAll("#libraryTable tbody tr");
