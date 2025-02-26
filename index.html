@@ -171,20 +171,26 @@
     <div class="bundles-sidebar" id="bundlesSidebar">
       <div id="rightResizeHandle" class="resize-handle"></div>
       <div class="section-title" style="text-align:center;">Manage Library</div>
-      <!-- Top Tab Row: Manage & Backup -->
+      <!-- Top Tab Row: Now Bundles and Backup -->
       <div class="bundles-tabs top-tabs">
-        <div id="bundlesManageTab" class="bundles-tab active">Manage</div>
+        <div id="bundlesBundlesTab" class="bundles-tab active">Bundles</div>
         <div id="bundlesBackupTab" class="bundles-tab">Backup</div>
       </div>
-      <!-- Bottom Tab Row: Upload, Create & Merge -->
-      <div class="bundles-tabs bottom-tabs">
+      <!-- Bottom Tab Row: Now conditionally shown when Bundles is active -->
+      <div class="bundles-tabs bottom-tabs" id="bundlesSubTabs">
+        <div id="bundlesManageTab" class="bundles-tab active">Manage</div>
         <div id="bundlesUploadTab" class="bundles-tab">Upload</div>
         <div id="bundlesCreateTab" class="bundles-tab">Create</div>
         <div id="bundlesMergeTab" class="bundles-tab">Merge</div>
       </div>
-      <!-- Panels for each tab -->
+      
+      <!-- Bundles panel to serve as container for subtabs -->
+      <div class="bundles-panel active" id="bundlesBundlesPanel">
+        <!-- This will be dynamically filled with the active subtab panel -->
+      </div>
+      
       <!-- MANAGE -->
-      <div class="bundles-panel active" id="bundlesManagePanel">
+      <div class="bundles-panel" id="bundlesManagePanel">
         <div class="section-title">Manage Bundles</div>
         <div id="uploadedBundleList"></div>
       </div>

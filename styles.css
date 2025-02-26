@@ -605,7 +605,7 @@ body {
   white-space: nowrap;
 }
 .bundles-tabs.top-tabs .bundles-tab {
-  width: 50%;
+  width: 50%; /* Changed back to 50% for two tabs */
   text-align: center;
   padding: 8px;
   cursor: pointer;
@@ -624,7 +624,7 @@ body {
   white-space: nowrap;
 }
 .bundles-tabs.bottom-tabs .bundles-tab {
-  width: 33.33%;
+  width: 25%; /* Changed from 33.33% to 25% for 4 tabs */
   text-align: center;
   padding: 8px;
   cursor: pointer;

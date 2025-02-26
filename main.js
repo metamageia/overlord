@@ -81,6 +81,9 @@ window.addEventListener("DOMContentLoaded", () => {
   fillManageMergeSelect();
   renderUploadedBundles();
   
+  // Initialize bundle panels structure
+  initBundlePanels();
+  
   // NEW: Set the initial sidebar visibility based on device width
   setInitialSidebarVisibility();
   
@@ -89,8 +92,14 @@ window.addEventListener("DOMContentLoaded", () => {
   
   attachEventHandlers();
   renderDefaultDetail();
+  
+  // Initialize sidebar tab
   switchSidebarTab("library");
+  
+  // Initialize bundles tabs - default to Bundles top tab and Manage subtab
+  switchBundlesTab("bundles");
   switchBundlesTab("manage");
+  
   masterYamlData = {};
   updateUIFromMasterYaml();
   updateYamlTextArea();
@@ -243,11 +252,63 @@ function switchSidebarTab(tab){
   document.getElementById(tab + "Panel").classList.add("active");
   if(tab === "yaml") updateYamlTextArea();
 }
+
+// Update the switchBundlesTab function to handle both top-level and sub-level tabs
 function switchBundlesTab(tab) {
-  document.querySelectorAll("#bundlesSidebar .bundles-tab").forEach(btn => btn.classList.remove("active"));
-  document.getElementById("bundles" + tab.charAt(0).toUpperCase() + tab.slice(1) + "Tab").classList.add("active");
-  document.querySelectorAll("#bundlesSidebar .bundles-panel").forEach(p => p.classList.remove("active"));
-  document.getElementById("bundles" + tab.charAt(0).toUpperCase() + tab.slice(1) + "Panel").classList.add("active");
+  // Handle top-level tabs (Bundles, Backup)
+  if (tab === "bundles" || tab === "backup") {
+    // Hide all top-level panels
+    document.querySelectorAll(".bundles-panel").forEach(p => p.classList.remove("active"));
+    
+    // Remove active class from all top-level tabs
+    document.querySelectorAll(".bundles-tabs.top-tabs .bundles-tab").forEach(btn => 
+      btn.classList.remove("active"));
+    
+    // Activate the selected top-level tab
+    document.getElementById("bundles" + tab.charAt(0).toUpperCase() + tab.slice(1) + "Tab").classList.add("active");
+    
+    if (tab === "bundles") {
+      // Show the subtabs when Bundles is selected
+      document.getElementById("bundlesSubTabs").style.display = "flex";
+      
+      // If no subtab is active, default to Manage
+      if (!document.querySelector("#bundlesSubTabs .bundles-tab.active")) {
+        switchBundlesTab("manage");
+      } else {
+        // Get the currently active subtab and reactivate it
+        const activeSubtab = document.querySelector("#bundlesSubTabs .bundles-tab.active").id;
+        const subtabName = activeSubtab.replace("bundles", "").replace("Tab", "").toLowerCase();
+        document.getElementById("bundles" + subtabName.charAt(0).toUpperCase() + subtabName.slice(1) + "Panel").classList.add("active");
+      }
+      
+      // Show the bundles container panel
+      document.getElementById("bundlesBundlesPanel").classList.add("active");
+    } else {
+      // Hide the subtabs for other top-level tabs
+      document.getElementById("bundlesSubTabs").style.display = "none";
+      
+      // Activate the backup panel
+      document.getElementById("bundlesBackupPanel").classList.add("active");
+    }
+  } else {
+    // Handle subtabs (manage, upload, create, merge)
+    // Remove active class from all subtabs
+    document.querySelectorAll("#bundlesSubTabs .bundles-tab").forEach(btn => 
+      btn.classList.remove("active"));
+    
+    // Activate the selected subtab
+    document.getElementById("bundles" + tab.charAt(0).toUpperCase() + tab.slice(1) + "Tab").classList.add("active");
+    
+    // Hide all subtab panels
+    document.querySelectorAll("#bundlesBundlesPanel > .bundles-panel").forEach(p => {
+      p.classList.remove("active");
+      // Move the panel into the bundles container
+      document.getElementById("bundlesBundlesPanel").appendChild(p);
+    });
+    
+    // Activate the selected subtab panel
+    document.getElementById("bundles" + tab.charAt(0).toUpperCase() + tab.slice(1) + "Panel").classList.add("active");
+  }
 }
 
 /* LOCAL STORAGE FOR BUNDLES */
@@ -1933,18 +1994,25 @@ function closeManageStatsModal() {
   updateYamlTextArea();
 }
 
-function attachEventHandlers(){
+// Update attachEventHandlers to include the top tabs
+function attachEventHandlers() {
   document.getElementById("toggleSidebarBtn").addEventListener("click", toggleSidebar);
   document.getElementById("libraryToggle").addEventListener("click", () => switchSidebarTab("library"));
   document.getElementById("editorToggle").addEventListener("click", () => switchSidebarTab("editor"));
   document.getElementById("yamlToggle").addEventListener("click", () => switchSidebarTab("yaml"));
   document.getElementById("toggleBundlesSidebarBtn").addEventListener("click", toggleBundlesSidebar);
-  document.getElementById("bundlesManageTab").addEventListener("click", () => switchBundlesTab("manage"));
+  
+  // Add event listeners for top-level bundle tabs
+  document.getElementById("bundlesBundlesTab").addEventListener("click", () => switchBundlesTab("bundles"));
   document.getElementById("bundlesBackupTab").addEventListener("click", () => switchBundlesTab("backup"));
+  
+  // Add event listeners for bundle subtabs
+  document.getElementById("bundlesManageTab").addEventListener("click", () => switchBundlesTab("manage"));
   document.getElementById("bundlesUploadTab").addEventListener("click", () => switchBundlesTab("upload"));
   document.getElementById("bundlesCreateTab").addEventListener("click", () => switchBundlesTab("create"));
   document.getElementById("bundlesMergeTab").addEventListener("click", () => switchBundlesTab("merge"));
 
+  // Rest of your existing event handlers...
   document.getElementById("createNewBtn").addEventListener("click", () => {
     if (confirm("Create new empty statblock? Any unsaved changes will be lost.")) {
       masterYamlData = {};
@@ -2216,4 +2284,16 @@ function matchesNumericQuery(value, query) {
     }
   }
   return false;
+}
+
+// Add initialization for bundle panels on page load
+function initBundlePanels() {
+  // Move all subtab panels into the bundles container panel if they're not already there
+  const bundlesContainerPanel = document.getElementById("bundlesBundlesPanel");
+  ["manage", "upload", "create", "merge"].forEach(subtab => {
+    const panel = document.getElementById("bundles" + subtab.charAt(0).toUpperCase() + subtab.slice(1) + "Panel");
+    if (panel && panel.parentElement !== bundlesContainerPanel) {
+      bundlesContainerPanel.appendChild(panel);
+    }
+  });
 }
