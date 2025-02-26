@@ -373,8 +373,30 @@ function renderUploadedBundles(){
     delBtn.textContent = "Delete";
     delBtn.addEventListener("click", () => {
       if(confirm(`Delete bundle ${bundle.id}?`)){
+        const bundleId = bundle.id;
+        
+        // Remove the bundle from uploadedBundles
         uploadedBundles.splice(idx, 1);
         saveUploadedBundles();
+        
+        // Remove statblocks with matching bundleId from the library
+        statblocks = statblocks.filter(sb => sb.bundleId !== bundleId);
+        saveToLocalStorage();
+        
+        // Clear current selection if it was from the deleted bundle
+        if(currentDetail && currentDetail.bundleId === bundleId) {
+          currentDetail = null;
+          selectedStatblockID = null;
+          renderDefaultDetail();
+        }
+        
+        // Update search index
+        initSearch();
+        
+        // Refresh all UI components
+        renderStatblockLibrary();
+        renderCreateBundleList();
+        fillBundleSelect();
         fillManageMergeSelect();
         renderUploadedBundles();
       }
