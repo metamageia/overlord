@@ -942,6 +942,6 @@ body {
 }
 
 .basic-stats-row.custom-stats-row .basic-stat-card {
-  flex: 1 1 calc(33.33% - 10px);
-  min-width: 100px;
+  flex: 1 1 calc(25% - 10px);
+  min-width: 80px;
 }
