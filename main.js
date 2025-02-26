@@ -700,6 +700,11 @@ function renderStatblockLibrary(){
       const numA = parseInt(String(a?.tr || 0));
       const numB = parseInt(String(b?.tr || 0));
       return currentSortDirection === "asc" ? numA - numB : numB - numA;
+    } else if(currentSortField === "level") {
+      // Add this new block to handle level numerically
+      const numA = parseInt(String(a?.level || 0));
+      const numB = parseInt(String(b?.level || 0));
+      return currentSortDirection === "asc" ? numA - numB : numB - numA;
     } else if(currentSortField === "bundle") {
       const bundleNameA = getBundleName(a.bundleId) || "";
       const bundleNameB = getBundleName(b.bundleId) || "";
@@ -1005,6 +1010,11 @@ function renderCreateBundleList(){
     } else if(currentSortField === "tr") {
       const numA = parseInt(String(a?.tr || 0));
       const numB = parseInt(String(b?.tr || 0));
+      return currentSortDirection === "asc" ? numA - numB : numB - numA;
+    } else if(currentSortField === "level") {
+      // Add this new block to handle level numerically
+      const numA = parseInt(String(a?.level || 0));
+      const numB = parseInt(String(b?.level || 0));
       return currentSortDirection === "asc" ? numA - numB : numB - numA;
     } else if(currentSortField === "bundle") {
       const bundleNameA = getBundleName(a.bundleId) || "";
