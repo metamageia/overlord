@@ -132,11 +132,7 @@ window.addEventListener("DOMContentLoaded", () => {
     // Store the event for later
     deferredPrompt = e;
     
-    // Add a custom install button to your UI
-    const installButton = document.createElement('button');
-    installButton.id = 'pwaInstallBtn';
-    installButton.className = 'inline-btn';
-    installButton.textContent = 'Install App';
+
     
     // Add it after the toggle buttons
     const togglesContainer = document.querySelector('.sidebar-toggles');
