@@ -53,6 +53,9 @@ const DEFAULT_STATS = {
 
 let hiddenStats = new Set();  // Tracks which default stats are hidden
 
+// Add this to your global variables
+let deferredPrompt;
+
 /* ---------------------------------------------
  * NEW: Set Initial Sidebar Visibility Function
  * ---------------------------------------------
@@ -121,6 +124,41 @@ window.addEventListener("DOMContentLoaded", () => {
       console.error("Error decoding share parameter:", e);
     }
   }
+
+  // Add this to your window.addEventListener("DOMContentLoaded", () => {}) function
+  window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent the default prompt
+    e.preventDefault();
+    // Store the event for later
+    deferredPrompt = e;
+    
+    // Add a custom install button to your UI
+    const installButton = document.createElement('button');
+    installButton.id = 'pwaInstallBtn';
+    installButton.className = 'inline-btn';
+    installButton.textContent = 'Install App';
+    
+    // Add it after the toggle buttons
+    const togglesContainer = document.querySelector('.sidebar-toggles');
+    togglesContainer.appendChild(installButton);
+    
+    // Add click handler
+    installButton.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      
+      // Show the install prompt
+      deferredPrompt.prompt();
+      
+      // Wait for the user to respond
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      // Reset the deferred prompt
+      deferredPrompt = null;
+      
+      // Hide the button
+      installButton.style.display = 'none';
+    });
+  });
 });
 
 /* ---------------------------------------------
