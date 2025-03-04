@@ -21,11 +21,12 @@ export function updateYamlTextArea(){
     }
 }
   // Update MasterYamlData from YAML Text Area
-export function updateMasterYamlDataFromYaml(){
+export function updateMasterYamlDataFromYaml() {
     try {
       const parsed = jsyaml.load(document.getElementById("yamlArea").value.replace(/\u00A0/g, " "));
       if(parsed){
-        masterYamlData = parsed;
+        // Replace direct assignment with the proper update function
+        updateMasterYamlData(parsed);
         updateUIFromMasterYaml();
         updateRenderedStatblock();
       }

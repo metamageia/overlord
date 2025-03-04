@@ -49,6 +49,21 @@ function renderComponentPreview(components) {
     other: components.filter(c => c.type !== "Feature" && (!c.type || !c.type.includes("Deed")))
   };
   
+  // Sort deeds in the proper order: Light, Heavy, Mighty, Tyrant, Special
+  const deedOrder = {
+    "Light Deed": 1,
+    "Heavy Deed": 2,
+    "Mighty Deed": 3,
+    "Tyrant Deed": 4,
+    "Special Deed": 5
+  };
+  
+  groupedComponents.deeds.sort((a, b) => {
+    const aOrder = deedOrder[a.type] || 99;
+    const bOrder = deedOrder[b.type] || 99;
+    return aOrder - bOrder;
+  });
+  
   // Show selection count
   const countDiv = document.createElement("div");
   countDiv.className = "component-selection-info";
@@ -216,42 +231,32 @@ function renderComponentPreview(components) {
 
 // Updated to apply multiple components including Presets
 function applyComponentsToStatblock(components) {
-  if (!components || components.length === 0) return;
-  
   try {
-    // Get current data from UI first
-    updateMasterYamlDataFromUI();
-    
-    // Apply all components
     components.forEach(component => {
+      // Skip if no component
+      if (!component) return;
+      
+      // Handle presets (components with multiple deed types and features)
       if (component.type === "Preset") {
-        // Parse the preset YAML and merge with master YAML
         try {
           const presetData = jsyaml.load(component.yaml);
           if (!presetData) return;
           
-          // Merge features (don't overwrite existing)
-          if (presetData.features) {
-            if (!masterYamlData.features) masterYamlData.features = {};
-            Object.assign(masterYamlData.features, presetData.features);
-          }
-          
-          // Append deeds (don't overwrite)
-          const deedTypes = [
-            { property: "lightDeeds", type: "Light" },
-            { property: "heavyDeeds", type: "Heavy" },
-            { property: "mightyDeeds", type: "Mighty" },
-            { property: "tyrantDeeds", type: "Tyrant" },
-            { property: "specialDeeds", type: "Special" }
-          ];
-          
-          deedTypes.forEach(({ property }) => {
-            if (presetData[property]) {
-              if (!masterYamlData[property]) {
-                masterYamlData[property] = presetData[property];
-              } else {
-                masterYamlData[property] = masterYamlData[property] + "\n\n" + presetData[property];
+          // Process deed types from preset
+          ["lightDeeds", "heavyDeeds", "mightyDeeds", "tyrantDeeds", "specialDeeds"].forEach(deedType => {
+            if (presetData[deedType]) {
+              // Parse existing deeds into an array if they exist
+              let existingDeeds = [];
+              if (masterYamlData[deedType]) {
+                existingDeeds = parseDeedsStringNew(masterYamlData[deedType]);
               }
+              
+              // Parse new deeds from preset
+              const newDeeds = parseDeedsStringNew(presetData[deedType]);
+              
+              // Combine deeds and convert back to string with proper separation
+              const combinedDeeds = existingDeeds.concat(newDeeds);
+              masterYamlData[deedType] = combinedDeeds.map(deed => deed.trim()).join("\n\n");
             }
           });
           
@@ -311,46 +316,34 @@ function applyFeatureComponent(component) {
 
 // Function to apply a deed component
 function applyDeedComponent(component) {
-  // Determine deed type from component.type or component.deedType
-  let deedType = (component.deedType || "").toLowerCase();
+  // Skip if no component or type
+  if (!component || !component.type) return;
   
-  if (!deedType && component.type) {
-    const typeString = component.type.toLowerCase();
-    if (typeString.includes("light")) deedType = "light";
-    else if (typeString.includes("heavy")) deedType = "heavy";
-    else if (typeString.includes("mighty")) deedType = "mighty";
-    else if (typeString.includes("tyrant")) deedType = "tyrant";
-    else if (typeString.includes("special")) deedType = "special";
+  // Determine deed type field based on component type
+  let deedType;
+  switch (component.type) {
+    case "Light Deed": deedType = "lightDeeds"; break;
+    case "Heavy Deed": deedType = "heavyDeeds"; break;
+    case "Mighty Deed": deedType = "mightyDeeds"; break;
+    case "Tyrant Deed": deedType = "tyrantDeeds"; break;
+    case "Special Deed": deedType = "specialDeeds"; break;
+    default: return; // Exit if not a recognized deed type
   }
   
-  if (!deedType) return; // Can't determine deed type
+  // Get existing deeds
+  let existingDeeds = masterYamlData[deedType] || "";
   
-  // Map deed type to property name
-  const deedPropertyMap = {
-    "light": "lightDeeds",
-    "heavy": "heavyDeeds",
-    "mighty": "mightyDeeds",
-    "tyrant": "tyrantDeeds",
-    "special": "specialDeeds"
-  };
-  
-  const propertyName = deedPropertyMap[deedType];
-  if (!propertyName) return;
-  
-  // Get existing deeds or initialize empty string
-  let existingDeeds = masterYamlData[propertyName] || "";
-  
-  // Add the deed content
-  const deedContent = component.yaml || "";
-  if (deedContent) {
-    // Add a separator if needed
-    if (existingDeeds && !existingDeeds.endsWith("\n")) {
-      existingDeeds += "\n";
-    }
-    
-    // Append the deed content
-    masterYamlData[propertyName] = existingDeeds + deedContent;
+  // If there are existing deeds, ensure proper separation
+  if (existingDeeds.trim()) {
+    // Add a double line break to ensure a blank line between deeds
+    // First, trim any existing trailing whitespace/line breaks
+    existingDeeds = existingDeeds.trim();
+    // Then add the double line break
+    existingDeeds += "\n\n";
   }
+  
+  // Append the new deed content
+  masterYamlData[deedType] = existingDeeds + component.yaml.trim();
 }
 
 // Render a feature component
