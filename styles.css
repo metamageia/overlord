@@ -440,30 +440,39 @@ body {
 }
 .dynamic-line {
   display: flex;
-  gap: 5px;
-  align-items: center;
+  align-items: flex-start;
   position: relative;
+  padding: 8px 30px 8px 8px; /* Space for delete button on right */
+  margin-bottom: 8px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.line-top-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 5px;
+}
+.line-bottom-row {
+  width: 100%;
 }
 .line-title {
-  width: 40%;
-  padding: 3px;
+  width: 100%;
+  font-weight: 500;
 }
 .line-content {
-  width: 50%;
-  padding: 3px;
+  width: 100%;
+  padding: 6px;
 }
-.reorder-buttons,
 .line-reorder-buttons {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin-right: 5px;
+  gap: 3px;
+  margin-right: 8px;
+  padding-top: 2px; /* Align vertically with the title input */
 }
-
-.line-reorder-buttons {
-  scale: 0.8;
-}
-
 .reorder-btn {
   cursor: pointer;
   width: 20px;
@@ -478,24 +487,44 @@ body {
   border: 1px solid #ccc;
   border-radius: 3px;
 }
-
 .reorder-btn:hover {
   background: #e0e0e0;
 }
-
+.reorder-btn.line-up-btn, 
+.reorder-btn.line-down-btn {
+  width: 18px;
+  height: 18px;
+  font-size: 9px;
+  padding: 0;
+}
+.delete-btn {
+  position: absolute;
+  right: 5px;
+  top: 8px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.line-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 5px;
+}
 .deed-content-wrapper {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
   gap: 10px;
 }
-
 .deed-title-row {
   display: flex;
   width: 100%;
   margin-bottom: 5px;
 }
-
 .deed-title-input {
   width: 100%;
   font-weight: bold;

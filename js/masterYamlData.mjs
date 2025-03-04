@@ -290,12 +290,12 @@ function addDeed(type, deedObj=null){
   removeDeedBtn.onclick = () => { div.remove(); uiFieldChanged(); };
   
   // Append in proper order for vertical layout
-  div.appendChild(reorderContainer);
   deedContentWrapper.appendChild(titleRow);
   deedContentWrapper.appendChild(linesCont);
   deedContentWrapper.appendChild(addLineBtn);
   div.appendChild(deedContentWrapper);
   div.appendChild(removeDeedBtn);
+  div.appendChild(reorderContainer);
   container.appendChild(div);
   
   if(deedObj && Array.isArray(deedObj.lines)){
@@ -339,16 +339,16 @@ function addLine(container, line=null){
   lineReorderContainer.appendChild(lineUpButton);
   lineReorderContainer.appendChild(lineDownButton);
   
+  // Create content wrapper
+  const contentWrapper = document.createElement("div");
+  contentWrapper.className = "line-content-wrapper";
+  
   const titleInput = document.createElement("input");
   titleInput.type = "text";
   titleInput.className = "line-title";
   titleInput.placeholder = "Line Title";
   titleInput.value = line ? (line.title || "") : "";
   titleInput.addEventListener("input", uiFieldChanged);
-  
-  const colonSpan = document.createElement("span");
-  colonSpan.textContent = ":";
-  colonSpan.className = "line-colon";
   
   const contentInput = document.createElement("input");
   contentInput.type = "text";
@@ -365,10 +365,12 @@ function addLine(container, line=null){
     uiFieldChanged();
   });
   
+  // Assemble the components
+  contentWrapper.appendChild(titleInput);
+  contentWrapper.appendChild(contentInput);
+  
   lineDiv.appendChild(lineReorderContainer);
-  lineDiv.appendChild(titleInput);
-  lineDiv.appendChild(colonSpan);
-  lineDiv.appendChild(contentInput);
+  lineDiv.appendChild(contentWrapper);
   lineDiv.appendChild(removeBtn);
   container.appendChild(lineDiv);
 }
