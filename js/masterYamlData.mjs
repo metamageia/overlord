@@ -128,7 +128,7 @@ export function updateMasterYamlDataFromUI() {
     let featuresArray = collectFeatures();
     let featuresObj = {};
     featuresArray.forEach(f => { if(f.title) featuresObj[f.title] = f.content; });
-    masterYamlData.features = featuresObj;
+    masterYamlData.features = featuresObj;  
     masterYamlData.lightDeeds = collectDeedsAsString("light");
     masterYamlData.heavyDeeds = collectDeedsAsString("heavy");
     masterYamlData.mightyDeeds = collectDeedsAsString("mighty");
@@ -154,19 +154,56 @@ function addFeature(feature=null){
   const container = document.getElementById("featuresContainer");
   const div = document.createElement("div");
   div.className = "dynamic-feature";
+  
+  // Create reordering buttons container
+  const reorderContainer = document.createElement("div");
+  reorderContainer.className = "reorder-buttons";
+  
+  const upButton = document.createElement("button");
+  upButton.innerHTML = "&#9650;"; // Up arrow
+  upButton.className = "reorder-btn up-btn";
+  upButton.title = "Move up";
+  upButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    const prev = div.previousElementSibling;
+    if (prev && prev.classList.contains("dynamic-feature")) {
+      container.insertBefore(div, prev);
+      uiFieldChanged();
+    }
+  });
+  
+  const downButton = document.createElement("button");
+  downButton.innerHTML = "&#9660;"; // Down arrow
+  downButton.className = "reorder-btn down-btn";
+  downButton.title = "Move down";
+  downButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    const next = div.nextElementSibling;
+    if (next && next.classList.contains("dynamic-feature")) {
+      container.insertBefore(next, div);
+      uiFieldChanged();
+    }
+  });
+  
+  reorderContainer.appendChild(upButton);
+  reorderContainer.appendChild(downButton);
+  
   const titleInput = document.createElement("input");
   titleInput.type = "text";
   titleInput.placeholder = "Title";
   titleInput.value = feature ? (feature.title || "") : "";
   titleInput.addEventListener("input", uiFieldChanged);
+  
   const colonSpan = document.createElement("span");
   colonSpan.textContent = ":";
   colonSpan.className = "feature-colon";
+  
   const contentInput = document.createElement("input");
   contentInput.type = "text";
   contentInput.placeholder = "Content";
   contentInput.value = feature ? (feature.content || "") : "";
   contentInput.addEventListener("input", uiFieldChanged);
+  
   const removeBtn = document.createElement("button");
   removeBtn.textContent = "x";
   removeBtn.className = "delete-btn";
@@ -174,71 +211,178 @@ function addFeature(feature=null){
     div.remove();
     uiFieldChanged();
   });
-  div.append(titleInput, colonSpan, contentInput, removeBtn);
+  
+  div.appendChild(reorderContainer);
+  div.appendChild(titleInput);
+  div.appendChild(colonSpan);
+  div.appendChild(contentInput);
+  div.appendChild(removeBtn);
   container.appendChild(div);
 }
 function addDeed(type, deedObj=null){
   const container = document.getElementById(type + "DeedsContainer");
   const div = document.createElement("div");
   div.className = "dynamic-deed " + type;
+  
+  // Create a wrapper for the deed content
+  const deedContentWrapper = document.createElement("div");
+  deedContentWrapper.className = "deed-content-wrapper";
+  
+  // Create reordering buttons container
+  const reorderContainer = document.createElement("div");
+  reorderContainer.className = "reorder-buttons";
+  
+  const upButton = document.createElement("button");
+  upButton.innerHTML = "&#9650;"; // Up arrow
+  upButton.className = "reorder-btn up-btn";
+  upButton.title = "Move up";
+  upButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    const prev = div.previousElementSibling;
+    if (prev && prev.classList.contains("dynamic-deed")) {
+      container.insertBefore(div, prev);
+      uiFieldChanged();
+    }
+  });
+  
+  const downButton = document.createElement("button");
+  downButton.innerHTML = "&#9660;"; // Down arrow
+  downButton.className = "reorder-btn down-btn";
+  downButton.title = "Move down";
+  downButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    const next = div.nextElementSibling;
+    if (next && next.classList.contains("dynamic-deed")) {
+      container.insertBefore(next, div);
+      uiFieldChanged();
+    }
+  });
+  
+  reorderContainer.appendChild(upButton);
+  reorderContainer.appendChild(downButton);
+  
+  // Create title row
+  const titleRow = document.createElement("div");
+  titleRow.className = "deed-title-row";
+  
   const titleInput = document.createElement("input");
   titleInput.type = "text";
   titleInput.placeholder = `Enter ${type} deed title`;
+  titleInput.className = "deed-title-input";
   titleInput.value = deedObj ? (deedObj.title || "") : "";
   titleInput.addEventListener("input", uiFieldChanged);
+  
+  titleRow.appendChild(titleInput);
+  
   const linesCont = document.createElement("div");
   linesCont.className = "linesContainer";
+  
   const addLineBtn = document.createElement("button");
   addLineBtn.type = "button";
   addLineBtn.textContent = "Add Line";
   addLineBtn.className = "small-btn";
   addLineBtn.onclick = () => { addLine(linesCont); };
+  
   const removeDeedBtn = document.createElement("button");
   removeDeedBtn.type = "button";
   removeDeedBtn.textContent = "x";
   removeDeedBtn.className = "delete-deed-btn";
   removeDeedBtn.onclick = () => { div.remove(); uiFieldChanged(); };
-  div.append(titleInput, linesCont, addLineBtn, removeDeedBtn);
+  
+  // Append in proper order for vertical layout
+  div.appendChild(reorderContainer);
+  deedContentWrapper.appendChild(titleRow);
+  deedContentWrapper.appendChild(linesCont);
+  deedContentWrapper.appendChild(addLineBtn);
+  div.appendChild(deedContentWrapper);
+  div.appendChild(removeDeedBtn);
   container.appendChild(div);
+  
   if(deedObj && Array.isArray(deedObj.lines)){
     deedObj.lines.forEach(line => addLine(linesCont, line));
   }
 }
 function addLine(container, line=null){
-  const div = document.createElement("div");
-  div.className = "dynamic-line";
+  const lineDiv = document.createElement("div");
+  lineDiv.className = "dynamic-line";
+  
+  // Create reordering buttons for lines
+  const lineReorderContainer = document.createElement("div");
+  lineReorderContainer.className = "line-reorder-buttons";
+  
+  const lineUpButton = document.createElement("button");
+  lineUpButton.innerHTML = "&#9650;"; // Up arrow
+  lineUpButton.className = "reorder-btn line-up-btn";
+  lineUpButton.title = "Move line up";
+  lineUpButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    const prev = lineDiv.previousElementSibling;
+    if (prev && prev.classList.contains("dynamic-line")) {
+      container.insertBefore(lineDiv, prev);
+      uiFieldChanged();
+    }
+  });
+  
+  const lineDownButton = document.createElement("button");
+  lineDownButton.innerHTML = "&#9660;"; // Down arrow
+  lineDownButton.className = "reorder-btn line-down-btn";
+  lineDownButton.title = "Move line down";
+  lineDownButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    const next = lineDiv.nextElementSibling;
+    if (next && next.classList.contains("dynamic-line")) {
+      container.insertBefore(next, lineDiv);
+      uiFieldChanged();
+    }
+  });
+  
+  lineReorderContainer.appendChild(lineUpButton);
+  lineReorderContainer.appendChild(lineDownButton);
+  
   const titleInput = document.createElement("input");
   titleInput.type = "text";
-  titleInput.placeholder = "Line title";
   titleInput.className = "line-title";
+  titleInput.placeholder = "Line Title";
   titleInput.value = line ? (line.title || "") : "";
   titleInput.addEventListener("input", uiFieldChanged);
+  
   const colonSpan = document.createElement("span");
   colonSpan.textContent = ":";
   colonSpan.className = "line-colon";
+  
   const contentInput = document.createElement("input");
   contentInput.type = "text";
-  contentInput.placeholder = "Line content";
   contentInput.className = "line-content";
+  contentInput.placeholder = "Content";
   contentInput.value = line ? (line.content || "") : "";
   contentInput.addEventListener("input", uiFieldChanged);
+  
   const removeBtn = document.createElement("button");
-  removeBtn.type = "button";
   removeBtn.textContent = "x";
   removeBtn.className = "delete-btn";
-  removeBtn.onclick = () => { div.remove(); uiFieldChanged(); };
-  div.append(titleInput, colonSpan, contentInput, removeBtn);
-  container.appendChild(div);
+  removeBtn.addEventListener("click", () => {
+    lineDiv.remove();
+    uiFieldChanged();
+  });
+  
+  lineDiv.appendChild(lineReorderContainer);
+  lineDiv.appendChild(titleInput);
+  lineDiv.appendChild(colonSpan);
+  lineDiv.appendChild(contentInput);
+  lineDiv.appendChild(removeBtn);
+  container.appendChild(lineDiv);
 }
 function collectFeatures(){
-  const arr = [];
+  const features = [];
   document.querySelectorAll("#featuresContainer .dynamic-feature").forEach(div => {
     const inputs = div.querySelectorAll("input");
-    const t = inputs[0].value.trim();
-    const c = inputs[1].value.trim();
-    if(t || c) arr.push({ title: t, content: c });
+    const title = inputs[0].value.trim();
+    const content = inputs[1].value.trim();
+    if(title){
+      features.push({title, content});
+    }
   });
-  return arr;
+  return features;
 }
 function collectDeedsAsString(type){
   const arr = [];

@@ -371,14 +371,19 @@ body {
   margin: 5px 0 10px;
 }
 .dynamic-feature,
+.dynamic-deed,
+.dynamic-line {
+  display: flex;
+  align-items: center;
+}
 .dynamic-deed {
-  border: 1px solid #333;
-  background: #f7f7f7;
-  padding: 5px;
-  margin-bottom: 10px;
+  display: flex;
   position: relative;
-  width: 100%;
-  box-sizing: border-box;
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f9f9f9;
 }
 .dynamic-deed.light {
   background: #e0f7fa;
@@ -407,8 +412,8 @@ body {
 }
 .delete-deed-btn {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 5px;
+  right: 5px;
 }
 .small-btn {
   padding: 2px 4px;
@@ -430,12 +435,14 @@ body {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  margin: 10px 0;
+  margin: 5px 0;
+  width: 100%;
 }
 .dynamic-line {
   display: flex;
   gap: 5px;
   align-items: center;
+  position: relative;
 }
 .line-title {
   width: 40%;
@@ -444,6 +451,55 @@ body {
 .line-content {
   width: 50%;
   padding: 3px;
+}
+.reorder-buttons,
+.line-reorder-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-right: 5px;
+}
+
+.line-reorder-buttons {
+  scale: 0.8;
+}
+
+.reorder-btn {
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  line-height: 1;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+.reorder-btn:hover {
+  background: #e0e0e0;
+}
+
+.deed-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: 10px;
+}
+
+.deed-title-row {
+  display: flex;
+  width: 100%;
+  margin-bottom: 5px;
+}
+
+.deed-title-input {
+  width: 100%;
+  font-weight: bold;
+  padding: 5px;
 }
 
 /* -------------------------------
