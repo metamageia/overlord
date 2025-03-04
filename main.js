@@ -1,5 +1,5 @@
 /************************************************
- * ALL JS LOGIC
+ * Global Variables
  ************************************************/
 
 // GLOBALS & DATA STORAGE
@@ -53,25 +53,13 @@ const DEFAULT_STATS = {
 
 let hiddenStats = new Set();  // Tracks which default stats are hidden
 
-// Add this to your global variables
+// PWA Add this to your global variables
 let deferredPrompt;
 
 /* ---------------------------------------------
- * NEW: Set Initial Sidebar Visibility Function
+ * Event Listeners
  * ---------------------------------------------
  */
-function setInitialSidebarVisibility(){
-  const leftSidebar = document.getElementById("sidebar");
-  const rightSidebar = document.getElementById("bundlesSidebar");
-  // On mobile (max-width 480px), default both sidebars to hidden
-  if(window.matchMedia("(max-width:480px)").matches){
-    leftSidebar.classList.add("collapsed");
-    rightSidebar.classList.add("collapsed");
-  } else {
-    leftSidebar.classList.remove("collapsed");
-    rightSidebar.classList.remove("collapsed");
-  }
-}
 
 window.addEventListener("DOMContentLoaded", () => {
   loadFromLocalStorage();
@@ -222,7 +210,6 @@ function generateStatblockID(statblockObj) {
   return hashString(str);
 }
 
-// NEW: Bundle ID Generation Function
 function generateBundleID(bundleArray) {
   const clones = bundleArray.map(sb => {
     let copy = JSON.parse(JSON.stringify(sb));
@@ -241,9 +228,11 @@ function generateBundleID(bundleArray) {
 }
 
 /* ---------------------------------------------
- * NEW: Reversible Encoding/Decoding Functions using LZ-string
+ Statblock Export and Sharing
  * ---------------------------------------------
  */
+
+ // --- Import / Export Share Code --- //
 function encodeStatblockData(yamlString) {
   const compressed = LZString.compressToEncodedURIComponent(yamlString);
   return compressed;
@@ -253,9 +242,46 @@ function decodeStatblockData(encodedString) {
   return decompressed;
 }
 
-/* SIDEBAR & TAB SWITCHING */
+// --- Export Statblock Render --- //
+function exportCurrentDetail(){
+  if(!currentDetail){
+    alert("No statblock selected.");
+    return;
+  }
+  const exportContainer = document.createElement("div");
+  exportContainer.style.width = "560px";
+  exportContainer.style.height = "auto";
+  exportContainer.style.padding = "10px";
+  exportContainer.style.boxSizing = "border-box";
+  exportContainer.innerHTML = document.getElementById("detailStatblock").innerHTML;
+  document.body.appendChild(exportContainer);
+  html2canvas(exportContainer, { scale: 2 }).then(canvas => {
+    const fmt = document.getElementById("exportFormat").value;
+    const baseName = currentDetail.monsterName ? currentDetail.monsterName.replace(/\s+/g, "_") : "statblock";
+    if(fmt === "png"){
+      const a = document.createElement("a");
+      a.download = baseName + ".png";
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+    } else {
+      const pdf = new jspdf.jsPDF({
+        orientation: "landscape",
+        unit: "px",
+        format: [canvas.width, canvas.height]
+      });
+      pdf.addImage(canvas.toDataURL("image/png"), 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save(baseName + ".pdf");
+    }
+    document.body.removeChild(exportContainer);
+  });
+}
 
-// --- Revised Toggle Functions ---
+/* ---------------------------------------------
+ * UI Controllers
+ * ---------------------------------------------
+ */
+
+// Left Sidebar
 function toggleSidebar(){
   const leftSidebar = document.getElementById("sidebar");
   const rightSidebar = document.getElementById("bundlesSidebar");
@@ -266,17 +292,6 @@ function toggleSidebar(){
   }
   leftSidebar.classList.toggle("collapsed");
 }
-function toggleBundlesSidebar(){
-  const leftSidebar = document.getElementById("sidebar");
-  const rightSidebar = document.getElementById("bundlesSidebar");
-  if(window.matchMedia("(max-width:480px)").matches){
-    if(!leftSidebar.classList.contains("collapsed")){
-      leftSidebar.classList.add("collapsed");
-    }
-  }
-  rightSidebar.classList.toggle("collapsed");
-}
-
 function switchSidebarTab(tab){
   ["library", "editor", "yaml"].forEach(t => {
     document.getElementById(t + "Toggle").classList.remove("active");
@@ -287,7 +302,17 @@ function switchSidebarTab(tab){
   if(tab === "yaml") updateYamlTextArea();
 }
 
-// Update the switchBundlesTab function to handle both top-level and sub-level tabs
+// Right Sidebar
+function toggleBundlesSidebar(){
+  const leftSidebar = document.getElementById("sidebar");
+  const rightSidebar = document.getElementById("bundlesSidebar");
+  if(window.matchMedia("(max-width:480px)").matches){
+    if(!leftSidebar.classList.contains("collapsed")){
+      leftSidebar.classList.add("collapsed");
+    }
+  }
+  rightSidebar.classList.toggle("collapsed");
+}
 function switchBundlesTab(tab) {
   // Handle top-level tabs (Bundles, Backup)
   if (tab === "bundles" || tab === "backup") {
@@ -345,7 +370,42 @@ function switchBundlesTab(tab) {
   }
 }
 
-/* LOCAL STORAGE FOR BUNDLES */
+// --- Initial Sidebar Visibility --- //
+function setInitialSidebarVisibility(){
+  const leftSidebar = document.getElementById("sidebar");
+  const rightSidebar = document.getElementById("bundlesSidebar");
+  // On mobile (max-width 480px), default both sidebars to hidden
+  if(window.matchMedia("(max-width:480px)").matches){
+    leftSidebar.classList.add("collapsed");
+    rightSidebar.classList.add("collapsed");
+  } else {
+    leftSidebar.classList.remove("collapsed");
+    rightSidebar.classList.remove("collapsed");
+  }
+}
+// Add initialization for bundle panels on page load
+function initBundlePanels() {
+  // Move all subtab panels into the bundles container panel if they're not already there
+  const bundlesContainerPanel = document.getElementById("bundlesBundlesPanel");
+  ["manage", "upload", "create", "merge"].forEach(subtab => {
+    const panel = document.getElementById("bundles" + subtab.charAt(0).toUpperCase() + subtab.slice(1) + "Panel");
+    if (panel && panel.parentElement !== bundlesContainerPanel) {
+      bundlesContainerPanel.appendChild(panel);
+    }
+  });
+}
+
+/* ---------------------------------------------
+ * Bundle Management
+ * ---------------------------------------------
+ */
+
+// USELESS?
+function fillBundleSelect(){
+  console.log("Fill bundle select called");
+}
+
+// Bundle Save & Load
 function loadUploadedBundles(){
   try { uploadedBundles = JSON.parse(localStorage.getItem(LOCAL_STORAGE_BUNDLES_KEY)) || []; }
   catch(e){ uploadedBundles = []; }
@@ -354,10 +414,7 @@ function saveUploadedBundles(){
   localStorage.setItem(LOCAL_STORAGE_BUNDLES_KEY, JSON.stringify(uploadedBundles));
 }
 
-/* MISSING FUNCTIONS IMPLEMENTATION */
-function fillBundleSelect(){
-  console.log("fillBundleSelect called");
-}
+// Bundle Merge Selection
 function fillManageMergeSelect(){
   const mergeSelect = document.getElementById("manageMergeSelect");
   mergeSelect.innerHTML = "";
@@ -370,7 +427,7 @@ function fillManageMergeSelect(){
   });
 }
 
-// Helper function: get bundle name for a given bundleId
+// Get Bundle Name from ID
 function getBundleName(bundleId) {
   const bun = uploadedBundles.find(x => x.id === bundleId);
   return bun ? bun.bundleName : "";
@@ -510,6 +567,8 @@ function renderUploadedBundles(){
  * MASTER YAML SYNCHRONIZATION FUNCTIONS
  * ---------------------------------------------
  */
+
+// Update YAML text area from MasterYAML?
 function updateYamlTextArea(){
   try {
     const clone = Object.assign({}, masterYamlData);
@@ -520,8 +579,21 @@ function updateYamlTextArea(){
     console.error(e);
   }
 }
+// Update MasterYamlData from YAML Text Area
+function updateMasterYamlDataFromYaml(){
+  try {
+    const parsed = jsyaml.load(document.getElementById("yamlArea").value.replace(/\u00A0/g, " "));
+    if(parsed){
+      masterYamlData = parsed;
+      updateUIFromMasterYaml();
+      updateRenderedStatblock();
+    }
+  } catch(e){
+    console.error("YAML parse error:", e);
+  }
+}
 
-// Modify updateUIFromMasterYaml to handle custom stats
+// Update UIEditor from masterYamlData
 function updateUIFromMasterYaml(){
   // Reset hiddenStats based on masterYamlData
   hiddenStats.clear();
@@ -574,8 +646,7 @@ function updateUIFromMasterYaml(){
     }
   });
 }
-
-// Modify updateMasterYamlDataFromUI to include custom stats
+// Update MasterYamlData from UIEditor Changes
 function updateMasterYamlDataFromUI() {
   // Update basic info
   masterYamlData.monsterName = document.getElementById("monsterName").value.trim();
@@ -628,20 +699,12 @@ function updateMasterYamlDataFromUI() {
   updateRenderedStatblock();
 }
 
-function updateMasterYamlDataFromYaml(){
-  try {
-    const parsed = jsyaml.load(document.getElementById("yamlArea").value.replace(/\u00A0/g, " "));
-    if(parsed){
-      masterYamlData = parsed;
-      updateUIFromMasterYaml();
-      updateRenderedStatblock();
-    }
-  } catch(e){
-    console.error("YAML parse error:", e);
-  }
-}
+/* ---------------------------------------------
+ * Render Statblock Library
+ * ---------------------------------------------
+ */
 
-/* RENDER LIBRARY TABLE */
+// Render Library Table
 function renderStatblockLibrary(){
   const container = document.getElementById("statblockList");
   let focusedId = "";
@@ -919,25 +982,7 @@ function renderStatblockLibrary(){
     }
   }
 }
-
-// NEW: Updated matchesStringQuery function remains unchanged.
-function matchesStringQuery(text, query) {
-  if (!query.trim()) return true;
-  const segments = query.split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
-  const positive = [];
-  const negative = [];
-  segments.forEach(seg => {
-    if (seg.startsWith("-")) {
-      negative.push(seg.slice(1));
-    } else {
-      positive.push(seg);
-    }
-  });
-  const positiveMatch = positive.length > 0 ? positive.some(seg => text.toLowerCase().includes(seg)) : true;
-  const negativeMatch = negative.every(seg => !text.toLowerCase().includes(seg));
-  return positiveMatch && negativeMatch;
-}
-
+// Resize Columns in Statblock Library
 function initThResizer(resizer, th, colId){
   let startX, startWidth;
   resizer.addEventListener("mousedown", function(e){
@@ -958,10 +1003,209 @@ function initThResizer(resizer, th, colId){
     document.removeEventListener("mouseup", onMouseUp);
   }
 }
+// Row Selection
+function updateSelectedRow(){
+  const rows = document.querySelectorAll("#libraryTable tbody tr");
+  rows.forEach((row) => {
+    const idx = row.getAttribute("data-index");
+    const sb = currentFilteredList[idx];
+    if(sb && sb.statblockID === selectedStatblockID){
+      row.classList.add("selected");
+    } else {
+      row.classList.remove("selected");
+    }
+  });
+}
+// --- Library Search --- //
+function initSearch(){
+  fuseIndex = new Fuse(statblocks, {
+    keys: ["monsterName","role","template","level","tr"],
+    threshold: 0.3,
+    ignoreLocation: true
+  });
+}
+// Number Parsing for Library and Bundle Filters
+function matchesNumericQuery(value, query) {
+  if (!query.trim()) return true;
+  
+  // Convert value to number, handling undefined/null
+  const numVal = value ? Number(value.toString().replace(/[^\d.-]/g, '')) : 0;
+  if (isNaN(numVal)) return false;
 
-/* -------------------------------
- RENDER CREATE BUNDLE TABLE
-------------------------------- */
+  const segments = query.split(",").map(s => s.trim()).filter(Boolean);
+  for (let seg of segments) {
+    if (/^>\s*(\d+)$/.test(seg)) {
+      const num = Number(seg.match(/^>\s*(\d+)$/)[1]);
+      if (numVal > num) return true;
+    } else if (/^>=\s*(\d+)$/.test(seg)) {
+      const num = Number(seg.match(/^>=\s*(\d+)$/)[1]);
+      if (numVal >= num) return true;
+    } else if (/^<\s*(\d+)$/.test(seg)) {
+      const num = Number(seg.match(/^<\s*(\d+)$/)[1]);
+      if (numVal < num) return true;
+    } else if (/^<=\s*(\d+)$/.test(seg)) {
+      const num = Number(seg.match(/^<=\s*(\d+)$/)[1]);
+      if (numVal <= num) return true;
+    } else if (/^(\d+)\s*-\s*(\d+)$/.test(seg)) {
+      const [, min, max] = seg.match(/^(\d+)\s*-\s*(\d+)$/);
+      if (numVal >= Number(min) && numVal <= Number(max)) return true;
+    } else if (!isNaN(Number(seg))) {
+      if (numVal === Number(seg)) return true;
+    }
+  }
+  return false;
+}
+// Filter String Parsing for Library and Bundle Filters
+function matchesStringQuery(text, query) {
+  if (!query.trim()) return true;
+  const segments = query.split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
+  const positive = [];
+  const negative = [];
+  segments.forEach(seg => {
+    if (seg.startsWith("-")) {
+      negative.push(seg.slice(1));
+    } else {
+      positive.push(seg);
+    }
+  });
+  const positiveMatch = positive.length > 0 ? positive.some(seg => text.toLowerCase().includes(seg)) : true;
+  const negativeMatch = negative.every(seg => !text.toLowerCase().includes(seg));
+  return positiveMatch && negativeMatch;
+}
+
+/* ---------------------------------------------
+ * Bundle Management
+ * ---------------------------------------------
+ */
+
+// --- Upload Bundles --- //
+async function handleUpload(){
+  const fileInput = document.getElementById("uploadFile");
+  if(!fileInput.files.length){
+    alert("No file selected!");
+    return;
+  }
+  const file = fileInput.files[0];
+  const text = await file.text();
+  let uploaded = null;
+  try {
+    uploaded = JSON.parse(text);
+    if(!Array.isArray(uploaded)) uploaded = null;
+  } catch(e){}
+  if(!uploaded){
+    try {
+      uploaded = [];
+      jsyaml.loadAll(text).forEach(doc => {
+        if(Array.isArray(doc)){
+          uploaded.push(...doc);
+        } else {
+          uploaded.push(doc);
+        }
+      });
+    } catch(e){
+      alert("Could not parse file as JSON or YAML.");
+      return;
+    }
+  }
+  let count = 0;
+  const bundleData = [];
+  const duplicates = [];
+  const newStatblocks = [];
+  uploaded.forEach(sb => {
+    if(sb && sb.monsterName){
+      delete sb.statblockID;
+      sb.statblockID = generateStatblockID(sb);
+      bundleData.push(sb);
+      const existing = statblocks.find(x => x.statblockID === sb.statblockID);
+      if(existing){
+        duplicates.push({uploaded: sb, existing});
+      } else {
+        newStatblocks.push(sb);
+        statblocks.push(sb);
+        count++;
+      }
+    }
+  });
+  const bundleId = generateBundleID(bundleData);
+  bundleData.forEach(sb => sb.bundleId = bundleId);
+  const nameInput = document.getElementById("uploadBundleNameInput");
+  const userBundleName = nameInput.value.trim();
+  const finalBundleName = userBundleName !== "" ? userBundleName : bundleId;
+
+  if(duplicates.length > 0){
+    pendingUpload = {bundleId, bundleData, newStatblocks, duplicates, fileName: file.name, finalBundleName};
+    showOverwriteModal(duplicates);
+  } else {
+    uploadedBundles.push({
+      id: bundleId,
+      filename: file.name,
+      bundleName: finalBundleName,
+      total: bundleData.length,
+      active: true,
+      data: bundleData
+    });
+    saveToLocalStorage();
+    saveUploadedBundles();
+    renderStatblockLibrary();
+    fillBundleSelect();
+    fillManageMergeSelect();
+    renderUploadedBundles();
+    alert(`Uploaded ${count} new statblock(s) from your bundle.`);
+  }
+}
+// Overwrite Statblocks on Bundle Upload
+function showOverwriteModal(duplicates) {
+  const listDiv = document.getElementById("overwriteList");
+  listDiv.innerHTML = "";
+  duplicates.forEach((dup, index) => {
+    const label = document.createElement("label");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = true;
+    checkbox.dataset.index = index;
+    label.appendChild(checkbox);
+    label.appendChild(document.createTextNode(" " + dup.uploaded.monsterName + " (ID: " + dup.uploaded.statblockID + ")"));
+    listDiv.appendChild(label);
+  });
+  document.getElementById("overwriteModal").style.display = "flex";
+}
+// Confirm Overwrite
+function confirmOverwrite() {
+  if(!pendingUpload) return;
+  const checkboxes = document.querySelectorAll("#overwriteList input[type='checkbox']");
+  checkboxes.forEach(cb => {
+    const idx = parseInt(cb.dataset.index, 10);
+    if(cb.checked){
+      const dup = pendingUpload.duplicates[idx];
+      dup.existing.bundleId = pendingUpload.bundleId;
+    }
+  });
+  uploadedBundles.push({
+    id: pendingUpload.bundleId,
+    filename: pendingUpload.fileName,
+    bundleName: pendingUpload.finalBundleName,
+    total: pendingUpload.bundleData.length,
+    active: true,
+    data: pendingUpload.bundleData
+  });
+  saveToLocalStorage();
+  saveUploadedBundles();
+  renderStatblockLibrary();
+  fillBundleSelect();
+  fillManageMergeSelect();
+  renderUploadedBundles();
+  document.getElementById("overwriteModal").style.display = "none";
+  pendingUpload = null;
+  alert("Bundle upload processed with selected overwrites.");
+}
+//Cancel Overwrite
+function cancelOverwrite() {
+  pendingUpload = null;
+  document.getElementById("overwriteModal").style.display = "none";
+  alert("Bundle upload cancelled for duplicates. New statblocks (non-duplicates) have been added.");
+}
+
+// --- Create Bundles --- //
 function renderCreateBundleList(){
   const container = document.getElementById("createBundleList");
   let focusedId = "";
@@ -1195,8 +1439,7 @@ function renderCreateBundleList(){
     }
   }
 }
-
-// NEW: Render Bundle Contents List function for the Create Bundle Tab
+// Render Bundle Contents List function for the Create Bundle Tab
 function renderBundleList(){
   const container = document.getElementById("bundleListContainer");
   container.innerHTML = "";
@@ -1299,8 +1542,7 @@ function renderBundleList(){
   table.appendChild(tbody);
   container.appendChild(table);
 }
-
-
+// Create Bundle Filters
 let bundleListFilters = {
   monsterName: "",
   level: "",
@@ -1308,7 +1550,7 @@ let bundleListFilters = {
   tr: "",
   bundle: ""
 };
-
+// Update Bundle List Filters
 function updateBundleListFilters() {
   const inputs = document.querySelectorAll("#bundleListTable thead input");
   bundleListFilters = {
@@ -1320,11 +1562,67 @@ function updateBundleListFilters() {
   };
   renderBundleList();
 }
-
-/* EDITOR & YAML SYNC */
-function removeBundleIdForSave(statblock) {
-  delete statblock.bundleId;
+// Export Created Bundle
+function downloadCurrentBundle(fmt){
+  if(!bundleList.length){
+    alert("No statblocks in the bundle!");
+    return;
+  }
+  const bundleId = generateBundleID(bundleList);
+  const modified = bundleList.map(sb => Object.assign({}, sb, { bundleId }));
+  if(fmt === "json"){
+    const filename = "bundle-" + bundleId + ".json";
+    downloadBlob(JSON.stringify(modified, null, 2), "application/json", filename);
+  } else {
+    let y = "";
+    modified.forEach(sb => { y += jsyaml.dump(sb, { lineWidth: -1 }) + "\n---\n"; });
+    y = y.trim().replace(/---$/, "");
+    const filename = "bundle-" + bundleId + ".yaml";
+    downloadBlob(y, "text/yaml", filename);
+  }
 }
+
+// --- Merge Bundles --- //
+function mergeSelectedBundles(fmt){
+  const sids = Array.from(document.getElementById("manageMergeSelect").selectedOptions)
+                .map(o => o.value);
+  if(!sids.length){
+    alert("Select at least one bundle to merge.");
+    return;
+  }
+  let merged = statblocks.filter(sb => sb.bundleId !== undefined && sids.includes(sb.bundleId));
+  let seen = {};
+  let unique = [];
+  merged.forEach(sb => {
+    if(!seen[sb.statblockID]){
+      seen[sb.statblockID] = true;
+      unique.push(sb);
+    }
+  });
+  if(!unique.length){
+    alert("No statblocks found for selected bundles.");
+    return;
+  }
+  const mergeBundleId = generateBundleID(unique);
+  unique = unique.map(sb => Object.assign({}, sb, { bundleId: mergeBundleId }));
+  if(fmt === "json"){
+    const filename = "merged-bundle-" + mergeBundleId + ".json";
+    downloadBlob(JSON.stringify(unique, null, 2), "application/json", filename);
+  } else {
+    let y = "";
+    unique.forEach(sb => { y += jsyaml.dump(sb, { lineWidth: -1 }) + "\n---\n"; });
+    y = y.trim().replace(/---$/, "");
+    const filename = "merged-bundle-" + mergeBundleId + ".yaml";
+    downloadBlob(y, "text/yaml", filename);
+  }
+}
+
+/* ---------------------------------------------
+ * UI Editor Functions
+ * ---------------------------------------------
+ */
+
+// --- New Statblock --- //
 function clearEditorFields(){
   masterYamlData = {};
   hiddenStats.clear(); // Reset hidden stats
@@ -1336,6 +1634,81 @@ function clearEditorFields(){
   updateYamlTextArea();
   renderDefaultDetail();
 }
+
+// --- Stats --- //
+// Custom Stats Management //
+// Add new functions for managing custom stats
+function addCustomStat(customStat = null) {
+  const container = document.getElementById("customStatsContainer");
+  const div = document.createElement("div");
+  div.className = "custom-stat";
+  
+  const nameInput = document.createElement("input");
+  nameInput.type = "text";
+  nameInput.placeholder = "Stat Name";
+  nameInput.value = customStat ? customStat.name : "";
+  nameInput.addEventListener("input", uiFieldChanged);
+  
+  const valueInput = document.createElement("input");
+  valueInput.type = "text";
+  valueInput.placeholder = "Value";
+  valueInput.value = customStat ? customStat.value : "";
+  valueInput.addEventListener("input", uiFieldChanged);
+  
+  const removeBtn = document.createElement("button");
+  removeBtn.textContent = "×";
+  removeBtn.className = "delete-btn";
+  removeBtn.addEventListener("click", () => {
+    div.remove();
+    uiFieldChanged();
+  });
+  
+  div.append(nameInput, valueInput, removeBtn);
+  container.appendChild(div);
+}
+// Add functions for managing the stats modal
+function showManageStatsModal() {
+  const modal = document.getElementById("manageStatsModal");
+  const list = document.getElementById("statsList");
+  list.innerHTML = "";
+  
+  Object.entries(DEFAULT_STATS).forEach(([key, label]) => {
+    const div = document.createElement("label");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox"; 
+    checkbox.className = "stat-checkbox";
+    checkbox.checked = !hiddenStats.has(key);
+    checkbox.dataset.stat = key;
+    
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) {
+        hiddenStats.delete(key);
+      } else {
+        hiddenStats.add(key);
+      }
+      const statInput = document.getElementById(key);
+      if (statInput && statInput.parentElement) {
+        statInput.parentElement.classList.toggle("hidden-stat", !checkbox.checked);
+      }
+      updateMasterYamlDataFromUI();
+      updateRenderedStatblock();
+    });
+    
+    div.appendChild(checkbox);
+    div.appendChild(document.createTextNode(` ${label}`));
+    list.appendChild(div);
+  });
+  
+  modal.style.display = "flex";
+}
+// Close Mange Stats
+function closeManageStatsModal() {
+  document.getElementById("manageStatsModal").style.display = "none";
+  updateMasterYamlDataFromUI();
+  updateYamlTextArea();
+}
+
+// --- Features and Deeds --- //
 function collectFeatures(){
   const arr = [];
   document.querySelectorAll("#featuresContainer .dynamic-feature").forEach(div => {
@@ -1366,9 +1739,59 @@ function collectDeedsAsString(type){
   });
   return arr.join("\n\n");
 }
-function uiFieldChanged(){
-  updateMasterYamlDataFromUI();
+
+// Save Statblock to Library //
+function saveToLibrary(){
+  // *** NEW STEP: Always generate statblockID from masterYamlData BEFORE duplicate checking ***
+  const newID = generateStatblockID(masterYamlData);
+  masterYamlData.statblockID = newID;
+  
+  // Check for duplicate statblock by comparing the freshly generated statblockID
+  const duplicate = findDuplicate(masterYamlData);
+  if(duplicate){
+    alert("A statblock with identical content already exists. Skipping.");
+    return;
+  }
+  
+  // Remove bundleId before saving (if applicable)
+  removeBundleIdForSave(masterYamlData);
+  
+  // Update existing statblock if in edit mode, otherwise add as new
+  if(currentDetail && currentDetail.statblockID === newID){
+    Object.assign(currentDetail, masterYamlData);
+  } else {
+    statblocks.push(masterYamlData);
+    currentDetail = masterYamlData;
+  }
+  
+  selectedStatblockID = currentDetail.statblockID;
+  saveToLocalStorage();
+  
+  // Refresh the UI components and search index
+  initSearch();
+  renderStatblockLibrary();
+  fillBundleSelect();
+  fillManageMergeSelect();
+  renderUploadedBundles();
+  
+  alert("Statblock saved to library!");
 }
+// Duplicate Check
+function findDuplicate(statblock) {
+  const id = statblock.statblockID;
+  return statblocks.find(s => s.statblockID === id && s !== currentDetail);
+}
+function removeBundleIdForSave(statblock) {
+  delete statblock.bundleId;
+}
+
+/* ---------------------------------------------
+ * Statblock Render
+ * ---------------------------------------------
+ */
+
+// --- Utilities --- //
+// Update Rendered Statblock
 function updateRenderedStatblock(){
   if(!masterYamlData || !masterYamlData.monsterName){
     renderDefaultDetail();
@@ -1448,7 +1871,12 @@ function updateRenderedStatblock(){
     idsDiv.appendChild(bundleIDSpan);
   }
 }
+// updateMasterYamlDataFromUI on UI change - unnecessary or redundant??
+function uiFieldChanged(){
+  updateMasterYamlDataFromUI();
+}
 
+// Render Stats & Title
 function renderDefaultDetail(){
   document.getElementById("defaultDetail").style.display = "block";
   document.getElementById("dsb-basicSection").style.display = "none";
@@ -1523,6 +1951,7 @@ function renderDeeds(data){
   });
   dsbDeedsSec.style.display = hasDeeds ? "block" : "none";
 }
+// Title:Content Line Parsing on Deeds
 function parseDeedsStringNew(str){
   let deedBlocks = str.split(/\n\s*\n/).map(block => block.trim()).filter(block => block !== "");
   let result = [];
@@ -1547,7 +1976,7 @@ function parseDeedsStringNew(str){
   return result;
 }
 
-/* ADDING FEATURES & DEEDS */
+// Features & Deeds
 function addFeature(feature=null){
   const container = document.getElementById("featuresContainer");
   const div = document.createElement("div");
@@ -1629,271 +2058,12 @@ function addLine(container, line=null){
   container.appendChild(div);
 }
 
-/* SAVE/EXPORT */
-function findDuplicate(statblock) {
-  const id = statblock.statblockID;
-  return statblocks.find(s => s.statblockID === id && s !== currentDetail);
-}
+/* ---------------------------------------------
+ * Library Backup
+ * ---------------------------------------------
+ */
 
-// ------------------- Modified saveToLibrary Function -------------------
-function saveToLibrary(){
-  // *** NEW STEP: Always generate statblockID from masterYamlData BEFORE duplicate checking ***
-  const newID = generateStatblockID(masterYamlData);
-  masterYamlData.statblockID = newID;
-  
-  // Check for duplicate statblock by comparing the freshly generated statblockID
-  const duplicate = findDuplicate(masterYamlData);
-  if(duplicate){
-    alert("A statblock with identical content already exists. Skipping.");
-    return;
-  }
-  
-  // Remove bundleId before saving (if applicable)
-  removeBundleIdForSave(masterYamlData);
-  
-  // Update existing statblock if in edit mode, otherwise add as new
-  if(currentDetail && currentDetail.statblockID === newID){
-    Object.assign(currentDetail, masterYamlData);
-  } else {
-    statblocks.push(masterYamlData);
-    currentDetail = masterYamlData;
-  }
-  
-  selectedStatblockID = currentDetail.statblockID;
-  saveToLocalStorage();
-  
-  // Refresh the UI components and search index
-  initSearch();
-  renderStatblockLibrary();
-  fillBundleSelect();
-  fillManageMergeSelect();
-  renderUploadedBundles();
-  
-  alert("Statblock saved to library!");
-}
-
-  selectedStatblockID = currentDetail.statblockID;
-  saveToLocalStorage();
-  initSearch();
-  renderStatblockLibrary();
-  fillBundleSelect();
-  fillManageMergeSelect();
-  renderUploadedBundles();
-  alert("Statblock saved to library!");
-
-
-function exportCurrentDetail(){
-  if(!currentDetail){
-    alert("No statblock selected.");
-    return;
-  }
-  const exportContainer = document.createElement("div");
-  exportContainer.style.width = "560px";
-  exportContainer.style.height = "auto";
-  exportContainer.style.padding = "10px";
-  exportContainer.style.boxSizing = "border-box";
-  exportContainer.innerHTML = document.getElementById("detailStatblock").innerHTML;
-  document.body.appendChild(exportContainer);
-  html2canvas(exportContainer, { scale: 2 }).then(canvas => {
-    const fmt = document.getElementById("exportFormat").value;
-    const baseName = currentDetail.monsterName ? currentDetail.monsterName.replace(/\s+/g, "_") : "statblock";
-    if(fmt === "png"){
-      const a = document.createElement("a");
-      a.download = baseName + ".png";
-      a.href = canvas.toDataURL("image/png");
-      a.click();
-    } else {
-      const pdf = new jspdf.jsPDF({
-        orientation: "landscape",
-        unit: "px",
-        format: [canvas.width, canvas.height]
-      });
-      pdf.addImage(canvas.toDataURL("image/png"), 'PNG', 0, 0, canvas.width, canvas.height);
-      pdf.save(baseName + ".pdf");
-    }
-    document.body.removeChild(exportContainer);
-  });
-}
-
-function downloadCurrentBundle(fmt){
-  if(!bundleList.length){
-    alert("No statblocks in the bundle!");
-    return;
-  }
-  const bundleId = generateBundleID(bundleList);
-  const modified = bundleList.map(sb => Object.assign({}, sb, { bundleId }));
-  if(fmt === "json"){
-    const filename = "bundle-" + bundleId + ".json";
-    downloadBlob(JSON.stringify(modified, null, 2), "application/json", filename);
-  } else {
-    let y = "";
-    modified.forEach(sb => { y += jsyaml.dump(sb, { lineWidth: -1 }) + "\n---\n"; });
-    y = y.trim().replace(/---$/, "");
-    const filename = "bundle-" + bundleId + ".yaml";
-    downloadBlob(y, "text/yaml", filename);
-  }
-}
-
-function mergeSelectedBundles(fmt){
-  const sids = Array.from(document.getElementById("manageMergeSelect").selectedOptions)
-                .map(o => o.value);
-  if(!sids.length){
-    alert("Select at least one bundle to merge.");
-    return;
-  }
-  let merged = statblocks.filter(sb => sb.bundleId !== undefined && sids.includes(sb.bundleId));
-  let seen = {};
-  let unique = [];
-  merged.forEach(sb => {
-    if(!seen[sb.statblockID]){
-      seen[sb.statblockID] = true;
-      unique.push(sb);
-    }
-  });
-  if(!unique.length){
-    alert("No statblocks found for selected bundles.");
-    return;
-  }
-  const mergeBundleId = generateBundleID(unique);
-  unique = unique.map(sb => Object.assign({}, sb, { bundleId: mergeBundleId }));
-  if(fmt === "json"){
-    const filename = "merged-bundle-" + mergeBundleId + ".json";
-    downloadBlob(JSON.stringify(unique, null, 2), "application/json", filename);
-  } else {
-    let y = "";
-    unique.forEach(sb => { y += jsyaml.dump(sb, { lineWidth: -1 }) + "\n---\n"; });
-    y = y.trim().replace(/---$/, "");
-    const filename = "merged-bundle-" + mergeBundleId + ".yaml";
-    downloadBlob(y, "text/yaml", filename);
-  }
-}
-
-async function handleUpload(){
-  const fileInput = document.getElementById("uploadFile");
-  if(!fileInput.files.length){
-    alert("No file selected!");
-    return;
-  }
-  const file = fileInput.files[0];
-  const text = await file.text();
-  let uploaded = null;
-  try {
-    uploaded = JSON.parse(text);
-    if(!Array.isArray(uploaded)) uploaded = null;
-  } catch(e){}
-  if(!uploaded){
-    try {
-      uploaded = [];
-      jsyaml.loadAll(text).forEach(doc => {
-        if(Array.isArray(doc)){
-          uploaded.push(...doc);
-        } else {
-          uploaded.push(doc);
-        }
-      });
-    } catch(e){
-      alert("Could not parse file as JSON or YAML.");
-      return;
-    }
-  }
-  let count = 0;
-  const bundleData = [];
-  const duplicates = [];
-  const newStatblocks = [];
-  uploaded.forEach(sb => {
-    if(sb && sb.monsterName){
-      delete sb.statblockID;
-      sb.statblockID = generateStatblockID(sb);
-      bundleData.push(sb);
-      const existing = statblocks.find(x => x.statblockID === sb.statblockID);
-      if(existing){
-        duplicates.push({uploaded: sb, existing});
-      } else {
-        newStatblocks.push(sb);
-        statblocks.push(sb);
-        count++;
-      }
-    }
-  });
-  const bundleId = generateBundleID(bundleData);
-  bundleData.forEach(sb => sb.bundleId = bundleId);
-  const nameInput = document.getElementById("uploadBundleNameInput");
-  const userBundleName = nameInput.value.trim();
-  const finalBundleName = userBundleName !== "" ? userBundleName : bundleId;
-
-  if(duplicates.length > 0){
-    pendingUpload = {bundleId, bundleData, newStatblocks, duplicates, fileName: file.name, finalBundleName};
-    showOverwriteModal(duplicates);
-  } else {
-    uploadedBundles.push({
-      id: bundleId,
-      filename: file.name,
-      bundleName: finalBundleName,
-      total: bundleData.length,
-      active: true,
-      data: bundleData
-    });
-    saveToLocalStorage();
-    saveUploadedBundles();
-    renderStatblockLibrary();
-    fillBundleSelect();
-    fillManageMergeSelect();
-    renderUploadedBundles();
-    alert(`Uploaded ${count} new statblock(s) from your bundle.`);
-  }
-}
-
-function showOverwriteModal(duplicates) {
-  const listDiv = document.getElementById("overwriteList");
-  listDiv.innerHTML = "";
-  duplicates.forEach((dup, index) => {
-    const label = document.createElement("label");
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = true;
-    checkbox.dataset.index = index;
-    label.appendChild(checkbox);
-    label.appendChild(document.createTextNode(" " + dup.uploaded.monsterName + " (ID: " + dup.uploaded.statblockID + ")"));
-    listDiv.appendChild(label);
-  });
-  document.getElementById("overwriteModal").style.display = "flex";
-}
-
-function confirmOverwrite() {
-  if(!pendingUpload) return;
-  const checkboxes = document.querySelectorAll("#overwriteList input[type='checkbox']");
-  checkboxes.forEach(cb => {
-    const idx = parseInt(cb.dataset.index, 10);
-    if(cb.checked){
-      const dup = pendingUpload.duplicates[idx];
-      dup.existing.bundleId = pendingUpload.bundleId;
-    }
-  });
-  uploadedBundles.push({
-    id: pendingUpload.bundleId,
-    filename: pendingUpload.fileName,
-    bundleName: pendingUpload.finalBundleName,
-    total: pendingUpload.bundleData.length,
-    active: true,
-    data: pendingUpload.bundleData
-  });
-  saveToLocalStorage();
-  saveUploadedBundles();
-  renderStatblockLibrary();
-  fillBundleSelect();
-  fillManageMergeSelect();
-  renderUploadedBundles();
-  document.getElementById("overwriteModal").style.display = "none";
-  pendingUpload = null;
-  alert("Bundle upload processed with selected overwrites.");
-}
-
-function cancelOverwrite() {
-  pendingUpload = null;
-  document.getElementById("overwriteModal").style.display = "none";
-  alert("Bundle upload cancelled for duplicates. New statblocks (non-duplicates) have been added.");
-}
-
+// Export
 async function exportBackup(){
   const zip = new JSZip();
   zip.file("library.json", localStorage.getItem(LOCAL_STORAGE_KEY) || "{}");
@@ -1905,7 +2075,7 @@ async function exportBackup(){
   a.click();
   URL.revokeObjectURL(a.href);
 }
-
+//Import
 async function importBackup(e){
   const file = e.target.files[0];
   if(!file) return;
@@ -1946,6 +2116,7 @@ async function importBackup(e){
   }
   e.target.value = "";
 }
+// Backup Name / Location
 function downloadBlob(text, mime, filename){
   const blob = new Blob([text], { type: mime });
   const url = URL.createObjectURL(blob);
@@ -1956,77 +2127,10 @@ function downloadBlob(text, mime, filename){
   URL.revokeObjectURL(url);
 }
 
-// Add new functions for managing custom stats
-function addCustomStat(customStat = null) {
-  const container = document.getElementById("customStatsContainer");
-  const div = document.createElement("div");
-  div.className = "custom-stat";
-  
-  const nameInput = document.createElement("input");
-  nameInput.type = "text";
-  nameInput.placeholder = "Stat Name";
-  nameInput.value = customStat ? customStat.name : "";
-  nameInput.addEventListener("input", uiFieldChanged);
-  
-  const valueInput = document.createElement("input");
-  valueInput.type = "text";
-  valueInput.placeholder = "Value";
-  valueInput.value = customStat ? customStat.value : "";
-  valueInput.addEventListener("input", uiFieldChanged);
-  
-  const removeBtn = document.createElement("button");
-  removeBtn.textContent = "×";
-  removeBtn.className = "delete-btn";
-  removeBtn.addEventListener("click", () => {
-    div.remove();
-    uiFieldChanged();
-  });
-  
-  div.append(nameInput, valueInput, removeBtn);
-  container.appendChild(div);
-}
-
-// Add functions for managing the stats modal
-function showManageStatsModal() {
-  const modal = document.getElementById("manageStatsModal");
-  const list = document.getElementById("statsList");
-  list.innerHTML = "";
-  
-  Object.entries(DEFAULT_STATS).forEach(([key, label]) => {
-    const div = document.createElement("label");
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox"; 
-    checkbox.className = "stat-checkbox";
-    checkbox.checked = !hiddenStats.has(key);
-    checkbox.dataset.stat = key;
-    
-    checkbox.addEventListener("change", () => {
-      if (checkbox.checked) {
-        hiddenStats.delete(key);
-      } else {
-        hiddenStats.add(key);
-      }
-      const statInput = document.getElementById(key);
-      if (statInput && statInput.parentElement) {
-        statInput.parentElement.classList.toggle("hidden-stat", !checkbox.checked);
-      }
-      updateMasterYamlDataFromUI();
-      updateRenderedStatblock();
-    });
-    
-    div.appendChild(checkbox);
-    div.appendChild(document.createTextNode(` ${label}`));
-    list.appendChild(div);
-  });
-  
-  modal.style.display = "flex";
-}
-
-function closeManageStatsModal() {
-  document.getElementById("manageStatsModal").style.display = "none";
-  updateMasterYamlDataFromUI();
-  updateYamlTextArea();
-}
+/* ---------------------------------------------
+ * Event Handles
+ * ---------------------------------------------
+ */
 
 // Update attachEventHandlers to include the top tabs
 function attachEventHandlers() {
@@ -2267,67 +2371,5 @@ function attachEventHandlers() {
     updateMasterYamlDataFromUI();
     updateRenderedStatblock();
     updateYamlTextArea();
-  });
-}
-function updateSelectedRow(){
-  const rows = document.querySelectorAll("#libraryTable tbody tr");
-  rows.forEach((row) => {
-    const idx = row.getAttribute("data-index");
-    const sb = currentFilteredList[idx];
-    if(sb && sb.statblockID === selectedStatblockID){
-      row.classList.add("selected");
-    } else {
-      row.classList.remove("selected");
-    }
-  });
-}
-
-function initSearch(){
-  fuseIndex = new Fuse(statblocks, {
-    keys: ["monsterName","role","template","level","tr"],
-    threshold: 0.3,
-    ignoreLocation: true
-  });
-}
-function matchesNumericQuery(value, query) {
-  if (!query.trim()) return true;
-  
-  // Convert value to number, handling undefined/null
-  const numVal = value ? Number(value.toString().replace(/[^\d.-]/g, '')) : 0;
-  if (isNaN(numVal)) return false;
-
-  const segments = query.split(",").map(s => s.trim()).filter(Boolean);
-  for (let seg of segments) {
-    if (/^>\s*(\d+)$/.test(seg)) {
-      const num = Number(seg.match(/^>\s*(\d+)$/)[1]);
-      if (numVal > num) return true;
-    } else if (/^>=\s*(\d+)$/.test(seg)) {
-      const num = Number(seg.match(/^>=\s*(\d+)$/)[1]);
-      if (numVal >= num) return true;
-    } else if (/^<\s*(\d+)$/.test(seg)) {
-      const num = Number(seg.match(/^<\s*(\d+)$/)[1]);
-      if (numVal < num) return true;
-    } else if (/^<=\s*(\d+)$/.test(seg)) {
-      const num = Number(seg.match(/^<=\s*(\d+)$/)[1]);
-      if (numVal <= num) return true;
-    } else if (/^(\d+)\s*-\s*(\d+)$/.test(seg)) {
-      const [, min, max] = seg.match(/^(\d+)\s*-\s*(\d+)$/);
-      if (numVal >= Number(min) && numVal <= Number(max)) return true;
-    } else if (!isNaN(Number(seg))) {
-      if (numVal === Number(seg)) return true;
-    }
-  }
-  return false;
-}
-
-// Add initialization for bundle panels on page load
-function initBundlePanels() {
-  // Move all subtab panels into the bundles container panel if they're not already there
-  const bundlesContainerPanel = document.getElementById("bundlesBundlesPanel");
-  ["manage", "upload", "create", "merge"].forEach(subtab => {
-    const panel = document.getElementById("bundles" + subtab.charAt(0).toUpperCase() + subtab.slice(1) + "Panel");
-    if (panel && panel.parentElement !== bundlesContainerPanel) {
-      bundlesContainerPanel.appendChild(panel);
-    }
   });
 }
