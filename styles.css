@@ -1101,3 +1101,19 @@ body {
   overflow-y: auto;
   max-height: calc(100vh - 140px);
 }
+
+/* Save component button */
+.save-component-btn {
+  margin-left: 10px;
+  background-color: #e1f5fe;
+  border: 1px solid #81d4fa;
+}
+
+.save-component-btn:hover {
+  background-color: #b3e5fc;
+}
+
+.deed-button-container {
+  display: flex;
+  margin-top: 5px;
+}

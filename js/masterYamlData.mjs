@@ -1,6 +1,7 @@
 import { parseDeedsStringNew } from "./utilityFunctions.mjs";
 import { masterYamlData, updateMasterYamlData, resetMasterYamlData, hiddenStats, DEFAULT_STATS } from "./yamlDataState.mjs";
 import { updateRenderedStatblock } from "./statblockRender.mjs";
+import { addStatblockComponent } from './libraryData.mjs';
 
 /* ---------------------------------------------
  * MASTER YAML SYNCHRONIZATION
@@ -274,6 +275,7 @@ function addDeed(type, deedObj=null){
   
   titleRow.appendChild(titleInput);
   
+  // Create lines container for the deed details
   const linesCont = document.createElement("div");
   linesCont.className = "linesContainer";
   
@@ -289,10 +291,26 @@ function addDeed(type, deedObj=null){
   removeDeedBtn.className = "delete-deed-btn";
   removeDeedBtn.onclick = () => { div.remove(); uiFieldChanged(); };
   
+  // Add "Save as Component" button
+  const saveComponentBtn = document.createElement("button");
+  saveComponentBtn.type = "button";
+  saveComponentBtn.textContent = "Save as Component";
+  saveComponentBtn.className = "small-btn save-component-btn";
+  saveComponentBtn.title = "Save this deed as a reusable component";
+  saveComponentBtn.onclick = () => { 
+    saveDeedAsComponent(div, type); 
+  };
+  
+  // Create button container
+  const buttonContainer = document.createElement("div");
+  buttonContainer.className = "deed-button-container";
+  buttonContainer.appendChild(addLineBtn);
+  buttonContainer.appendChild(saveComponentBtn);
+  
   // Append in proper order for vertical layout
   deedContentWrapper.appendChild(titleRow);
   deedContentWrapper.appendChild(linesCont);
-  deedContentWrapper.appendChild(addLineBtn);
+  deedContentWrapper.appendChild(buttonContainer);
   div.appendChild(deedContentWrapper);
   div.appendChild(removeDeedBtn);
   div.appendChild(reorderContainer);
@@ -407,3 +425,53 @@ function collectDeedsAsString(type){
   return arr.join("\n\n");
 }
 
+/* ---------------------------------------------
+ * COMPONENTS
+ * ---------------------------------------------
+ */
+
+// Function to save a deed as a component
+function saveDeedAsComponent(deedElement, deedType) {
+  // Get deed title
+  const titleInput = deedElement.querySelector(".deed-title-input");
+  const deedTitle = titleInput ? titleInput.value.trim() : "Unnamed Deed";
+  
+  // Build the deed YAML content
+  const lines = [];
+  deedElement.querySelectorAll(".linesContainer .dynamic-line").forEach(ld => {
+    const lineInputs = ld.querySelectorAll("input");
+    const lt = lineInputs[0].value.trim();
+    const lc = lineInputs[1].value.trim();
+    if(lt) {
+      lines.push(lt + (lc ? ": " + lc : ""));
+    }
+  });
+  
+  let yamlContent = deedTitle;
+  if(lines.length > 0) yamlContent += "\n" + lines.join("\n");
+  
+  // Format the deed type for component
+  const typeMap = {
+    "light": "Light Deed",
+    "heavy": "Heavy Deed",
+    "mighty": "Mighty Deed",
+    "tyrant": "Tyrant Deed",
+    "special": "Special Deed"
+  };
+  
+  // Create the component
+  const component = {
+    id: 'comp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+    name: deedTitle,
+    type: typeMap[deedType] || `${deedType} Deed`,
+    deedType: deedType, // Store the actual type for future use
+    yaml: yamlContent
+  };
+  
+  // Add to components library
+  if(addStatblockComponent(component)) {
+    alert(`Saved "${deedTitle}" as a component!`);
+  } else {
+    alert("Failed to save component.");
+  }
+}
