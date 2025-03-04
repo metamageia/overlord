@@ -1,9 +1,9 @@
 import { masterYamlData, updateMasterYamlData, resetMasterYamlData, hiddenStats, DEFAULT_STATS } from "./js/yamlDataState.mjs";
 import { updateYamlTextArea, updateMasterYamlDataFromYaml, updateUIFromMasterYaml, updateMasterYamlDataFromUI, uiFieldChanged } from "./js/masterYamlData.mjs";
 import { updateRenderedStatblock, renderDefaultDetail } from "./js/statblockRender.mjs";
-import { statblocks, uploadedBundles, favoritesMap, loadFromLocalStorage, saveToLocalStorage, loadUploadedBundles, saveUploadedBundles, exportBackup, importBackup, downloadBlob, clearLocalStorage, initSearch, renderUploadedBundles } from "./js/libraryData.mjs";
+import { statblocks, uploadedBundles, favoritesMap, loadFromLocalStorage, saveToLocalStorage, loadUploadedBundles, saveUploadedBundles, exportBackup, importBackup, downloadBlob, clearLocalStorage, initSearch, } from "./js/libraryData.mjs";
 import { generateStatblockID, } from "./js/idManagement.mjs";
-import { handleUpload, renderCreateBundleList, renderBundleList, downloadCurrentBundle, mergeSelectedBundles, getBundleName, confirmOverwrite, cancelOverwrite, fillManageMergeSelect} from './js/bundleManagement.mjs';
+import { handleUpload, renderCreateBundleList, renderBundleList, downloadCurrentBundle, mergeSelectedBundles, getBundleName, confirmOverwrite, cancelOverwrite, fillManageMergeSelect, renderUploadedBundles} from './js/bundleManagement.mjs';
 import { matchesNumericQuery, matchesStringQuery } from './js/utilityFunctions.mjs';
 import { currentSortDirection, currentSortField, setCurrentSortDirection, setCurrentSortField, toggleSortDirection } from "./js/libraryUtilities.mjs";
 import { decodeStatblockData, encodeStatblockData,exportCurrentDetail } from "./js/shareStatblocks.mjs";
