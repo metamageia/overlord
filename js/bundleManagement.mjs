@@ -26,6 +26,124 @@ export function getBundleName(bundleId) {
     return bun ? bun.bundleName : "";
   }
 
+// --- Manage Bundles --- //
+export function renderUploadedBundles(){
+  const container = document.getElementById("uploadedBundleList");
+  container.innerHTML = "";
+  if(uploadedBundles.length === 0){
+    container.innerHTML = "<p>No bundles uploaded.</p>";
+    return;
+  }
+  const table = document.createElement("table");
+  table.id = "manageBundlesTable";
+  const colgroup = document.createElement("colgroup");
+  const cols = [
+    { field: "bundleName", width: 150 },
+    { field: "id",         width: 80 },
+    { field: "total",      width: 60 },
+    { field: "active",     width: 60 },
+    { field: "action",     width: 100 }
+  ];
+  cols.forEach(col => {
+    const colEl = document.createElement("col");
+    colEl.style.width = col.width + "px";
+    colgroup.appendChild(colEl);
+  });
+  table.appendChild(colgroup);
+  const thead = document.createElement("thead");
+  const headerRow = document.createElement("tr");
+  ["Bundle Name", "ID", "Total", "Active", "Action"].forEach(text => {
+    const th = document.createElement("th");
+    th.textContent = text;
+    headerRow.appendChild(th);
+  });
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+  const tbody = document.createElement("tbody");
+  uploadedBundles.forEach((bundle, idx) => {
+    const tr = document.createElement("tr");
+    const bundleName = bundle.bundleName ? bundle.bundleName : bundle.id;
+    const tdName = document.createElement("td");
+    tdName.textContent = bundleName;
+    const tdId = document.createElement("td");
+    tdId.textContent = bundle.id;
+    const tdTotal = document.createElement("td");
+    // Recalculate active count from statblocks with matching bundle id.
+    const activeCount = statblocks.filter(sb => sb.bundleId === bundle.id).length;
+    // Also update the bundle's total property (in case it needs refreshing)
+    bundle.total = bundle.data.length;
+    tdTotal.textContent = `${activeCount}/${bundle.total}`;
+    const tdActive = document.createElement("td");
+    const activeCheckbox = document.createElement("input");
+    activeCheckbox.type = "checkbox";
+    activeCheckbox.checked = bundle.active;
+    activeCheckbox.addEventListener("change", () => {
+      bundle.active = activeCheckbox.checked;
+      saveUploadedBundles();
+      renderUploadedBundles();
+      renderStatblockLibrary();
+    });
+    tdActive.appendChild(activeCheckbox);
+    const tdAction = document.createElement("td");
+    const refreshBtn = document.createElement("button");
+    refreshBtn.textContent = "Refresh";
+    refreshBtn.className = "refresh-bundle-btn";
+    refreshBtn.dataset.id = bundle.id;
+    refreshBtn.addEventListener("click", () => {
+      // Use dataset id directly as bundle id is a hex string.
+      const bundleId = refreshBtn.dataset.id;
+      const bun = uploadedBundles.find(b => b.id === bundleId);
+      if(bun){
+        let added = 0;
+        bun.data.forEach(sb => {
+          sb.statblockID = generateStatblockID(sb);
+          if(!statblocks.find(x => x.statblockID === sb.statblockID)){
+            sb.bundleId = bundleId;
+            statblocks.push(sb);
+            added++;
+          }
+        });
+        // Update bundle total explicitly.
+        bun.total = bun.data.length;
+        document.dispatchEvent(new CustomEvent('saveLibraryChanges'));
+        document.dispatchEvent(new CustomEvent('refreshUI'));
+        alert(`Refreshed bundle: added ${added} missing statblock(s).`);
+      }
+    });
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "Delete";
+    delBtn.addEventListener("click", () => {
+      if(confirm(`Delete bundle ${bundle.id}?`)){
+        const bundleId = bundle.id;
+        
+        // Remove the bundle from uploadedBundles
+        uploadedBundles.splice(idx, 1);
+        saveUploadedBundles();
+        
+        // Remove statblocks with matching bundleId from the library
+        statblocks = statblocks.filter(sb => sb.bundleId !== bundleId);
+        saveToLocalStorage();
+        
+        // Clear current selection if it was from the deleted bundle
+        if(currentDetail && currentDetail.bundleId === bundleId) {
+          currentDetail = null;
+          selectedStatblockID = null;
+          renderDefaultDetail();
+        }
+        
+        document.dispatchEvent(new CustomEvent('refreshUI'));
+      }
+    });
+    tdAction.appendChild(refreshBtn);
+    tdAction.appendChild(document.createTextNode(" | "));
+    tdAction.appendChild(delBtn);
+    tr.append(tdName, tdId, tdTotal, tdActive, tdAction);
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  container.appendChild(table);
+}
+
 // --- Upload Bundles --- //
 export async function handleUpload(){
     const fileInput = document.getElementById("uploadFile");
