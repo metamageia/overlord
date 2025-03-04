@@ -403,34 +403,6 @@ export function renderComponentsList() {
   
   container.innerHTML = "";
   
-  // Add selection actions buttons
-  const selectionActions = document.createElement("div");
-  selectionActions.className = "selection-actions";
-  
-  const selectAllBtn = document.createElement("button");
-  selectAllBtn.textContent = "Select All";
-  selectAllBtn.className = "inline-btn";
-  selectAllBtn.addEventListener("click", () => {
-    currentFilteredComponents.forEach(comp => {
-      selectedComponentIDs.add(comp.componentID);
-    });
-    updateComponentsPreview();
-    renderComponentsList();
-  });
-  
-  const clearSelectionBtn = document.createElement("button");
-  clearSelectionBtn.textContent = "Clear Selection";
-  clearSelectionBtn.className = "inline-btn";
-  clearSelectionBtn.addEventListener("click", () => {
-    selectedComponentIDs.clear();
-    updateComponentsPreview();
-    renderComponentsList();
-  });
-  
-  selectionActions.appendChild(selectAllBtn);
-  selectionActions.appendChild(clearSelectionBtn);
-  container.appendChild(selectionActions);
-
   // Create table with the same styling as library table
   const table = document.createElement("table");
   table.id = "componentsTable";
@@ -721,6 +693,34 @@ export function renderComponentsList() {
   
   table.appendChild(tbody);
   container.appendChild(table);
+  
+  // MOVED: Add selection actions buttons below the table
+  const selectionActions = document.createElement("div");
+  selectionActions.className = "selection-actions";
+  
+  const selectAllBtn = document.createElement("button");
+  selectAllBtn.textContent = "Select All";
+  selectAllBtn.className = "inline-btn";
+  selectAllBtn.addEventListener("click", () => {
+    currentFilteredComponents.forEach(comp => {
+      selectedComponentIDs.add(comp.componentID);
+    });
+    updateComponentsPreview();
+    renderComponentsList();
+  });
+  
+  const clearSelectionBtn = document.createElement("button");
+  clearSelectionBtn.textContent = "Clear Selection";
+  clearSelectionBtn.className = "inline-btn";
+  clearSelectionBtn.addEventListener("click", () => {
+    selectedComponentIDs.clear();
+    updateComponentsPreview();
+    renderComponentsList();
+  });
+  
+  selectionActions.appendChild(selectAllBtn);
+  selectionActions.appendChild(clearSelectionBtn);
+  container.appendChild(selectionActions);
   
   // Restore focus if needed
   if (focusedId) {
