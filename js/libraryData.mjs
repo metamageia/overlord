@@ -1,9 +1,11 @@
 
 export let LOCAL_STORAGE_KEY = "trespasser_statblocks";
+export let LOCAL_STORAGE_COMPONENTS_KEY = "trespasser_statblockComponents"; // New key for components
 export let LOCAL_STORAGE_BUNDLES_KEY = "trespasser_uploadedBundles";
 export let statblocks = [];
 export let uploadedBundles = [];
 export let favoritesMap = {};
+export let statblockComponents = []; // New array to store YAML snippets
 export let fuseIndex = null;
 
 
@@ -27,19 +29,37 @@ export function loadFromLocalStorage(){
       statblocks = [];
       favoritesMap = {};
     }
+
+    // Load statblock components
+    try {
+      const componentsData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_COMPONENTS_KEY));
+      statblockComponents = Array.isArray(componentsData) ? componentsData : [];
+    } catch(e) {
+      statblockComponents = [];
+    }
+
 }
 export function saveToLocalStorage(){
     // Generate favorites array from favoritesMap
     const favArray = Object.keys(favoritesMap).filter(id => favoritesMap[id]);
     const data = { statblocks, favorites: favArray };
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
-}
+
+
+    // Save statblock components
+    localStorage.setItem(LOCAL_STORAGE_COMPONENTS_KEY, JSON.stringify(statblockComponents));
+
+  }
 export function clearLocalStorage(){
     localStorage.removeItem(LOCAL_STORAGE_KEY);
     localStorage.removeItem(LOCAL_STORAGE_BUNDLES_KEY);
+    localStorage.removeItem(LOCAL_STORAGE_COMPONENTS_KEY); // Clear components too
     statblocks = [];
     uploadedBundles = [];
     favoritesMap = {};
+    statblockComponents = []; // Reset components array
+  
+
 }
 
 /* ---------------------------------------------
@@ -66,6 +86,7 @@ export async function exportBackup(){
   const zip = new JSZip();
   zip.file("library.json", localStorage.getItem(LOCAL_STORAGE_KEY) || "{}");
   zip.file("bundles.json", localStorage.getItem(LOCAL_STORAGE_BUNDLES_KEY) || "[]");
+  zip.file("components.json", localStorage.getItem(LOCAL_STORAGE_COMPONENTS_KEY) || "[]"); // Add components to backup
   const blob = await zip.generateAsync({ type: "blob" });
   const a = document.createElement("a");
   a.download = "trespasser-backup.zip";
@@ -82,6 +103,7 @@ export async function importBackup(e){
     const zip = await JSZip.loadAsync(arrayBuffer);
     const libFile = zip.file("library.json");
     const bundlesFile = zip.file("bundles.json");
+    const componentsFile = zip.file("components.json"); // Add components file
     if(!libFile || !bundlesFile){
       alert("The backup file is missing library.json or bundles.json.");
       e.target.value = "";
@@ -110,6 +132,67 @@ export async function importBackup(e){
   }
   e.target.value = "";
 }
+
+
+/* ---------------------------------------------
+ * Statblock Components Management
+ * ---------------------------------------------
+ */
+
+// Add a new statblock component
+export function addStatblockComponent(component) {
+  if (!component || typeof component !== 'object') return false;
+  
+  // Ensure component has required fields
+  if (!component.name || !component.yaml || typeof component.yaml !== 'string') {
+    return false;
+  }
+  
+  // Generate unique ID if not present
+  if (!component.id) {
+    component.id = generateComponentId();
+  }
+  
+  // Add to components array
+  statblockComponents.push(component);
+  saveToLocalStorage();
+  return true;
+}
+
+// Delete a statblock component by ID
+export function deleteStatblockComponent(id) {
+  const initialLength = statblockComponents.length;
+  statblockComponents = statblockComponents.filter(c => c.id !== id);
+  
+  if (statblockComponents.length !== initialLength) {
+    saveToLocalStorage();
+    return true;
+  }
+  return false;
+}
+
+// Update an existing statblock component
+export function updateStatblockComponent(id, updates) {
+  const component = statblockComponents.find(c => c.id === id);
+  if (!component) return false;
+  
+  Object.assign(component, updates);
+  saveToLocalStorage();
+  return true;
+}
+
+// Helper function to generate unique component ID
+function generateComponentId() {
+  return 'comp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+// Get all statblock components
+export function getAllStatblockComponents() {
+  return [...statblockComponents]; // Return a copy
+}
+
+/// --- Backup Naming --- //
+
 // Backup Name / Location
 export function downloadBlob(text, mime, filename){
   const blob = new Blob([text], { type: mime });
