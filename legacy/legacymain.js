@@ -1,5 +1,3 @@
-import { masterYamlData, updateMasterYamlData, resetMasterYamlData } from "./js/masterYamlData.mjs";
-
 /************************************************
  * Global Variables
  ************************************************/
@@ -16,7 +14,6 @@ let selectedStatblockID = null;
 let currentSortField = "monsterName";
 let currentSortDirection = "asc";
 let bundleList = [];
-let currentFilteredList = [];
 
 // Global filters for library table
 let filterName = "";
@@ -33,6 +30,9 @@ let cbFilterRole = "";
 let cbFilterTemplate = ""; 
 let cbFilterTR = "";
 let cbFilterBundle = "";
+
+// MASTER YAML DATA (Single source of truth)
+let masterYamlData = {};
 
 // Global favorites map (keyed by statblockID)
 let favoritesMap = {}; // Now built from library.json favorites array
@@ -89,7 +89,7 @@ window.addEventListener("DOMContentLoaded", () => {
   switchBundlesTab("bundles");
   switchBundlesTab("manage");
   
-  resetMasterYamlData();
+  masterYamlData = {};
   updateUIFromMasterYaml();
   updateYamlTextArea();
 
@@ -100,7 +100,7 @@ window.addEventListener("DOMContentLoaded", () => {
     try {
       const decodedYaml = decodeStatblockData(shareParam);
       if(decodedYaml) {
-        updateMasterYamlData(jsyaml.load(decodedYaml));
+        masterYamlData = jsyaml.load(decodedYaml);
         updateUIFromMasterYaml();
         updateYamlTextArea();
         updateRenderedStatblock();
@@ -575,7 +575,7 @@ function updateMasterYamlDataFromYaml(){
   try {
     const parsed = jsyaml.load(document.getElementById("yamlArea").value.replace(/\u00A0/g, " "));
     if(parsed){
-      updateMasterYamlData(parsed);
+      masterYamlData = parsed;
       updateUIFromMasterYaml();
       updateRenderedStatblock();
     }
@@ -952,7 +952,7 @@ function renderStatblockLibrary(){
       tr.addEventListener("click", () => {
         currentDetail = sb;
         selectedStatblockID = sb.statblockID;
-        updateMasterYamlData(structuredClone(sb));
+        masterYamlData = structuredClone(sb);
         updateUIFromMasterYaml();
         updateYamlTextArea();
         updateRenderedStatblock();
@@ -1611,7 +1611,7 @@ function mergeSelectedBundles(fmt){
 
 // --- New Statblock --- //
 function clearEditorFields(){
-  resetMasterYamlData();
+  masterYamlData = {};
   hiddenStats.clear(); // Reset hidden stats
   const customStatsContainer = document.getElementById("customStatsContainer");
   if (customStatsContainer) {
@@ -2138,7 +2138,7 @@ function attachEventHandlers() {
   // Rest of your existing event handlers...
   document.getElementById("createNewBtn").addEventListener("click", () => {
     if (confirm("Create new empty statblock? Any unsaved changes will be lost.")) {
-      resetMasterYamlData();
+      masterYamlData = {};
       currentDetail = null;
       selectedStatblockID = null;
       updateRenderedStatblock();
@@ -2229,7 +2229,7 @@ function attachEventHandlers() {
       selectedStatblockID = currentFilteredList[curIndex].statblockID;
       currentDetail = currentFilteredList[curIndex];
       renderStatblockLibrary();
-      updateMasterYamlData(structuredClone(currentDetail));
+      masterYamlData = structuredClone(currentDetail);
       updateUIFromMasterYaml();
       updateYamlTextArea();
       updateRenderedStatblock();
@@ -2239,7 +2239,7 @@ function attachEventHandlers() {
       selectedStatblockID = currentFilteredList[curIndex].statblockID;
       currentDetail = currentFilteredList[curIndex];
       renderStatblockLibrary();
-      updateMasterYamlData(structuredClone(currentDetail));
+      masterYamlData = structuredClone(currentDetail);
       updateUIFromMasterYaml();
       updateYamlTextArea();
       updateRenderedStatblock();
@@ -2316,7 +2316,7 @@ function attachEventHandlers() {
       return;
     }
     try {
-      updateMasterYamlData(jsyaml.load(decodedYaml));
+      masterYamlData = jsyaml.load(decodedYaml);
       updateUIFromMasterYaml();
       updateYamlTextArea();
       updateRenderedStatblock();
