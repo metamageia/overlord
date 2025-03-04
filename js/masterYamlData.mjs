@@ -151,7 +151,7 @@ export function uiFieldChanged(){
 
 
 // Features & Deeds
-function addFeature(feature=null){
+function addFeature(featureObj=null){
   const container = document.getElementById("featuresContainer");
   const div = document.createElement("div");
   div.className = "dynamic-feature";
@@ -189,35 +189,55 @@ function addFeature(feature=null){
   reorderContainer.appendChild(upButton);
   reorderContainer.appendChild(downButton);
   
+  // Create feature content wrapper
+  const featureContentWrapper = document.createElement("div");
+  featureContentWrapper.className = "feature-content-wrapper";
+  
+  // Title input
   const titleInput = document.createElement("input");
   titleInput.type = "text";
-  titleInput.placeholder = "Title";
-  titleInput.value = feature ? (feature.title || "") : "";
+  titleInput.placeholder = "Enter feature title";
+  titleInput.className = "feature-title-input";
+  titleInput.value = featureObj ? (featureObj.title || "") : "";
   titleInput.addEventListener("input", uiFieldChanged);
   
-  const colonSpan = document.createElement("span");
-  colonSpan.textContent = ":";
-  colonSpan.className = "feature-colon";
+  // Feature content
+  const contentTextarea = document.createElement("textarea");
+  contentTextarea.placeholder = "Enter feature description";
+  contentTextarea.className = "feature-content-input";
+  contentTextarea.value = featureObj ? (featureObj.content || "") : "";
+  contentTextarea.addEventListener("input", uiFieldChanged);
+  contentTextarea.rows = 3;
   
-  const contentInput = document.createElement("input");
-  contentInput.type = "text";
-  contentInput.placeholder = "Content";
-  contentInput.value = feature ? (feature.content || "") : "";
-  contentInput.addEventListener("input", uiFieldChanged);
+  // Remove button
+  const removeFeatureBtn = document.createElement("button");
+  removeFeatureBtn.type = "button";
+  removeFeatureBtn.textContent = "x";
+  removeFeatureBtn.className = "delete-feature-btn";
+  removeFeatureBtn.onclick = () => { div.remove(); uiFieldChanged(); };
   
-  const removeBtn = document.createElement("button");
-  removeBtn.textContent = "x";
-  removeBtn.className = "delete-btn";
-  removeBtn.addEventListener("click", () => {
-    div.remove();
-    uiFieldChanged();
-  });
+  // Add "Save as Component" button
+  const saveComponentBtn = document.createElement("button");
+  saveComponentBtn.type = "button";
+  saveComponentBtn.textContent = "Save as Component";
+  saveComponentBtn.className = "small-btn save-component-btn";
+  saveComponentBtn.title = "Save this feature as a reusable component";
+  saveComponentBtn.onclick = () => { 
+    saveFeatureAsComponent(div); 
+  };
   
+  // Button container
+  const buttonContainer = document.createElement("div");
+  buttonContainer.className = "feature-button-container";
+  buttonContainer.appendChild(saveComponentBtn);
+  
+  // Assemble the feature element
+  featureContentWrapper.appendChild(titleInput);
+  featureContentWrapper.appendChild(contentTextarea);
+  featureContentWrapper.appendChild(buttonContainer);
+  div.appendChild(featureContentWrapper);
+  div.appendChild(removeFeatureBtn);
   div.appendChild(reorderContainer);
-  div.appendChild(titleInput);
-  div.appendChild(colonSpan);
-  div.appendChild(contentInput);
-  div.appendChild(removeBtn);
   container.appendChild(div);
 }
 function addDeed(type, deedObj=null){
@@ -471,6 +491,37 @@ function saveDeedAsComponent(deedElement, deedType) {
   // Add to components library
   if(addStatblockComponent(component)) {
     alert(`Saved "${deedTitle}" as a component!`);
+  } else {
+    alert("Failed to save component.");
+  }
+}
+
+function saveFeatureAsComponent(featureElement) {
+  // Get feature title
+  const titleInput = featureElement.querySelector(".feature-title-input");
+  const featureTitle = titleInput ? titleInput.value.trim() : "Unnamed Feature";
+  
+  // Extract feature content
+  const contentTextarea = featureElement.querySelector(".feature-content-input");
+  const featureContent = contentTextarea ? contentTextarea.value.trim() : "";
+  
+  // Build YAML content
+  let yamlContent = featureTitle;
+  if(featureContent) {
+    yamlContent += "\n" + featureContent;
+  }
+  
+  // Create the component
+  const component = {
+    id: 'comp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+    name: featureTitle,
+    type: "Feature", // All features are of type "Feature"
+    yaml: yamlContent
+  };
+  
+  // Add to components library
+  if(addStatblockComponent(component)) {
+    alert(`Saved "${featureTitle}" as a component!`);
   } else {
     alert("Failed to save component.");
   }

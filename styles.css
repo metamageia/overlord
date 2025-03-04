@@ -1117,3 +1117,153 @@ body {
   display: flex;
   margin-top: 5px;
 }
+
+/* Feature component button containers */
+.feature-button-container {
+  display: flex;
+  margin-top: 5px;
+}
+
+.feature-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  margin-right: 20px;
+}
+
+.feature-title-input {
+  margin-bottom: 5px;
+}
+
+/* Components Table Styles - Matching Library Table */
+#componentsTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+#componentsTable th,
+#componentsTable td {
+  padding: 4px 8px;
+  font-size: 0.9em;
+  text-align: left;
+  word-wrap: break-word;
+}
+
+#componentsTable thead tr:nth-child(1) th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #333;
+  color: #fff;
+  cursor: pointer;
+}
+
+#componentsTable thead tr:nth-child(2) td {
+  position: sticky;
+  top: 30px;
+  z-index: 2;
+  background: #eee;
+}
+
+#componentsTable tbody tr {
+  cursor: pointer;
+}
+
+#componentsTable tbody tr:hover {
+  background-color: #e9e9e9;
+}
+
+#componentsTable tbody tr.selected {
+  background-color: #e6f7ff;
+}
+
+#componentsListContainer {
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
+  width: 100%;
+  outline: none; /* Hide focus outline but keep it focusable */
+}
+
+/* Component total line styling */
+.library-total-line {
+  font-size: 0.9em;
+  padding: 5px 0;
+  opacity: 0.9;
+  text-align: right;
+  margin-right: 10px;
+}
+
+/* Component Preview Styling */
+#componentPreviewSection {
+  margin-top: 12px;
+  border-top: 1px solid #ccc;
+  padding-top: 8px;
+}
+
+#componentPreviewContainer {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  padding: 8px;
+  margin-top: 5px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+#defaultComponentPreview {
+  text-align: center;
+  color: #888;
+  padding: 10px;
+}
+
+.statblock-preview {
+  font-size: 0.9em;
+}
+
+/* More compact deed styling */
+.deed-compact .deed {
+  border: 1px solid #333;
+  background: #fff;
+  padding: 5px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: 350px;
+}
+
+.deed-compact .deed-header {
+  font-weight: bold;
+  margin-bottom: 1px;  /* Reduced from 2px */
+  font-size: 0.9em;
+  padding: 3px 5px;  /* Reduced padding */
+  margin: -4px -4px 1px -4px;  /* Match the reduced padding of parent */
+}
+
+.deed-compact .deed-title-output {
+  font-weight: bold;
+  font-size: 1.05em;
+  margin: 0 0 1px 0;  /* Reduced from 2px bottom margin */
+  padding: 0;
+  line-height: 1.2;  /* Add tighter line height */
+}
+
+.deed-compact .deed-separator {
+  border: 0;
+  border-top: 1px solid #ccc;
+  margin: 0 0 1px 0;  /* Reduced from 2px 0 3px */
+  padding: 0;
+}
+
+.deed-compact .line-indent {
+  margin-bottom: 1px;  /* Reduced from 2px */
+  line-height: 1.2;  /* Tighter line height */
+}
+
+/* Adjust the height of the components list when preview is shown */
+#componentsListContainer {
+  max-height: calc(100vh - 450px);
+}
+
+/* Make the components panel scrollable */
+#bundlesComponentsPanel {
+  overflow-y: auto;
+}

@@ -79,9 +79,14 @@ export function switchBundlesTab(tab) {
     // Activate the components panel
     document.getElementById("bundlesComponentsPanel").classList.add("active");
     
-    // Render the components list
+    // Render the components list and initialize any previews
     import('./componentManagement.mjs').then(module => {
       module.renderComponentsList();
+      // Focus the components list container to enable keyboard navigation
+      setTimeout(() => {
+        const container = document.getElementById("componentsListContainer");
+        if (container) container.focus();
+      }, 100);
     });
   } else if(tab === "backup") {
     // Hide the subtabs for other top-level tabs
