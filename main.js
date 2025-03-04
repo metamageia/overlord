@@ -3,9 +3,10 @@ import { updateYamlTextArea, updateMasterYamlDataFromYaml, updateUIFromMasterYam
 import { updateRenderedStatblock, renderDefaultDetail } from "./js/statblockRender.mjs";
 import { statblocks, uploadedBundles, favoritesMap, loadFromLocalStorage, saveToLocalStorage, loadUploadedBundles, saveUploadedBundles, exportBackup, importBackup, downloadBlob, clearLocalStorage, initSearch } from "./js/libraryData.mjs";
 import { generateStatblockID, } from "./js/idManagement.mjs";
-import { handleUpload, renderCreateBundleList, renderBundleList, downloadCurrentBundle, mergeSelectedBundles, getBundleName, confirmOverwrite, cancelOverwrite} from './js/bundleManagement.mjs';
+import { handleUpload, renderCreateBundleList, renderBundleList, downloadCurrentBundle, mergeSelectedBundles, getBundleName, confirmOverwrite, cancelOverwrite, fillManageMergeSelect} from './js/bundleManagement.mjs';
 import { matchesNumericQuery, matchesStringQuery } from './js/utilityFunctions.mjs';
-import { currentSortDirection, currentSortField } from "./js/libraryUtilities.mjs";
+import { currentSortDirection, currentSortField, setCurrentSortDirection, setCurrentSortField, toggleSortDirection } from "./js/libraryUtilities.mjs";
+import { decodeStatblockData, encodeStatblockData,exportCurrentDetail } from "./js/shareStatblocks.mjs";
 
 /************************************************
  * Global Variables
@@ -120,57 +121,6 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
-
-
-
-/* ---------------------------------------------
- Statblock Export and Sharing
- * ---------------------------------------------
- */
-
- // --- Import / Export Share Code --- //
-function encodeStatblockData(yamlString) {
-  const compressed = LZString.compressToEncodedURIComponent(yamlString);
-  return compressed;
-}
-function decodeStatblockData(encodedString) {
-  const decompressed = LZString.decompressFromEncodedURIComponent(encodedString);
-  return decompressed;
-}
-
-// --- Export Statblock Render --- //
-function exportCurrentDetail(){
-  if(!currentDetail){
-    alert("No statblock selected.");
-    return;
-  }
-  const exportContainer = document.createElement("div");
-  exportContainer.style.width = "560px";
-  exportContainer.style.height = "auto";
-  exportContainer.style.padding = "10px";
-  exportContainer.style.boxSizing = "border-box";
-  exportContainer.innerHTML = document.getElementById("detailStatblock").innerHTML;
-  document.body.appendChild(exportContainer);
-  html2canvas(exportContainer, { scale: 2 }).then(canvas => {
-    const fmt = document.getElementById("exportFormat").value;
-    const baseName = currentDetail.monsterName ? currentDetail.monsterName.replace(/\s+/g, "_") : "statblock";
-    if(fmt === "png"){
-      const a = document.createElement("a");
-      a.download = baseName + ".png";
-      a.href = canvas.toDataURL("image/png");
-      a.click();
-    } else {
-      const pdf = new jspdf.jsPDF({
-        orientation: "landscape",
-        unit: "px",
-        format: [canvas.width, canvas.height]
-      });
-      pdf.addImage(canvas.toDataURL("image/png"), 'PNG', 0, 0, canvas.width, canvas.height);
-      pdf.save(baseName + ".pdf");
-    }
-    document.body.removeChild(exportContainer);
-  });
-}
 
 /* ---------------------------------------------
  * UI Controllers
@@ -288,19 +238,6 @@ function initBundlePanels() {
     if (panel && panel.parentElement !== bundlesContainerPanel) {
       bundlesContainerPanel.appendChild(panel);
     }
-  });
-}
-
-// Bundle Merge Selection
-function fillManageMergeSelect(){
-  const mergeSelect = document.getElementById("manageMergeSelect");
-  mergeSelect.innerHTML = "";
-  uploadedBundles.forEach(bundle => {
-    const displayName = bundle.bundleName ? bundle.bundleName : bundle.id;
-    const option = document.createElement("option");
-    option.value = bundle.id;
-    option.textContent = `${displayName} (ID: ${bundle.id}, ${bundle.total} statblock${bundle.total > 1 ? "s" : ""})`;
-    mergeSelect.appendChild(option);
   });
 }
 
@@ -483,10 +420,10 @@ function renderStatblockLibrary(){
   favTh.textContent = "⭐";
   favTh.addEventListener("click", () => {
     if(currentSortField === "favorite"){
-      currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
+      toggleSortDirection();
     } else {
-      currentSortField = "favorite";
-      currentSortDirection = "asc";
+      setCurrentSortField("favorite");
+      setCurrentSortDirection("asc");
     }
     renderStatblockLibrary();
   });
@@ -505,10 +442,10 @@ function renderStatblockLibrary(){
     th.dataset.field = col.field;
     th.addEventListener("click", () => {
       if(currentSortField === col.field){
-        currentSortDirection = (currentSortDirection === "asc") ? "desc" : "asc";
+        toggleSortDirection();
       } else {
-        currentSortField = col.field;
-        currentSortDirection = "asc";
+        setCurrentSortField(col.field);
+        setCurrentSortDirection("asc");
       }
       renderStatblockLibrary();
     });

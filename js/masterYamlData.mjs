@@ -23,7 +23,7 @@ export function updateMasterYamlDataFromYaml(){
     try {
       const parsed = jsyaml.load(document.getElementById("yamlArea").value.replace(/\u00A0/g, " "));
       if(parsed){
-        updateMasterYamlData(parsed);
+        masterYamlData = parsed;
         updateUIFromMasterYaml();
         updateRenderedStatblock();
       }

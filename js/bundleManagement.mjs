@@ -1,7 +1,7 @@
 import { statblocks, favoritesMap, uploadedBundles, downloadBlob } from './libraryData.mjs';
 import {generateStatblockID, generateBundleID,} from './idManagement.mjs';
 import { matchesNumericQuery, matchesStringQuery } from './utilityFunctions.mjs';
-import { currentSortDirection, currentSortField } from "./libraryUtilities.mjs";
+import { currentSortDirection, currentSortField, setCurrentSortDirection, setCurrentSortField, toggleSortDirection } from "./libraryUtilities.mjs";
 
 
 // Global filters for Create Bundle table
@@ -187,10 +187,10 @@ export async function handleUpload(){
     favTh.textContent = "⭐";
     favTh.addEventListener("click", () => {
       if(currentSortField === "favorite"){
-        currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
+        toggleSortDirection();
       } else {
-        currentSortField = "favorite";
-        currentSortDirection = "asc";
+        setCurrentSortField("favorite");
+        setCurrentSortDirection("asc");
       }
       renderCreateBundleList();
     });
@@ -209,10 +209,10 @@ export async function handleUpload(){
       th.dataset.field = col.field;
       th.addEventListener("click", () => {
         if(currentSortField === col.field){
-          currentSortDirection = (currentSortDirection === "asc") ? "desc" : "asc";
+          toggleSortDirection();
         } else {
-          currentSortField = col.field;
-          currentSortDirection = "asc";
+          setCurrentSortField(col.field);
+          setCurrentSortDirection("asc");
         }
         renderCreateBundleList();
       });
@@ -523,6 +523,18 @@ export async function handleUpload(){
   }
   
   // --- Merge Bundles --- //
+// Bundle Merge Selection
+export function fillManageMergeSelect(){
+  const mergeSelect = document.getElementById("manageMergeSelect");
+  mergeSelect.innerHTML = "";
+  uploadedBundles.forEach(bundle => {
+    const displayName = bundle.bundleName ? bundle.bundleName : bundle.id;
+    const option = document.createElement("option");
+    option.value = bundle.id;
+    option.textContent = `${displayName} (ID: ${bundle.id}, ${bundle.total} statblock${bundle.total > 1 ? "s" : ""})`;
+    mergeSelect.appendChild(option);
+  });
+}
  export function mergeSelectedBundles(fmt){
     const sids = Array.from(document.getElementById("manageMergeSelect").selectedOptions)
                   .map(o => o.value);
