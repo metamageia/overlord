@@ -9,7 +9,8 @@ let currentSortDirection = "asc";
 let filterName = "";
 let filterType = "";
 let currentFilteredComponents = [];
-let selectedComponentID = null;
+// Replace single selection with a Set to track multiple selections
+let selectedComponentIDs = new Set();
 
 // Sort direction toggles
 function setCurrentSortField(field) {
@@ -24,12 +25,14 @@ function toggleSortDirection() {
   currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
 }
 
-// Render the preview for a selected component
-function renderComponentPreview(component) {
+
+// Updated to render previews for multiple components
+// Updated to render a combined statblock preview for multiple components
+function renderComponentPreview(components) {
   const defaultPreview = document.getElementById("defaultComponentPreview");
   const componentRender = document.getElementById("componentRender");
   
-  if (!component) {
+  if (!components || components.length === 0) {
     defaultPreview.style.display = "block";
     componentRender.style.display = "none";
     return;
@@ -39,26 +42,162 @@ function renderComponentPreview(component) {
   componentRender.style.display = "block";
   componentRender.innerHTML = "";
   
-  // Add component ID information
-  const idDiv = document.createElement("div");
-  idDiv.className = "component-id-info";
-  idDiv.textContent = `Component ID: ${component.componentID}`;
-  componentRender.appendChild(idDiv);
+  // Group components by type
+  const groupedComponents = {
+    features: components.filter(c => c.type === "Feature"),
+    deeds: components.filter(c => c.type && c.type.includes("Deed")),
+    other: components.filter(c => c.type !== "Feature" && (!c.type || !c.type.includes("Deed")))
+  };
   
-  // Render based on component type
-  if (component.type === "Feature") {
-    renderFeatureComponent(component, componentRender);
-  } else if (component.type && component.type.includes("Deed")) {
-    renderDeedComponent(component, componentRender);
-  } else {
-    renderGenericComponent(component, componentRender);
+  // Show selection count
+  const countDiv = document.createElement("div");
+  countDiv.className = "component-selection-info";
+  countDiv.textContent = `${components.length} component${components.length > 1 ? 's' : ''} selected`;
+  componentRender.appendChild(countDiv);
+  
+  // Create statblock container
+  const statblockContainer = document.createElement("div");
+  statblockContainer.className = "statblock-container preview-statblock";
+  
+  // Add Features section if there are any features
+  if (groupedComponents.features.length > 0) {
+    const featuresSection = document.createElement("div");
+    featuresSection.className = "statblock-section";
+    featuresSection.innerHTML = "<h3>Features</h3>";
+    
+    const featuresContainer = document.createElement("div");
+    featuresContainer.className = "features";
+    
+    groupedComponents.features.forEach(component => {
+      const yamlContent = component.yaml;
+      const lines = yamlContent.split("\n");
+      const title = lines[0];
+      const content = lines.slice(1).join("\n");
+      
+      const featureDiv = document.createElement("div");
+      featureDiv.className = "feature";
+      featureDiv.innerHTML = `
+        <div style="margin-bottom: 10px; font-size: 0.9em;">
+          <strong>${title}:</strong> ${content}
+        </div>
+      `;
+      featuresContainer.appendChild(featureDiv);
+    });
+    
+    featuresSection.appendChild(featuresContainer);
+    statblockContainer.appendChild(featuresSection);
   }
   
-  // Add Apply Component button
+  // Add Deeds section if there are any deeds
+  if (groupedComponents.deeds.length > 0) {
+    const deedsSection = document.createElement("div");
+    deedsSection.className = "statblock-section";
+    deedsSection.innerHTML = "<h3>Deeds</h3>";
+    
+    const deedsContainer = document.createElement("div");
+    deedsContainer.className = "deeds";
+    
+    // Process and render each deed component properly
+    groupedComponents.deeds.forEach(component => {
+      try {
+        // Map component type to deed color
+        const typeToColor = {
+          "Light Deed": "light",
+          "Heavy Deed": "heavy",
+          "Mighty Deed": "mighty",
+          "Tyrant Deed": "tyrant",
+          "Special Deed": "special"
+        };
+        
+        let color = typeToColor[component.type] || component.deedType || "light";
+        if (typeof color !== "string") color = "light";
+        color = color.toLowerCase();
+        
+        // Parse deed content
+        const parsedDeeds = parseDeedsStringNew(component.yaml);
+        
+        // Render each parsed deed
+        parsedDeeds.forEach(deed => {
+          const deedDiv = document.createElement("div");
+          deedDiv.className = `deed ${color}`;
+          
+          // Build HTML similar to statblockRender.mjs
+          const cap = color.charAt(0).toUpperCase() + color.slice(1);
+          let html = `<div class="deed-header">${cap}</div>`;
+          
+          if (deed.title) {
+            html += `<div class="deed-title-output">${deed.title.trim()}</div><hr class="deed-separator">`;
+          }
+          
+          if (deed.lines && deed.lines.length) {
+            deed.lines.forEach(line => {
+              if (line.title) {
+                html += `<div class="line-indent" style="font-size:0.9em;">`;
+                if (line.content) {
+                  html += `<strong>${line.title}:</strong> ${line.content}`;
+                } else {
+                  html += `<strong>${line.title}</strong>`;
+                }
+                html += `</div>`;
+              }
+            });
+          }
+          
+          deedDiv.innerHTML = html;
+          deedsContainer.appendChild(deedDiv);
+        });
+      } catch (e) {
+        console.error("Error rendering deed:", e);
+        // Fallback for rendering in case of error
+        const deedDiv = document.createElement("div");
+        deedDiv.className = "deed light";
+        deedDiv.innerHTML = `
+          <div class="deed-header">Error</div>
+          <div class="deed-title-output">Error rendering deed</div>
+          <hr class="deed-separator">
+          <div class="line-indent" style="font-size:0.9em;"><pre>${component.yaml}</pre></div>
+        `;
+        deedsContainer.appendChild(deedDiv);
+      }
+    });
+    
+    deedsSection.appendChild(deedsContainer);
+    statblockContainer.appendChild(deedsSection);
+  }
+  
+  // Add other components if any
+  if (groupedComponents.other.length > 0) {
+    const otherSection = document.createElement("div");
+    otherSection.className = "statblock-section";
+    otherSection.innerHTML = "<h3>Other Components</h3>";
+    
+    groupedComponents.other.forEach(component => {
+      const componentDiv = document.createElement("div");
+      componentDiv.className = "other-component";
+      
+      const header = document.createElement("h4");
+      header.textContent = component.name || component.type || "Component";
+      componentDiv.appendChild(header);
+      
+      const content = document.createElement("div");
+      content.className = "other-content";
+      content.innerHTML = `<pre style="white-space: pre-wrap; font-family: inherit;">${component.yaml}</pre>`;
+      componentDiv.appendChild(content);
+      
+      otherSection.appendChild(componentDiv);
+    });
+    
+    statblockContainer.appendChild(otherSection);
+  }
+  
+  // Add the statblock to the render area
+  componentRender.appendChild(statblockContainer);
+  
+  // Add Apply Components button
   const applyBtn = document.createElement("button");
-  applyBtn.textContent = "Apply Component";
+  applyBtn.textContent = `Apply ${components.length} Component${components.length > 1 ? 's' : ''}`;
   applyBtn.className = "action-btn apply-component-btn";
-  applyBtn.addEventListener("click", () => applyComponentToStatblock(component));
+  applyBtn.addEventListener("click", () => applyComponentsToStatblock(components));
   
   // Create container for button
   const btnContainer = document.createElement("div");
@@ -67,30 +206,37 @@ function renderComponentPreview(component) {
   
   componentRender.appendChild(btnContainer);
 }
-
-// Function to apply the component to the current statblock
-function applyComponentToStatblock(component) {
-  if (!component) return;
+// Updated to apply multiple components
+function applyComponentsToStatblock(components) {
+  if (!components || components.length === 0) return;
   
   try {
     // Get current data from UI first
     updateMasterYamlDataFromUI();
     
-    // Apply component based on its type
-    if (component.type === "Feature") {
-      applyFeatureComponent(component);
-    } else if (component.type && component.type.includes("Deed")) {
-      applyDeedComponent(component);
-    }
+    // Apply all components
+    components.forEach(component => {
+      // Apply component based on its type
+      if (component.type === "Feature") {
+        applyFeatureComponent(component);
+      } else if (component.type && component.type.includes("Deed")) {
+        applyDeedComponent(component);
+      }
+    });
     
     // Update UI with new data
     updateUIFromMasterYaml();
     document.dispatchEvent(new CustomEvent('refreshUI'));
-    alert(`Applied "${component.name}" to the current statblock!`);
+    alert(`Applied ${components.length} component${components.length > 1 ? 's' : ''} to the current statblock!`);
   } catch (error) {
-    console.error("Error applying component:", error);
-    alert("Failed to apply component: " + error.message);
+    console.error("Error applying components:", error);
+    alert("Failed to apply components: " + error.message);
   }
+}
+
+// Backward compatibility function
+function applyComponentToStatblock(component) {
+  applyComponentsToStatblock([component]);
 }
 
 // Function to apply a feature component
@@ -241,7 +387,7 @@ function renderGenericComponent(component, container) {
   container.appendChild(genericDiv);
 }
 
-// Render Components List
+// Update rendering function to include checkboxes for selection
 export function renderComponentsList() {
   const container = document.getElementById("componentsListContainer");
   if (!container) return;
@@ -257,12 +403,46 @@ export function renderComponentsList() {
   
   container.innerHTML = "";
   
+  // Add selection actions buttons
+  const selectionActions = document.createElement("div");
+  selectionActions.className = "selection-actions";
+  
+  const selectAllBtn = document.createElement("button");
+  selectAllBtn.textContent = "Select All";
+  selectAllBtn.className = "inline-btn";
+  selectAllBtn.addEventListener("click", () => {
+    currentFilteredComponents.forEach(comp => {
+      selectedComponentIDs.add(comp.componentID);
+    });
+    updateComponentsPreview();
+    renderComponentsList();
+  });
+  
+  const clearSelectionBtn = document.createElement("button");
+  clearSelectionBtn.textContent = "Clear Selection";
+  clearSelectionBtn.className = "inline-btn";
+  clearSelectionBtn.addEventListener("click", () => {
+    selectedComponentIDs.clear();
+    updateComponentsPreview();
+    renderComponentsList();
+  });
+  
+  selectionActions.appendChild(selectAllBtn);
+  selectionActions.appendChild(clearSelectionBtn);
+  container.appendChild(selectionActions);
+
   // Create table with the same styling as library table
   const table = document.createElement("table");
   table.id = "componentsTable";
   
   // Create colgroup with column widths
   const colgroup = document.createElement("colgroup");
+  
+  // Selection column
+  const selCol = document.createElement("col");
+  selCol.style.width = "30px";
+  selCol.id = "col-comp-select";
+  colgroup.appendChild(selCol);
   
   // Favorites column
   const favCol = document.createElement("col");
@@ -295,6 +475,11 @@ export function renderComponentsList() {
   
   // Header row with sortable columns
   const headerRow = document.createElement("tr");
+  
+  // Selection header (checkbox)
+  const selTh = document.createElement("th");
+  selTh.textContent = "";
+  headerRow.appendChild(selTh);
   
   // Favorites header
   const favTh = document.createElement("th");
@@ -341,6 +526,10 @@ export function renderComponentsList() {
   
   // Filter row
   const filterRow = document.createElement("tr");
+  
+  // Empty cell for selection column
+  const selFilterTd = document.createElement("td");
+  filterRow.appendChild(selFilterTd);
   
   // Empty cell for favorites column
   const favFilterTd = document.createElement("td");
@@ -428,7 +617,8 @@ export function renderComponentsList() {
   // Display total count
   const totalElement = document.createElement("div");
   totalElement.className = "library-total-line";
-  totalElement.innerHTML = `<span id="componentsTotal">Total: ${statblockComponents.length}</span>`;
+  totalElement.innerHTML = `<span id="componentsTotal">Total: ${statblockComponents.length}</span>
+                            <span id="componentsSelected">Selected: ${selectedComponentIDs.size}</span>`;
   container.appendChild(totalElement);
   
   // Create tbody and populate with filtered components
@@ -437,7 +627,7 @@ export function renderComponentsList() {
   if (filtered.length === 0) {
     const tr = document.createElement("tr");
     const td = document.createElement("td");
-    td.colSpan = columns.length + 2;
+    td.colSpan = columns.length + 3; // +3 for selection, favorites and action columns
     td.innerHTML = "<p>No matching components found.</p>";
     tr.appendChild(td);
     tbody.appendChild(tr);
@@ -445,11 +635,29 @@ export function renderComponentsList() {
     // Create a row for each component
     filtered.forEach((comp, index) => {
       const tr = document.createElement("tr");
-      tr.id = `component-row-${comp.componentID}`; // Changed from comp.id
-      if (comp.componentID === selectedComponentID) {
+      tr.id = `component-row-${comp.componentID}`;
+      if (selectedComponentIDs.has(comp.componentID)) {
         tr.classList.add("selected");
       }
       tr.setAttribute("data-index", index);
+      
+      // Selection cell with checkbox
+      const selTd = document.createElement("td");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = selectedComponentIDs.has(comp.componentID);
+      checkbox.addEventListener("change", (e) => {
+        e.stopPropagation();
+        if (checkbox.checked) {
+          selectedComponentIDs.add(comp.componentID);
+        } else {
+          selectedComponentIDs.delete(comp.componentID);
+        }
+        updateComponentsPreview();
+        renderComponentsList();
+      });
+      selTd.appendChild(checkbox);
+      tr.appendChild(selTd);
       
       // Favorites cell
       const favTd = document.createElement("td");
@@ -480,26 +688,31 @@ export function renderComponentsList() {
       deleteBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         if (!confirm(`Delete component "${comp.name}"?`)) return;
-        deleteStatblockComponent(comp.componentID); // Changed from comp.id
         
-        // If the deleted component was selected, clear selection
-        if (selectedComponentID === comp.componentID) { // Changed from comp.id
-          selectedComponentID = null;
-          // Clear the preview
-          renderComponentPreview(null);
+        // If component is selected, remove from selection
+        if (selectedComponentIDs.has(comp.componentID)) {
+          selectedComponentIDs.delete(comp.componentID);
         }
         
+        deleteStatblockComponent(comp.componentID);
+        updateComponentsPreview();
         renderComponentsList();
       });
       actionTd.appendChild(deleteBtn);
       tr.appendChild(actionTd);
       
-      // Click on row to select component and render preview
-      tr.addEventListener("click", () => {
-        selectedComponentID = comp.componentID; // Changed from comp.id
-        const selectedComponent = statblockComponents.find(c => c.componentID === comp.componentID);
-        renderComponentPreview(selectedComponent);
-        renderComponentsList(); // Re-render to update the selection
+      // Click on row to toggle selection
+      tr.addEventListener("click", (e) => {
+        if (e.target.type !== 'checkbox' && !e.target.closest('button')) {
+          checkbox.checked = !checkbox.checked;
+          if (checkbox.checked) {
+            selectedComponentIDs.add(comp.componentID);
+          } else {
+            selectedComponentIDs.delete(comp.componentID);
+          }
+          updateComponentsPreview();
+          renderComponentsList();
+        }
       });
       
       tbody.appendChild(tr);
@@ -521,22 +734,33 @@ export function renderComponentsList() {
   // Add keyboard navigation event listener
   container.addEventListener("keydown", handleKeyNavigation);
   
-  // Render preview for selected component
-  if (selectedComponentID) {
-    const selectedComponent = statblockComponents.find(c => c.componentID === selectedComponentID);
-    renderComponentPreview(selectedComponent);
+  // Update preview for selected components
+  updateComponentsPreview();
+}
+
+// Helper function to update the preview based on selected components
+function updateComponentsPreview() {
+  if (selectedComponentIDs.size > 0) {
+    const selectedComponents = statblockComponents.filter(c => selectedComponentIDs.has(c.componentID));
+    renderComponentPreview(selectedComponents);
   } else {
     renderComponentPreview(null);
   }
 }
 
-// Handle keyboard navigation
+// Updated keyboard navigation to toggle selection instead of single select
 function handleKeyNavigation(e) {
   if (!currentFilteredComponents.length) return;
   
+  // Find the first selected component index
   let curIndex = -1;
-  if (selectedComponentID) {
-    curIndex = currentFilteredComponents.findIndex(comp => comp.componentID === selectedComponentID);
+  if (selectedComponentIDs.size > 0) {
+    for (let i = 0; i < currentFilteredComponents.length; i++) {
+      if (selectedComponentIDs.has(currentFilteredComponents[i].componentID)) {
+        curIndex = i;
+        break;
+      }
+    }
   }
   
   if (curIndex === -1) curIndex = 0;
@@ -545,23 +769,53 @@ function handleKeyNavigation(e) {
   if (e.key === "ArrowDown") {
     e.preventDefault();
     curIndex = Math.min(curIndex + 1, currentFilteredComponents.length - 1);
-    selectedComponentID = currentFilteredComponents[curIndex].componentID;
-    const selectedComponent = statblockComponents.find(c => c.componentID === selectedComponentID);
-    renderComponentPreview(selectedComponent);
+    const comp = currentFilteredComponents[curIndex];
+    
+    // If holding shift, add to selection, otherwise toggle single selection
+    if (e.shiftKey) {
+      selectedComponentIDs.add(comp.componentID);
+    } else {
+      selectedComponentIDs.clear();
+      selectedComponentIDs.add(comp.componentID);
+    }
+    
+    updateComponentsPreview();
     renderComponentsList();
     ensureRowVisible("componentsTable", curIndex);
   } else if (e.key === "ArrowUp") {
     e.preventDefault();
     curIndex = Math.max(curIndex - 1, 0);
-    selectedComponentID = currentFilteredComponents[curIndex].componentID;
-    const selectedComponent = statblockComponents.find(c => c.componentID === selectedComponentID);
-    renderComponentPreview(selectedComponent);
+    const comp = currentFilteredComponents[curIndex];
+    
+    // If holding shift, add to selection, otherwise toggle single selection
+    if (e.shiftKey) {
+      selectedComponentIDs.add(comp.componentID);
+    } else {
+      selectedComponentIDs.clear();
+      selectedComponentIDs.add(comp.componentID);
+    }
+    
+    updateComponentsPreview();
     renderComponentsList();
     ensureRowVisible("componentsTable", curIndex);
+  } else if (e.key === "a" && (e.ctrlKey || e.metaKey)) {
+    // Ctrl+A / Cmd+A to select all
+    e.preventDefault();
+    currentFilteredComponents.forEach(comp => {
+      selectedComponentIDs.add(comp.componentID);
+    });
+    updateComponentsPreview();
+    renderComponentsList();
+  } else if (e.key === "Escape") {
+    // Escape to clear selection
+    e.preventDefault();
+    selectedComponentIDs.clear();
+    updateComponentsPreview();
+    renderComponentsList();
   }
 }
 
-// Helper function to ensure selected row is visible
+// Helper function to ensure selected row is visible (unchanged)
 function ensureRowVisible(tableId, rowIndex) {
   const table = document.getElementById(tableId);
   if (!table) return;

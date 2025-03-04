@@ -1267,3 +1267,126 @@ body {
 #bundlesComponentsPanel {
   overflow-y: auto;
 }
+
+/* Add to the existing CSS */
+
+/* Styling for component selection */
+.selection-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.selection-actions button {
+  padding: 4px 8px;
+  font-size: 0.9em;
+}
+
+#componentsSelected {
+  margin-left: 15px;
+  font-weight: bold;
+}
+
+.component-preview-item {
+  margin-bottom: 12px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+}
+
+.component-preview-header {
+  font-weight: bold;
+  font-size: 1.1em;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+}
+
+.component-selection-info {
+  font-weight: bold;
+  padding: 5px 0;
+  margin-bottom: 10px;
+  text-align: center;
+  border-bottom: 1px solid #ccc;
+}
+
+/* Visual indication of selected rows */
+#componentsTable tbody tr.selected {
+  background-color: #e6f7ff;
+}
+
+#componentsTable tbody tr:hover {
+  background-color: #e9e9e9;
+}
+
+#componentsTable tbody tr.selected:hover {
+  background-color: #d0e8ff;
+}
+
+/* Updated styling for component preview statblock */
+.preview-statblock {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f8f8f8;
+  padding: 12px;
+  margin-bottom: 15px;
+  font-family: inherit;
+}
+
+.preview-statblock .statblock-section {
+  margin-bottom: 15px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 10px;
+}
+
+.preview-statblock .statblock-section:last-child {
+  border-bottom: none;
+  margin-bottom: 5px;
+}
+
+/* Fix title colors to match regular statblocks */
+.preview-statblock h3 {
+  color: white;
+  font-size: 1.1em;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
+  background-color: #444;
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+.preview-statblock h4 {
+  color: #333;
+  font-size: 1em;
+  margin: 10px 0 5px 0;
+}
+
+.component-selection-info {
+  font-weight: bold;
+  padding: 5px 0;
+  margin-bottom: 10px;
+  text-align: center;
+  border-bottom: 1px solid #ccc;
+}
+
+.component-action-buttons {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.deed-list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.deed-list li {
+  margin-bottom: 5px;
+}
+
+.other-content {
+  background-color: #f2f2f2;
+  padding: 5px;
+  border-radius: 4px;
+}
