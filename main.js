@@ -1,4 +1,7 @@
-import { masterYamlData, updateMasterYamlData, resetMasterYamlData } from "./js/masterYamlData.mjs";
+import { masterYamlData, updateMasterYamlData, resetMasterYamlData, hiddenStats, DEFAULT_STATS } from "./js/yamlDataState.mjs";
+import { updateYamlTextArea, updateMasterYamlDataFromYaml, updateUIFromMasterYaml, updateMasterYamlDataFromUI, uiFieldChanged } from "./js/masterYamlData.mjs";
+import { parseDeedsStringNew } from "./js/utilityFunctions.mjs";
+import { updateRenderedStatblock, renderDefaultDetail } from "./js/statblockRender.mjs";
 
 /************************************************
  * Global Variables
@@ -6,7 +9,6 @@ import { masterYamlData, updateMasterYamlData, resetMasterYamlData } from "./js/
 
 // GLOBALS & DATA STORAGE
 const LOCAL_STORAGE_KEY = "trespasser_statblocks";
-// Removed: const LOCAL_STORAGE_FAVORITES_KEY = "trespasser_favorites";
 const LOCAL_STORAGE_BUNDLES_KEY = "trespasser_uploadedBundles";
 let statblocks = [];
 let uploadedBundles = [];
@@ -39,18 +41,6 @@ let favoritesMap = {}; // Now built from library.json favorites array
 
 // Temporary storage for pending upload (used for overwrite modal)
 let pendingUpload = null;
-
-// Add these to the global variables section
-const DEFAULT_STATS = {
-  hp: "HP",
-  init: "INIT",
-  acc: "ACC",
-  grd: "GRD",
-  res: "RES",
-  roll: "ROLL",
-  spd: "SPD"
-};
-let hiddenStats = new Set();  // Tracks which default stats are hidden
 
 // PWA Add this to your global variables
 let deferredPrompt;
@@ -554,141 +544,7 @@ function renderUploadedBundles(){
   container.appendChild(table);
 }
 
-/* ---------------------------------------------
- * MASTER YAML SYNCHRONIZATION FUNCTIONS
- * ---------------------------------------------
- */
 
-// Update YAML text area from MasterYAML?
-function updateYamlTextArea(){
-  try {
-    const clone = Object.assign({}, masterYamlData);
-    delete clone.statblockID;
-    delete clone.bundleId;
-    document.getElementById("yamlArea").value = jsyaml.dump(clone, { lineWidth: -1 });
-  } catch(e){
-    console.error(e);
-  }
-}
-// Update MasterYamlData from YAML Text Area
-function updateMasterYamlDataFromYaml(){
-  try {
-    const parsed = jsyaml.load(document.getElementById("yamlArea").value.replace(/\u00A0/g, " "));
-    if(parsed){
-      updateMasterYamlData(parsed);
-      updateUIFromMasterYaml();
-      updateRenderedStatblock();
-    }
-  } catch(e){
-    console.error("YAML parse error:", e);
-  }
-}
-
-// Update UIEditor from masterYamlData
-function updateUIFromMasterYaml(){
-  // Reset hiddenStats based on masterYamlData
-  hiddenStats.clear();
-  
-  // Update basic info fields
-  document.getElementById("monsterName").value = masterYamlData.monsterName || "";
-  document.getElementById("role").value = masterYamlData.role || "";
-  document.getElementById("template").value = masterYamlData.template || "";
-  document.getElementById("level").value = masterYamlData.level || "";
-  document.getElementById("tr").value = masterYamlData.tr || "";
-
-  // Update basic stats visibility based on masterYamlData
-  Object.keys(DEFAULT_STATS).forEach(key => {
-    const el = document.getElementById(key);
-    if (el) {
-      el.value = masterYamlData[key] || "";
-      // If the stat isn't in masterYamlData, add it to hiddenStats
-      if (!masterYamlData[key]) {
-        hiddenStats.add(key);
-      }
-      el.parentElement.classList.toggle("hidden-stat", hiddenStats.has(key));
-    }
-  });
-
-  // Clear and update custom stats
-  const customStatsContainer = document.getElementById("customStatsContainer");
-  customStatsContainer.innerHTML = "";
-  if (Array.isArray(masterYamlData.customStats)) {
-    masterYamlData.customStats.forEach(stat => addCustomStat(stat));
-  }
-
-  const featuresContainer = document.getElementById("featuresContainer");
-  featuresContainer.innerHTML = "";
-  if(masterYamlData.features){
-    if(Array.isArray(masterYamlData.features)){
-      masterYamlData.features.forEach(f => addFeature(f));
-    } else if(typeof masterYamlData.features === "object"){
-      Object.keys(masterYamlData.features).forEach(key => {
-        addFeature({title: key, content: masterYamlData.features[key]});
-      });
-    }
-  }
-  ["lightDeeds","heavyDeeds","mightyDeeds","tyrantDeeds","specialDeeds"].forEach(t => {
-    const container = document.getElementById(t + "Container") || document.getElementById(t + "sContainer");
-    container.innerHTML = "";
-    let deeds = masterYamlData[t];
-    if(typeof deeds === "string") deeds = parseDeedsStringNew(deeds);
-    if(Array.isArray(deeds)){
-      deeds.forEach(d => addDeed(t.replace("Deeds", ""), d));
-    }
-  });
-}
-// Update MasterYamlData from UIEditor Changes
-function updateMasterYamlDataFromUI() {
-  // Update basic info
-  masterYamlData.monsterName = document.getElementById("monsterName").value.trim();
-  masterYamlData.role = document.getElementById("role").value;
-  masterYamlData.template = document.getElementById("template").value;
-  masterYamlData.level = document.getElementById("level").value;
-  masterYamlData.tr = document.getElementById("tr").value;
-
-  // Update basic stats, excluding hidden ones
-  Object.keys(DEFAULT_STATS).forEach(key => {
-    if (!hiddenStats.has(key)) {
-      const value = document.getElementById(key).value.trim();
-      if (value) {
-        masterYamlData[key] = value;
-      } else {
-        delete masterYamlData[key];
-      }
-    } else {
-      delete masterYamlData[key];
-    }
-  });
-
-  // Update custom stats
-  const customStats = [];
-  document.querySelectorAll("#customStatsContainer .custom-stat").forEach(div => {
-    const [nameInput, valueInput] = div.querySelectorAll("input");
-    const name = nameInput.value.trim();
-    const value = valueInput.value.trim();
-    if (name && value) {
-      customStats.push({ name, value });
-    }
-  });
-  
-  if (customStats.length > 0) {
-    masterYamlData.customStats = customStats;
-  } else {
-    delete masterYamlData.customStats;
-  }
-
-  let featuresArray = collectFeatures();
-  let featuresObj = {};
-  featuresArray.forEach(f => { if(f.title) featuresObj[f.title] = f.content; });
-  masterYamlData.features = featuresObj;
-  masterYamlData.lightDeeds = collectDeedsAsString("light");
-  masterYamlData.heavyDeeds = collectDeedsAsString("heavy");
-  masterYamlData.mightyDeeds = collectDeedsAsString("mighty");
-  masterYamlData.tyrantDeeds = collectDeedsAsString("tyrant");
-  masterYamlData.specialDeeds = collectDeedsAsString("special"); // NEW: Special Deeds
-  updateYamlTextArea();
-  updateRenderedStatblock();
-}
 
 /* ---------------------------------------------
  * Render Statblock Library
@@ -1693,39 +1549,9 @@ function closeManageStatsModal() {
   document.getElementById("manageStatsModal").style.display = "none";
   updateMasterYamlDataFromUI();
   updateYamlTextArea();
+  updateRenderedStatblock();
 }
 
-// --- Features and Deeds --- //
-function collectFeatures(){
-  const arr = [];
-  document.querySelectorAll("#featuresContainer .dynamic-feature").forEach(div => {
-    const inputs = div.querySelectorAll("input");
-    const t = inputs[0].value.trim();
-    const c = inputs[1].value.trim();
-    if(t || c) arr.push({ title: t, content: c });
-  });
-  return arr;
-}
-function collectDeedsAsString(type){
-  const arr = [];
-  document.querySelectorAll(`#${type}DeedsContainer .dynamic-deed`).forEach(div => {
-    const ti = div.querySelector("input[type='text']");
-    const deedTitle = ti ? ti.value.trim() : "";
-    const lines = [];
-    div.querySelectorAll(".linesContainer .dynamic-line").forEach(ld => {
-      const lineInputs = ld.querySelectorAll("input");
-      const lt = lineInputs[0].value.trim();
-      const lc = lineInputs[1].value.trim();
-      if(lt) {
-        lines.push(lt + (lc ? ": " + lc : ""));
-      }
-    });
-    let deedBlock = deedTitle;
-    if(lines.length > 0) deedBlock += "\n" + lines.join("\n");
-    arr.push(deedBlock);
-  });
-  return arr.join("\n\n");
-}
 
 // Save Statblock to Library //
 function saveToLibrary(){
@@ -1771,278 +1597,7 @@ function removeBundleIdForSave(statblock) {
   delete statblock.bundleId;
 }
 
-/* ---------------------------------------------
- * Statblock Render
- * ---------------------------------------------
- */
 
-// --- Utilities --- //
-// Update Rendered Statblock
-function updateRenderedStatblock(){
-  if(!masterYamlData || !masterYamlData.monsterName){
-    renderDefaultDetail();
-    return;
-  }
-
-  // Clear previous state
-  document.getElementById("defaultDetail").style.display = "none";
-  document.getElementById("dsb-basicSection").style.display = "block";
-
-  // Update header information
-  document.getElementById("dsb-name").textContent = masterYamlData.monsterName || "[Monster Name]";
-  document.getElementById("dsb-role").textContent = masterYamlData.role || "[Role]";
-  
-  if(masterYamlData.template) {
-    document.getElementById("dsb-template").textContent = " " + masterYamlData.template;
-    document.getElementById("dsb-template").style.display = "inline";
-  } else {
-    document.getElementById("dsb-template").style.display = "none";
-  }
-  
-  document.getElementById("dsb-level").textContent = masterYamlData.level ? " " + masterYamlData.level : "";
-  document.getElementById("dsb-tr").textContent = masterYamlData.tr ? "TR " + masterYamlData.tr : "";
-
-  // Update basic stats display
-  Object.keys(DEFAULT_STATS).forEach(key => {
-    const el = document.getElementById("dsb-" + key);
-    if (el) {
-      if (masterYamlData[key]) {
-        el.parentElement.style.display = "block";
-        el.textContent = masterYamlData[key];
-      } else {
-        el.parentElement.style.display = "none";
-      }
-    }
-  });
-
-  // Handle custom stats - SINGLE IMPLEMENTATION
-  const basicSection = document.getElementById("dsb-basicSection");
-  const existingCustomRow = basicSection.querySelector(".custom-stats-row");
-  if (existingCustomRow) {
-    existingCustomRow.remove();
-  }
-
-  if (Array.isArray(masterYamlData.customStats) && masterYamlData.customStats.length > 0) {
-    const customStatsRow = document.createElement("div");
-    customStatsRow.className = "basic-stats-row custom-stats-row";
-    
-    masterYamlData.customStats.forEach(stat => {
-      const card = document.createElement("div");
-      card.className = "basic-stat-card";
-      card.innerHTML = `
-        <div class="basic-stat-header">${stat.name}</div>
-        <div class="basic-stat-value">${stat.value}</div>
-      `;
-      customStatsRow.appendChild(card);
-    });
-    
-    basicSection.appendChild(customStatsRow);
-  }
-
-  // Continue with features and deeds
-  renderFeatures(masterYamlData);
-  renderDeeds(masterYamlData);
-  
-  // Update IDs section
-  const idsDiv = document.getElementById("dsb-ids");
-  idsDiv.innerHTML = "";
-  if(masterYamlData.statblockID) {
-    const statblockIDSpan = document.createElement("div");
-    statblockIDSpan.textContent = "statblockID: " + masterYamlData.statblockID;
-    idsDiv.appendChild(statblockIDSpan);
-  }
-  if(masterYamlData.bundleId) {
-    const bundleIDSpan = document.createElement("div");
-    bundleIDSpan.textContent = "bundleID: " + masterYamlData.bundleId;
-    idsDiv.appendChild(bundleIDSpan);
-  }
-}
-// updateMasterYamlDataFromUI on UI change - unnecessary or redundant??
-function uiFieldChanged(){
-  updateMasterYamlDataFromUI();
-}
-
-// Render Stats & Title
-function renderDefaultDetail(){
-  document.getElementById("defaultDetail").style.display = "block";
-  document.getElementById("dsb-basicSection").style.display = "none";
-  document.getElementById("dsb-featuresSection").style.display = "none";
-  document.getElementById("dsb-deedsSection").style.display = "none";
-  document.getElementById("dsb-ids").innerHTML = "";
-  document.getElementById("dsb-name").textContent = "[Monster Name]";
-  document.getElementById("dsb-role").textContent = "[Role]";
-  document.getElementById("dsb-template").textContent = "";
-  document.getElementById("dsb-level").textContent = "";
-  document.getElementById("dsb-tr").textContent = "";
-}
-function renderFeatures(data){
-  const featSec = document.getElementById("dsb-featuresSection");
-  const featList = document.getElementById("dsb-featuresList");
-  featList.innerHTML = "";
-  let hasFeature = false;
-  if(Array.isArray(data.features)){
-    data.features.forEach(f => {
-      if(f.title || f.content){
-        hasFeature = true;
-        const d = document.createElement("div");
-        d.style.marginBottom = "10px";
-        d.style.fontSize = "0.9em";
-        d.innerHTML = f.content ? `<strong>${f.title}:</strong> ${f.content}` : `<strong>${f.title}</strong>`;
-        featList.appendChild(d);
-      }
-    });
-  } else if(typeof data.features === "object"){
-    for(let k in data.features){
-      hasFeature = true;
-      const d = document.createElement("div");
-      d.style.marginBottom = "10px";
-      d.style.fontSize = "0.9em";
-      d.innerHTML = `<strong>${k}:</strong> ${data.features[k]}`;
-      featList.appendChild(d);
-    }
-  }
-  featSec.style.display = hasFeature ? "block" : "none";
-}
-function renderDeeds(data){
-  const dsbDeeds = document.getElementById("dsb-deedsContainer");
-  const dsbDeedsSec = document.getElementById("dsb-deedsSection");
-  dsbDeeds.innerHTML = "";
-  let hasDeeds = false;
-  ["lightDeeds","heavyDeeds","mightyDeeds","tyrantDeeds", "specialDeeds"].forEach(t => {
-    let arr = data[t];
-    if(typeof arr === "string") arr = parseDeedsStringNew(arr);
-    if(!Array.isArray(arr)) return;
-    const color = t.replace("Deeds", "");
-    arr.forEach(d => {
-      if(d.title || (d.lines && d.lines.length)){
-        hasDeeds = true;
-        const cap = color.charAt(0).toUpperCase() + color.slice(1);
-        let html = `<div class="deed-header">${cap}</div>`;
-        if(d.title){
-          html += `<div class="deed-title-output">${d.title.trim()}</div><hr class="deed-separator">`;
-        }
-        d.lines.forEach(line => {
-          if(line.title || line.content){
-            html += `<div class="line-indent" style="font-size:0.9em;">` +
-                    (line.content ? `<strong>${line.title}:</strong> ${line.content}` : `<strong>${line.title}</strong>`) +
-                    `</div>`;
-          }
-        }); // Added missing closing brace for d.lines.forEach
-        const deedDiv = document.createElement("div");
-        deedDiv.className = `deed ${color}`;
-        deedDiv.innerHTML = html;
-        dsbDeeds.appendChild(deedDiv);
-      }
-    });
-  });
-  dsbDeedsSec.style.display = hasDeeds ? "block" : "none";
-}
-// Title:Content Line Parsing on Deeds
-function parseDeedsStringNew(str){
-  let deedBlocks = str.split(/\n\s*\n/).map(block => block.trim()).filter(block => block !== "");
-  let result = [];
-  deedBlocks.forEach(block => {
-    let lines = block.split("\n").map(l => l.trim()).filter(Boolean);
-    if(lines.length > 0){
-      let deedObj = { title: lines[0], lines: [] };
-      for(let i = 1; i < lines.length; i++){
-        let line = lines[i];
-        let colonIndex = line.indexOf(":");
-        if(colonIndex !== -1){
-          let key = line.substring(0, colonIndex).trim();
-          let value = line.substring(colonIndex+1).trim();
-          deedObj.lines.push({ title: key, content: value });
-        } else {
-          deedObj.lines.push({ title: line, content: "" });
-        }
-      }
-      result.push(deedObj);
-    }
-  });
-  return result;
-}
-
-// Features & Deeds
-function addFeature(feature=null){
-  const container = document.getElementById("featuresContainer");
-  const div = document.createElement("div");
-  div.className = "dynamic-feature";
-  const titleInput = document.createElement("input");
-  titleInput.type = "text";
-  titleInput.placeholder = "Title";
-  titleInput.value = feature ? (feature.title || "") : "";
-  titleInput.addEventListener("input", uiFieldChanged);
-  const colonSpan = document.createElement("span");
-  colonSpan.textContent = ":";
-  colonSpan.className = "feature-colon";
-  const contentInput = document.createElement("input");
-  contentInput.type = "text";
-  contentInput.placeholder = "Content";
-  contentInput.value = feature ? (feature.content || "") : "";
-  contentInput.addEventListener("input", uiFieldChanged);
-  const removeBtn = document.createElement("button");
-  removeBtn.textContent = "x";
-  removeBtn.className = "delete-btn";
-  removeBtn.addEventListener("click", () => {
-    div.remove();
-    uiFieldChanged();
-  });
-  div.append(titleInput, colonSpan, contentInput, removeBtn);
-  container.appendChild(div);
-}
-function addDeed(type, deedObj=null){
-  const container = document.getElementById(type + "DeedsContainer");
-  const div = document.createElement("div");
-  div.className = "dynamic-deed " + type;
-  const titleInput = document.createElement("input");
-  titleInput.type = "text";
-  titleInput.placeholder = `Enter ${type} deed title`;
-  titleInput.value = deedObj ? (deedObj.title || "") : "";
-  titleInput.addEventListener("input", uiFieldChanged);
-  const linesCont = document.createElement("div");
-  linesCont.className = "linesContainer";
-  const addLineBtn = document.createElement("button");
-  addLineBtn.type = "button";
-  addLineBtn.textContent = "Add Line";
-  addLineBtn.className = "small-btn";
-  addLineBtn.onclick = () => { addLine(linesCont); };
-  const removeDeedBtn = document.createElement("button");
-  removeDeedBtn.type = "button";
-  removeDeedBtn.textContent = "x";
-  removeDeedBtn.className = "delete-deed-btn";
-  removeDeedBtn.onclick = () => { div.remove(); uiFieldChanged(); };
-  div.append(titleInput, linesCont, addLineBtn, removeDeedBtn);
-  container.appendChild(div);
-  if(deedObj && Array.isArray(deedObj.lines)){
-    deedObj.lines.forEach(line => addLine(linesCont, line));
-  }
-}
-function addLine(container, line=null){
-  const div = document.createElement("div");
-  div.className = "dynamic-line";
-  const titleInput = document.createElement("input");
-  titleInput.type = "text";
-  titleInput.placeholder = "Line title";
-  titleInput.className = "line-title";
-  titleInput.value = line ? (line.title || "") : "";
-  titleInput.addEventListener("input", uiFieldChanged);
-  const colonSpan = document.createElement("span");
-  colonSpan.textContent = ":";
-  colonSpan.className = "line-colon";
-  const contentInput = document.createElement("input");
-  contentInput.type = "text";
-  contentInput.placeholder = "Line content";
-  contentInput.className = "line-content";
-  contentInput.value = line ? (line.content || "") : "";
-  contentInput.addEventListener("input", uiFieldChanged);
-  const removeBtn = document.createElement("button");
-  removeBtn.type = "button";
-  removeBtn.textContent = "x";
-  removeBtn.className = "delete-btn";
-  removeBtn.onclick = () => { div.remove(); uiFieldChanged(); };
-  div.append(titleInput, colonSpan, contentInput, removeBtn);
-  container.appendChild(div);
-}
 
 /* ---------------------------------------------
  * Library Backup
@@ -2353,7 +1908,7 @@ function attachEventHandlers() {
       }
     });
     updateMasterYamlDataFromUI();
-    updateRenderedStatblock();
     updateYamlTextArea();
+    updateRenderedStatblock();
   });
 }
