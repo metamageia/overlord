@@ -346,18 +346,3 @@ function attachEventHandlers() {
   });
 }
 
-function refreshUI() {
-  initSearch();
-  renderStatblockLibrary();
-  renderUploadedBundles();
-  renderCreateBundleList();
-  
-  // Only render components list if the panel is active
-  if (document.getElementById("bundlesComponentsPanel").classList.contains("active")) {
-    import('./js/componentManagement.mjs').then(module => {
-      module.renderComponentsList();
-    });
-  }
-  
-  updateRenderedStatblock();
-}

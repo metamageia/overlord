@@ -1,5 +1,7 @@
 import { statblockComponents, favoritesMap, saveToLocalStorage, addStatblockComponent, deleteStatblockComponent } from './libraryData.mjs';
 import { matchesStringQuery, parseDeedsStringNew } from './utilityFunctions.mjs';
+import { masterYamlData, updateMasterYamlData } from './yamlDataState.mjs';
+import { updateUIFromMasterYaml, updateMasterYamlDataFromUI } from './masterYamlData.mjs';
 
 // Global variables
 let currentSortField = "name";
@@ -50,6 +52,106 @@ function renderComponentPreview(component) {
     renderDeedComponent(component, componentRender);
   } else {
     renderGenericComponent(component, componentRender);
+  }
+  
+  // Add Apply Component button
+  const applyBtn = document.createElement("button");
+  applyBtn.textContent = "Apply Component";
+  applyBtn.className = "action-btn apply-component-btn";
+  applyBtn.addEventListener("click", () => applyComponentToStatblock(component));
+  
+  // Create container for button
+  const btnContainer = document.createElement("div");
+  btnContainer.className = "component-action-buttons";
+  btnContainer.appendChild(applyBtn);
+  
+  componentRender.appendChild(btnContainer);
+}
+
+// Function to apply the component to the current statblock
+function applyComponentToStatblock(component) {
+  if (!component) return;
+  
+  try {
+    // Get current data from UI first
+    updateMasterYamlDataFromUI();
+    
+    // Apply component based on its type
+    if (component.type === "Feature") {
+      applyFeatureComponent(component);
+    } else if (component.type && component.type.includes("Deed")) {
+      applyDeedComponent(component);
+    }
+    
+    // Update UI with new data
+    updateUIFromMasterYaml();
+    document.dispatchEvent(new CustomEvent('refreshUI'));
+    alert(`Applied "${component.name}" to the current statblock!`);
+  } catch (error) {
+    console.error("Error applying component:", error);
+    alert("Failed to apply component: " + error.message);
+  }
+}
+
+// Function to apply a feature component
+function applyFeatureComponent(component) {
+  const yamlContent = component.yaml || "";
+  const lines = yamlContent.split("\n");
+  const title = lines[0];
+  const content = lines.slice(1).join("\n");
+  
+  // Initialize features object if it doesn't exist
+  if (!masterYamlData.features) {
+    masterYamlData.features = {};
+  }
+  
+  // Add the feature
+  if (title && content) {
+    masterYamlData.features[title] = content;
+  }
+}
+
+// Function to apply a deed component
+function applyDeedComponent(component) {
+  // Determine deed type from component.type or component.deedType
+  let deedType = (component.deedType || "").toLowerCase();
+  
+  if (!deedType && component.type) {
+    const typeString = component.type.toLowerCase();
+    if (typeString.includes("light")) deedType = "light";
+    else if (typeString.includes("heavy")) deedType = "heavy";
+    else if (typeString.includes("mighty")) deedType = "mighty";
+    else if (typeString.includes("tyrant")) deedType = "tyrant";
+    else if (typeString.includes("special")) deedType = "special";
+  }
+  
+  if (!deedType) return; // Can't determine deed type
+  
+  // Map deed type to property name
+  const deedPropertyMap = {
+    "light": "lightDeeds",
+    "heavy": "heavyDeeds",
+    "mighty": "mightyDeeds",
+    "tyrant": "tyrantDeeds",
+    "special": "specialDeeds"
+  };
+  
+  const propertyName = deedPropertyMap[deedType];
+  if (!propertyName) return;
+  
+  // Get existing deeds or initialize empty string
+  let existingDeeds = masterYamlData[propertyName] || "";
+  
+  // Add the deed content
+  const deedContent = component.yaml || "";
+  if (deedContent) {
+    // Add a separator if needed
+    if (existingDeeds && !existingDeeds.endsWith("\n")) {
+      existingDeeds += "\n";
+    }
+    
+    // Append the deed content
+    masterYamlData[propertyName] = existingDeeds + deedContent;
   }
 }
 
@@ -296,8 +398,8 @@ export function renderComponentsList() {
   // Sort components
   filtered.sort((a, b) => {
     if (currentSortField === "favorite") {
-      const aFav = favoritesMap[a.id] || false;
-      const bFav = favoritesMap[b.id] || false;
+      const aFav = favoritesMap[a.componentID] || false;
+      const bFav = favoritesMap[b.componentID] || false;
       
       // If favorite status is the same, sort by name
       if (aFav === bFav) {
@@ -352,11 +454,11 @@ export function renderComponentsList() {
       // Favorites cell
       const favTd = document.createElement("td");
       const starSpan = document.createElement("span");
-      starSpan.textContent = favoritesMap[comp.id] ? "⭐" : "☆";
+      starSpan.textContent = favoritesMap[comp.componentID] ? "⭐" : "☆";
       starSpan.style.cursor = "pointer";
       starSpan.addEventListener("click", (e) => {
         e.stopPropagation();
-        favoritesMap[comp.id] = !favoritesMap[comp.id];
+        favoritesMap[comp.componentID] = !favoritesMap[comp.componentID];
         saveToLocalStorage();
         renderComponentsList();
       });
@@ -434,7 +536,7 @@ function handleKeyNavigation(e) {
   
   let curIndex = -1;
   if (selectedComponentID) {
-    curIndex = currentFilteredComponents.findIndex(comp => comp.id === selectedComponentID);
+    curIndex = currentFilteredComponents.findIndex(comp => comp.componentID === selectedComponentID);
   }
   
   if (curIndex === -1) curIndex = 0;
@@ -443,16 +545,16 @@ function handleKeyNavigation(e) {
   if (e.key === "ArrowDown") {
     e.preventDefault();
     curIndex = Math.min(curIndex + 1, currentFilteredComponents.length - 1);
-    selectedComponentID = currentFilteredComponents[curIndex].id;
-    const selectedComponent = statblockComponents.find(c => c.id === selectedComponentID);
+    selectedComponentID = currentFilteredComponents[curIndex].componentID;
+    const selectedComponent = statblockComponents.find(c => c.componentID === selectedComponentID);
     renderComponentPreview(selectedComponent);
     renderComponentsList();
     ensureRowVisible("componentsTable", curIndex);
   } else if (e.key === "ArrowUp") {
     e.preventDefault();
     curIndex = Math.max(curIndex - 1, 0);
-    selectedComponentID = currentFilteredComponents[curIndex].id;
-    const selectedComponent = statblockComponents.find(c => c.id === selectedComponentID);
+    selectedComponentID = currentFilteredComponents[curIndex].componentID;
+    const selectedComponent = statblockComponents.find(c => c.componentID === selectedComponentID);
     renderComponentPreview(selectedComponent);
     renderComponentsList();
     ensureRowVisible("componentsTable", curIndex);
