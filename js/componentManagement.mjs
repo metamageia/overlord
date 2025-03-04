@@ -199,14 +199,22 @@ function renderComponentPreview(components) {
   applyBtn.className = "action-btn apply-component-btn";
   applyBtn.addEventListener("click", () => applyComponentsToStatblock(components));
   
-  // Create container for button
+  // Add Save as Preset button
+  const savePresetBtn = document.createElement("button");
+  savePresetBtn.textContent = "Save as Preset";
+  savePresetBtn.className = "action-btn save-preset-btn";
+  savePresetBtn.addEventListener("click", () => saveComponentsAsPreset(components));
+  
+  // Create container for buttons
   const btnContainer = document.createElement("div");
   btnContainer.className = "component-action-buttons";
   btnContainer.appendChild(applyBtn);
+  btnContainer.appendChild(savePresetBtn);
   
   componentRender.appendChild(btnContainer);
 }
-// Updated to apply multiple components
+
+// Updated to apply multiple components including Presets
 function applyComponentsToStatblock(components) {
   if (!components || components.length === 0) return;
   
@@ -216,11 +224,55 @@ function applyComponentsToStatblock(components) {
     
     // Apply all components
     components.forEach(component => {
-      // Apply component based on its type
-      if (component.type === "Feature") {
-        applyFeatureComponent(component);
-      } else if (component.type && component.type.includes("Deed")) {
-        applyDeedComponent(component);
+      if (component.type === "Preset") {
+        // Parse the preset YAML and merge with master YAML
+        try {
+          const presetData = jsyaml.load(component.yaml);
+          if (!presetData) return;
+          
+          // Merge features (don't overwrite existing)
+          if (presetData.features) {
+            if (!masterYamlData.features) masterYamlData.features = {};
+            Object.assign(masterYamlData.features, presetData.features);
+          }
+          
+          // Append deeds (don't overwrite)
+          const deedTypes = [
+            { property: "lightDeeds", type: "Light" },
+            { property: "heavyDeeds", type: "Heavy" },
+            { property: "mightyDeeds", type: "Mighty" },
+            { property: "tyrantDeeds", type: "Tyrant" },
+            { property: "specialDeeds", type: "Special" }
+          ];
+          
+          deedTypes.forEach(({ property }) => {
+            if (presetData[property]) {
+              if (!masterYamlData[property]) {
+                masterYamlData[property] = presetData[property];
+              } else {
+                masterYamlData[property] = masterYamlData[property] + "\n\n" + presetData[property];
+              }
+            }
+          });
+          
+          // Copy other fields if not already set
+          Object.keys(presetData).forEach(key => {
+            if (!['features', 'lightDeeds', 'heavyDeeds', 'mightyDeeds', 'tyrantDeeds', 'specialDeeds'].includes(key)) {
+              if (!masterYamlData[key]) {
+                masterYamlData[key] = presetData[key];
+              }
+            }
+          });
+        } catch (e) {
+          console.error("Error applying preset:", e);
+        }
+      } else {
+        // Apply regular component based on its type
+        if (component.type === "Feature") {
+          applyFeatureComponent(component);
+        } else if (component.type && component.type.includes("Deed")) {
+          applyDeedComponent(component);
+        }
       }
     });
     
@@ -741,8 +793,70 @@ export function renderComponentsList() {
 // Helper function to update the preview based on selected components
 function updateComponentsPreview() {
   if (selectedComponentIDs.size > 0) {
-    const selectedComponents = statblockComponents.filter(c => selectedComponentIDs.has(c.componentID));
-    renderComponentPreview(selectedComponents);
+    let selectedComponents = statblockComponents.filter(c => selectedComponentIDs.has(c.componentID));
+    
+    // Expand preset components
+    let expandedComponents = [];
+    
+    selectedComponents.forEach(component => {
+      if (component.type === "Preset") {
+        // Parse the preset YAML
+        try {
+          const parsedYaml = jsyaml.load(component.yaml);
+          if (parsedYaml) {
+            // Add features
+            if (parsedYaml.features) {
+              Object.entries(parsedYaml.features).forEach(([name, desc]) => {
+                expandedComponents.push({
+                  name: name,
+                  type: "Feature",
+                  yaml: `${name}\n${desc}`,
+                  fromPreset: component.name
+                });
+              });
+            }
+            
+            // Add deeds
+            const deedTypes = [
+              { property: "lightDeeds", type: "Light Deed" },
+              { property: "heavyDeeds", type: "Heavy Deed" },
+              { property: "mightyDeeds", type: "Mighty Deed" },
+              { property: "tyrantDeeds", type: "Tyrant Deed" },
+              { property: "specialDeeds", type: "Special Deed" }
+            ];
+            
+            deedTypes.forEach(({ property, type }) => {
+              if (parsedYaml[property]) {
+                const deedString = parsedYaml[property];
+                // Split into individual deeds if there are multiple
+                const deedBlocks = deedString.split(/\n\n+/);
+                
+                deedBlocks.forEach((deedBlock) => {
+                  if (deedBlock.trim()) {
+                    expandedComponents.push({
+                      name: deedBlock.split('\n')[0] || type,
+                      type: type,
+                      yaml: deedBlock,
+                      deedType: type.split(' ')[0].toLowerCase(),
+                      fromPreset: component.name
+                    });
+                  }
+                });
+              }
+            });
+          }
+        } catch (e) {
+          console.error("Error parsing preset YAML:", e);
+          // Still show the preset as a generic component if parsing fails
+          expandedComponents.push(component);
+        }
+      } else {
+        // Regular component, add as is
+        expandedComponents.push(component);
+      }
+    });
+    
+    renderComponentPreview(expandedComponents);
   } else {
     renderComponentPreview(null);
   }
@@ -841,5 +955,115 @@ function ensureRowVisible(tableId, rowIndex) {
       // Scroll down if row is below visible area
       container.scrollTop += (rowRect.bottom - containerRect.bottom);
     }
+  }
+}
+
+// Function to save multiple components as a preset
+function saveComponentsAsPreset(components) {
+  if (!components || components.length === 0) return;
+  
+  // Prompt for preset name
+  const presetName = prompt("Enter a name for this preset:", "");
+  if (!presetName || presetName.trim() === "") {
+    alert("A preset name is required.");
+    return;
+  }
+
+  // Initialize preset data structure
+  let presetData = {
+    features: {},
+    lightDeeds: "",
+    heavyDeeds: "",
+    mightyDeeds: "",
+    tyrantDeeds: "",
+    specialDeeds: ""
+  };
+  
+  // Process each component and merge into preset data
+  components.forEach(component => {
+    try {
+      if (component.type === "Feature") {
+        // Extract feature name and description
+        const lines = component.yaml.split('\n');
+        if (lines.length >= 1) {
+          const featureName = lines[0].trim();
+          const featureDesc = lines.slice(1).join('\n').trim();
+          presetData.features[featureName] = featureDesc;
+        }
+      } else if (component.type && component.type.includes("Deed")) {
+        // Handle deed types based on component type
+        const deedContent = component.yaml || "";
+        
+        if (component.type.includes("Light")) {
+          presetData.lightDeeds += (presetData.lightDeeds ? "\n\n" : "") + deedContent;
+        } else if (component.type.includes("Heavy")) {
+          presetData.heavyDeeds += (presetData.heavyDeeds ? "\n\n" : "") + deedContent;
+        } else if (component.type.includes("Mighty")) {
+          presetData.mightyDeeds += (presetData.mightyDeeds ? "\n\n" : "") + deedContent;
+        } else if (component.type.includes("Tyrant")) {
+          presetData.tyrantDeeds += (presetData.tyrantDeeds ? "\n\n" : "") + deedContent;
+        } else if (component.type.includes("Special")) {
+          presetData.specialDeeds += (presetData.specialDeeds ? "\n\n" : "") + deedContent;
+        }
+      } else if (component.type === "Preset") {
+        // For existing presets, parse their content and merge it
+        try {
+          const parsedYaml = jsyaml.load(component.yaml);
+          if (parsedYaml) {
+            // Merge features
+            if (parsedYaml.features) {
+              Object.assign(presetData.features, parsedYaml.features);
+            }
+            
+            // Append deeds
+            if (parsedYaml.lightDeeds) {
+              presetData.lightDeeds += (presetData.lightDeeds ? "\n\n" : "") + parsedYaml.lightDeeds;
+            }
+            if (parsedYaml.heavyDeeds) {
+              presetData.heavyDeeds += (presetData.heavyDeeds ? "\n\n" : "") + parsedYaml.heavyDeeds;
+            }
+            if (parsedYaml.mightyDeeds) {
+              presetData.mightyDeeds += (presetData.mightyDeeds ? "\n\n" : "") + parsedYaml.mightyDeeds;
+            }
+            if (parsedYaml.tyrantDeeds) {
+              presetData.tyrantDeeds += (presetData.tyrantDeeds ? "\n\n" : "") + parsedYaml.tyrantDeeds;
+            }
+            if (parsedYaml.specialDeeds) {
+              presetData.specialDeeds += (presetData.specialDeeds ? "\n\n" : "") + parsedYaml.specialDeeds;
+            }
+          }
+        } catch (e) {
+          console.error("Error parsing preset YAML:", e);
+        }
+      }
+    } catch (e) {
+      console.error("Error processing component:", e);
+    }
+  });
+
+  // Clean up empty properties
+  Object.keys(presetData).forEach(key => {
+    if ((typeof presetData[key] === 'string' && !presetData[key]) || 
+        (typeof presetData[key] === 'object' && Object.keys(presetData[key]).length === 0)) {
+      delete presetData[key];
+    }
+  });
+
+  // Convert to YAML
+  const yamlContent = jsyaml.dump(presetData);
+  
+  // Create preset component
+  const preset = {
+    name: presetName,
+    type: "Preset",
+    yaml: yamlContent
+  };
+  
+  // Add to component library
+  if (addStatblockComponent(preset)) {
+    alert(`Saved preset "${presetName}" with ${components.length} components!`);
+    renderComponentsList();
+  } else {
+    alert("Failed to save preset.");
   }
 }
