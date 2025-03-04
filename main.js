@@ -68,7 +68,6 @@ window.addEventListener("DOMContentLoaded", () => {
   initSearch();
   renderStatblockLibrary();
   renderCreateBundleList();
-  fillBundleSelect();
   fillManageMergeSelect();
   renderUploadedBundles();
   
@@ -400,11 +399,6 @@ function initBundlePanels() {
  * ---------------------------------------------
  */
 
-// USELESS?
-function fillBundleSelect(){
-  console.log("Fill bundle select called");
-}
-
 // Bundle Save & Load
 function loadUploadedBundles(){
   try { uploadedBundles = JSON.parse(localStorage.getItem(LOCAL_STORAGE_BUNDLES_KEY)) || []; }
@@ -515,7 +509,6 @@ function renderUploadedBundles(){
         saveToLocalStorage();
         saveUploadedBundles();
         renderStatblockLibrary();
-        fillBundleSelect();
         fillManageMergeSelect();
         renderUploadedBundles(); // Always re-render the bundles table to update total.
         alert(`Refreshed bundle: added ${added} missing statblock(s).`);
@@ -548,7 +541,6 @@ function renderUploadedBundles(){
         // Refresh all UI components
         renderStatblockLibrary();
         renderCreateBundleList();
-        fillBundleSelect();
         fillManageMergeSelect();
         renderUploadedBundles();
       }
@@ -949,8 +941,6 @@ function renderStatblockLibrary(){
         statblocks = statblocks.filter(x => x !== sb);
         saveToLocalStorage();
         renderStatblockLibrary();
-        fillBundleSelect();
-        fillBundleSelect();
         fillManageMergeSelect();
         renderUploadedBundles();
         if(currentDetail === sb){
@@ -1147,7 +1137,6 @@ async function handleUpload(){
     saveToLocalStorage();
     saveUploadedBundles();
     renderStatblockLibrary();
-    fillBundleSelect();
     fillManageMergeSelect();
     renderUploadedBundles();
     alert(`Uploaded ${count} new statblock(s) from your bundle.`);
@@ -1191,7 +1180,6 @@ function confirmOverwrite() {
   saveToLocalStorage();
   saveUploadedBundles();
   renderStatblockLibrary();
-  fillBundleSelect();
   fillManageMergeSelect();
   renderUploadedBundles();
   document.getElementById("overwriteModal").style.display = "none";
@@ -1770,7 +1758,6 @@ function saveToLibrary(){
   // Refresh the UI components and search index
   initSearch();
   renderStatblockLibrary();
-  fillBundleSelect();
   fillManageMergeSelect();
   renderUploadedBundles();
   
@@ -2107,7 +2094,6 @@ async function importBackup(e){
     saveUploadedBundles();
     initSearch();
     renderStatblockLibrary();
-    fillBundleSelect();
     fillManageMergeSelect();
     renderUploadedBundles();
     alert("Backup imported successfully!");
@@ -2218,7 +2204,6 @@ function attachEventHandlers() {
       saveToLocalStorage();
       saveUploadedBundles();
       renderStatblockLibrary();
-      fillBundleSelect();
       fillManageMergeSelect();
       renderUploadedBundles();
       alert("All statblocks and bundles have been deleted.");
