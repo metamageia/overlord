@@ -80,24 +80,7 @@ window.addEventListener("DOMContentLoaded", () => {
     
     // Add it after the toggle buttons
     const togglesContainer = document.querySelector('.sidebar-toggles');
-    togglesContainer.appendChild(installButton);
     
-    // Add click handler
-    installButton.addEventListener('click', async () => {
-      if (!deferredPrompt) return;
-      
-      // Show the install prompt
-      deferredPrompt.prompt();
-      
-      // Wait for the user to respond
-      const { outcome } = await deferredPrompt.userChoice;
-      
-      // Reset the deferred prompt
-      deferredPrompt = null;
-      
-      // Hide the button
-      installButton.style.display = 'none';
-    });
   });
 });
 

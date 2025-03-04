@@ -20,14 +20,23 @@ export function updateRenderedStatblock(){
 
   // Update header information
   document.getElementById("dsb-name").textContent = masterYamlData.monsterName || "[Monster Name]";
-  document.getElementById("dsb-role").textContent = masterYamlData.role || "[Role]";
   
-  if(masterYamlData.template) {
-    document.getElementById("dsb-template").textContent = " " + masterYamlData.template;
-    document.getElementById("dsb-template").style.display = "inline";
-  } else {
-    document.getElementById("dsb-template").style.display = "none";
-  }
+  if (masterYamlData.role) {
+  document.getElementById("dsb-role").textContent = masterYamlData.role || "[Role]";
+  document.getElementById("dsb-role").style.display = "inline";
+} else {
+  document.getElementById("dsb-role").style.display = "none";
+}
+
+const hasTitleExtras = masterYamlData.role || masterYamlData.template || masterYamlData.level;
+document.getElementById("dsb-title-separator").style.display = hasTitleExtras ? "inline" : "none";
+
+if(masterYamlData.template) {
+  document.getElementById("dsb-template").textContent = " " + masterYamlData.role;
+  document.getElementById("dsb-template").style.display = "inline";
+} else {
+  document.getElementById("dsb-template").style.display = "none";
+}
   
   document.getElementById("dsb-level").textContent = masterYamlData.level ? " " + masterYamlData.level : "";
   document.getElementById("dsb-tr").textContent = masterYamlData.tr ? "TR " + masterYamlData.tr : "";
@@ -95,7 +104,8 @@ export function renderDefaultDetail(){
   document.getElementById("dsb-deedsSection").style.display = "none";
   document.getElementById("dsb-ids").innerHTML = "";
   document.getElementById("dsb-name").textContent = "[Monster Name]";
-  document.getElementById("dsb-role").textContent = "[Role]";
+  document.getElementById("dsb-title-separator").style.display = "none";
+  document.getElementById("dsb-role").textContent = "";
   document.getElementById("dsb-template").textContent = "";
   document.getElementById("dsb-level").textContent = "";
   document.getElementById("dsb-tr").textContent = "";
