@@ -1,4 +1,3 @@
-
 export let LOCAL_STORAGE_KEY = "trespasser_statblocks";
 export let LOCAL_STORAGE_COMPONENTS_KEY = "trespasser_statblockComponents"; // New key for components
 export let LOCAL_STORAGE_BUNDLES_KEY = "trespasser_uploadedBundles";
@@ -7,7 +6,7 @@ export let uploadedBundles = [];
 export let favoritesMap = {};
 export let statblockComponents = []; // New array to store YAML snippets
 export let fuseIndex = null;
-
+import { generateComponentID } from "./idManagement.mjs"; 
 
 /* ---------------------------------------------
  * STORAGE FUNCTIONS (Library + Favorites)
@@ -123,6 +122,27 @@ export async function importBackup(e){
       favArray.forEach(id => favoritesMap[id] = true);
     }
     uploadedBundles = JSON.parse(bundlesData);
+
+    // Handle components import
+    if (componentsFile) {
+      const componentsData = await componentsFile.async("string");
+      try {
+        const parsedComponents = JSON.parse(componentsData);
+        // Convert old format if needed
+        if (Array.isArray(parsedComponents)) {
+          statblockComponents = parsedComponents.map(comp => {
+            // Ensure all components have componentID using the generator
+            if (!comp.componentID) {
+              comp.componentID = generateComponentID(comp);
+            }
+            return comp;
+          });
+        }
+      } catch (err) {
+        console.error("Failed to parse components data:", err);
+      }
+    }
+
     saveToLocalStorage();
     saveUploadedBundles();
     document.dispatchEvent(new CustomEvent('refreshUI'));
@@ -149,8 +169,8 @@ export function addStatblockComponent(component) {
   }
   
   // Generate unique ID if not present
-  if (!component.id) {
-    component.id = generateComponentId();
+  if (!component.componentID) {
+    component.componentID = generateComponentID(component);
   }
   
   // Add to components array
@@ -162,7 +182,7 @@ export function addStatblockComponent(component) {
 // Delete a statblock component by ID
 export function deleteStatblockComponent(id) {
   const initialLength = statblockComponents.length;
-  statblockComponents = statblockComponents.filter(c => c.id !== id);
+  statblockComponents = statblockComponents.filter(c => c.componentID !== id);
   
   if (statblockComponents.length !== initialLength) {
     saveToLocalStorage();
@@ -173,17 +193,18 @@ export function deleteStatblockComponent(id) {
 
 // Update an existing statblock component
 export function updateStatblockComponent(id, updates) {
-  const component = statblockComponents.find(c => c.id === id);
+  const component = statblockComponents.find(c => c.componentID === id);
   if (!component) return false;
   
   Object.assign(component, updates);
+  
+  // If content was updated, regenerate the ID
+  if (updates.name || updates.yaml || updates.type) {
+    component.componentID = generateComponentID(component);
+  }
+  
   saveToLocalStorage();
   return true;
-}
-
-// Helper function to generate unique component ID
-function generateComponentId() {
-  return 'comp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
 // Get all statblock components

@@ -48,3 +48,11 @@ export function generateBundleID(bundleArray) {
   const str = JSON.stringify(canonical);
   return hashString(str);
 }
+
+export function generateComponentID(componentObj) {
+  const copy = JSON.parse(JSON.stringify(componentObj));
+  delete copy.componentID; // Remove any existing componentID
+  const canonicalObj = canonicalize(copy);
+  const str = JSON.stringify(canonicalObj);
+  return "comp-" + hashString(str);
+}

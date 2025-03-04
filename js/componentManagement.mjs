@@ -37,13 +37,18 @@ function renderComponentPreview(component) {
   componentRender.style.display = "block";
   componentRender.innerHTML = "";
   
-  // Determine component type and render accordingly
+  // Add component ID information
+  const idDiv = document.createElement("div");
+  idDiv.className = "component-id-info";
+  idDiv.textContent = `Component ID: ${component.componentID}`;
+  componentRender.appendChild(idDiv);
+  
+  // Render based on component type
   if (component.type === "Feature") {
     renderFeatureComponent(component, componentRender);
-  } else if (component.type.includes("Deed")) {
+  } else if (component.type && component.type.includes("Deed")) {
     renderDeedComponent(component, componentRender);
   } else {
-    // Generic rendering for other component types
     renderGenericComponent(component, componentRender);
   }
 }
@@ -338,7 +343,8 @@ export function renderComponentsList() {
     // Create a row for each component
     filtered.forEach((comp, index) => {
       const tr = document.createElement("tr");
-      if (comp.id === selectedComponentID) {
+      tr.id = `component-row-${comp.componentID}`; // Changed from comp.id
+      if (comp.componentID === selectedComponentID) {
         tr.classList.add("selected");
       }
       tr.setAttribute("data-index", index);
@@ -372,10 +378,10 @@ export function renderComponentsList() {
       deleteBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         if (!confirm(`Delete component "${comp.name}"?`)) return;
-        deleteStatblockComponent(comp.id);
+        deleteStatblockComponent(comp.componentID); // Changed from comp.id
         
         // If the deleted component was selected, clear selection
-        if (selectedComponentID === comp.id) {
+        if (selectedComponentID === comp.componentID) { // Changed from comp.id
           selectedComponentID = null;
           // Clear the preview
           renderComponentPreview(null);
@@ -388,8 +394,8 @@ export function renderComponentsList() {
       
       // Click on row to select component and render preview
       tr.addEventListener("click", () => {
-        selectedComponentID = comp.id;
-        const selectedComponent = statblockComponents.find(c => c.id === comp.id);
+        selectedComponentID = comp.componentID; // Changed from comp.id
+        const selectedComponent = statblockComponents.find(c => c.componentID === comp.componentID);
         renderComponentPreview(selectedComponent);
         renderComponentsList(); // Re-render to update the selection
       });
@@ -415,7 +421,7 @@ export function renderComponentsList() {
   
   // Render preview for selected component
   if (selectedComponentID) {
-    const selectedComponent = statblockComponents.find(c => c.id === selectedComponentID);
+    const selectedComponent = statblockComponents.find(c => c.componentID === selectedComponentID);
     renderComponentPreview(selectedComponent);
   } else {
     renderComponentPreview(null);
