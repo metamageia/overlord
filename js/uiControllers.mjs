@@ -119,3 +119,90 @@ export function initBundlePanels() {
   });
 }
 
+// Sidebar Resizing
+export function initResizeHandlers() {
+  const leftSidebar = document.getElementById("sidebar");
+  const rightSidebar = document.getElementById("bundlesSidebar");
+  const content = document.querySelector(".content");
+  const leftHandle = document.getElementById("leftResizeHandle");
+  const maxContentWidth = 644; // Current max content width in desktop mode
+
+  let isLeftResizing = false;
+  let startX = 0;
+  let startLeftWidth = 0;
+
+  // Make sure sidebar has proper positioning for the handle
+  function setupSidebarContainer() {
+    // Ensure sidebar has position relative for absolute positioning of resize handle
+    const sidebarStyle = window.getComputedStyle(leftSidebar);
+    if (sidebarStyle.position !== 'relative' && sidebarStyle.position !== 'absolute') {
+      leftSidebar.style.position = 'relative';
+    }
+    
+    // Ensure sidebar has overflow visible or the handle might be cut off
+    if (sidebarStyle.overflow === 'hidden') {
+      leftSidebar.style.overflow = 'visible';
+    }
+  }
+
+  // Left sidebar resize
+  leftHandle.addEventListener("mousedown", e => {
+    isLeftResizing = true;
+    startX = e.clientX;
+    startLeftWidth = leftSidebar.offsetWidth;
+    leftHandle.classList.add("active");
+    document.body.style.cursor = "ew-resize";
+    document.body.style.userSelect = "none";
+    e.preventDefault(); // Prevent text selection
+  });
+
+  // Mouse move handler
+  document.addEventListener("mousemove", e => {
+    if (!isLeftResizing) return;
+    
+    // Get available space
+    const windowWidth = window.innerWidth;
+    
+    // Calculate new width
+    const newWidth = Math.max(200, Math.min(windowWidth * 0.4, startLeftWidth + (e.clientX - startX)));
+    leftSidebar.style.width = `${newWidth}px`;
+    
+    // On desktop, adjust content width
+    if (window.matchMedia("(min-width: 769px)").matches) {
+      const rightSidebarWidth = rightSidebar.classList.contains("collapsed") ? 0 : rightSidebar.offsetWidth;
+      const availableWidth = windowWidth - newWidth - rightSidebarWidth - 40; // padding/margins
+      const contentWidth = Math.min(maxContentWidth, availableWidth);
+      content.style.width = `${contentWidth}px`;
+      content.style.marginLeft = `${newWidth + 20}px`;
+    }
+  });
+
+  // Mouse up handler
+  document.addEventListener("mouseup", () => {
+    if (isLeftResizing) {
+      isLeftResizing = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      leftHandle.classList.remove("active");
+    }
+  });
+
+  // Reset on window resize to prevent layout issues
+  window.addEventListener("resize", () => {
+    if (window.matchMedia("(max-width: 768px)").matches) {
+      leftSidebar.style.width = "";
+      content.style.width = "";
+      content.style.marginLeft = "";
+    }
+  });
+  
+  // Hide the right resize handle
+  const rightHandle = document.getElementById("rightResizeHandle");
+  if (rightHandle) {
+    rightHandle.style.display = "none";
+  }
+  
+  // Initial setup
+  setupSidebarContainer();
+}
+

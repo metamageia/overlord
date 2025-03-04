@@ -6,7 +6,7 @@ import { handleUpload, renderCreateBundleList, renderBundleList, downloadCurrent
 import { matchesNumericQuery, matchesStringQuery } from './js/utilityFunctions.mjs';
 import { decodeStatblockData, encodeStatblockData,exportCurrentDetail } from "./js/shareStatblocks.mjs";
 import { renderStatblockLibrary, updateSelectedRow, currentFilteredList, saveToLibrary, showManageStatsModal, closeManageStatsModal, selectedStatblockID, currentDetail, setCurrentDetail, setSelectedStatblockID } from "./js/libraryBrowser.mjs";
-import { toggleSidebar, toggleBundlesSidebar, setInitialSidebarVisibility, initBundlePanels, switchSidebarTab, switchBundlesTab } from "./js/uiControllers.mjs";
+import { toggleSidebar, toggleBundlesSidebar, setInitialSidebarVisibility, initBundlePanels, switchSidebarTab, switchBundlesTab, initResizeHandlers } from "./js/uiControllers.mjs";
 
 /************************************************
  * Global Variables
@@ -46,6 +46,9 @@ window.addEventListener("DOMContentLoaded", () => {
   // Initialize bundles tabs - default to Bundles top tab and Manage subtab
   switchBundlesTab("bundles");
   switchBundlesTab("manage");
+  
+  // Initialize resize handlers
+  initResizeHandlers();
   
   resetMasterYamlData();
   updateUIFromMasterYaml();
@@ -229,7 +232,7 @@ function attachEventHandlers() {
     updateSelectedRow();
   });
   
-  // Removed: initResizeHandles(); -- sidebar resizing disabled now
+  initResizeHandlers();
 
   ["cbSearchName", "cbSearchLV", "cbSearchRole", "cbSearchTR", "cbSearchBundle"].forEach(id => {
     const el = document.getElementById(id);
