@@ -79,9 +79,8 @@ export function renderUploadedBundles(){
     activeCheckbox.checked = bundle.active;
     activeCheckbox.addEventListener("change", () => {
       bundle.active = activeCheckbox.checked;
-      saveUploadedBundles();
-      renderUploadedBundles();
-      renderStatblockLibrary();
+      document.dispatchEvent(new CustomEvent('saveLibraryChanges'));      
+      document.dispatchEvent(new CustomEvent('refreshUI'));
     });
     tdActive.appendChild(activeCheckbox);
     const tdAction = document.createElement("td");
@@ -118,8 +117,8 @@ export function renderUploadedBundles(){
         
         // Remove the bundle from uploadedBundles
         uploadedBundles.splice(idx, 1);
-        saveUploadedBundles();
-        
+        document.dispatchEvent(new CustomEvent('saveLibraryChanges'));
+
         // Remove statblocks with matching bundleId from the library
         statblocks = statblocks.filter(sb => sb.bundleId !== bundleId);
         saveToLocalStorage();
