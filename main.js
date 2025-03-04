@@ -154,7 +154,6 @@ function loadFromLocalStorage(){
     favoritesMap = {};
   }
 }
-
 function saveToLocalStorage(){
   // Generate favorites array from favoritesMap
   const favArray = Object.keys(favoritesMap).filter(id => favoritesMap[id]);
