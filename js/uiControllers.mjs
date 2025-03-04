@@ -38,82 +38,65 @@ export function toggleBundlesSidebar(){
   rightSidebar.classList.toggle("collapsed");
 }
 export function switchBundlesTab(tab) {
-  // Remove active class from all top-level tabs
-  document.querySelectorAll(".bundles-tabs.top-tabs .bundles-tab").forEach(btn => 
-    btn.classList.remove("active"));
-  
-  // Hide all panels
+  // First hide all panels
   document.querySelectorAll(".bundles-panel").forEach(p => 
     p.classList.remove("active"));
   
-  // Handle bundles tab differently (it contains subtabs)
+  // Remove active class from all top-level and sub-tabs
+  document.querySelectorAll(".bundles-tabs .bundles-tab").forEach(btn => 
+    btn.classList.remove("active"));
+  
   if(tab === "bundles") {
+    // Show the bundles container panel
+    document.getElementById("bundlesBundlesPanel").classList.add("active");
+    
     // Show the subtabs row
     document.getElementById("bundlesSubTabs").style.display = "flex";
     
     // Activate the bundles top-level tab
     document.getElementById("bundlesBundlesTab").classList.add("active");
     
-    // If no subtab is active, activate the first one (manage)
-    if(!document.querySelector("#bundlesSubTabs .bundles-tab.active")) {
-      document.getElementById("bundlesManageTab").classList.add("active");
-      
-      // Show the manage panel
-      document.getElementById("bundlesManagePanel").classList.add("active");
-    } else {
-      // Show the active subtab's panel
-      const activeSubtab = document.querySelector("#bundlesSubTabs .bundles-tab.active").id;
-      const subtabName = activeSubtab.replace("bundles", "").replace("Tab", "").toLowerCase();
-      document.getElementById("bundles" + subtabName.charAt(0).toUpperCase() + subtabName.slice(1) + "Panel").classList.add("active");
-    }
+    // Activate the first subtab (manage) by default
+    document.getElementById("bundlesManageTab").classList.add("active");
+    document.getElementById("bundlesManagePanel").classList.add("active");
     
-    // Show the bundles container panel
-    document.getElementById("bundlesBundlesPanel").classList.add("active");
   } else if(tab === "components") {
-    // Hide the subtabs for other top-level tabs
+    // Hide the subtabs for components tab
     document.getElementById("bundlesSubTabs").style.display = "none";
     
     // Activate the components tab
     document.getElementById("bundlesComponentsTab").classList.add("active");
     
-    // Activate the components panel
+    // Show the components panel
     document.getElementById("bundlesComponentsPanel").classList.add("active");
     
-    // Render the components list and initialize any previews
+    // Render the components list
     import('./componentManagement.mjs').then(module => {
       module.renderComponentsList();
-      // Focus the components list container to enable keyboard navigation
-      setTimeout(() => {
-        const container = document.getElementById("componentsListContainer");
-        if (container) container.focus();
-      }, 100);
     });
+    
   } else if(tab === "backup") {
-    // Hide the subtabs for other top-level tabs
+    // Hide the subtabs for backup tab
     document.getElementById("bundlesSubTabs").style.display = "none";
     
     // Activate the backup tab
     document.getElementById("bundlesBackupTab").classList.add("active");
     
-    // Activate the backup panel
+    // Show the backup panel
     document.getElementById("bundlesBackupPanel").classList.add("active");
-  } else {
-    // Handle subtabs (manage, upload, create, merge)
-    // Remove active class from all subtabs
-    document.querySelectorAll("#bundlesSubTabs .bundles-tab").forEach(btn => 
-      btn.classList.remove("active"));
     
-    // Activate the selected subtab
+  } else {
+    // We're dealing with a subtab (manage, upload, create, merge)
+    
+    // Show the bundles container panel and subtabs
+    document.getElementById("bundlesBundlesPanel").classList.add("active");
+    document.getElementById("bundlesSubTabs").style.display = "flex";
+    document.getElementById("bundlesBundlesTab").classList.add("active");
+    
+    // Activate the clicked subtab
     document.getElementById("bundles" + tab.charAt(0).toUpperCase() + tab.slice(1) + "Tab").classList.add("active");
     
-    // Hide all subtab panels
-    document.querySelectorAll("#bundlesBundlesPanel > .bundles-panel").forEach(p => {
-      p.classList.remove("active");
-      // Move the panel into the bundles container
-      document.getElementById("bundlesBundlesPanel").appendChild(p);
-    });
-    
-    // Activate the selected subtab panel
+    // Show the selected subtab panel
     document.getElementById("bundles" + tab.charAt(0).toUpperCase() + tab.slice(1) + "Panel").classList.add("active");
   }
 }
