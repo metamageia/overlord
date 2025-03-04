@@ -1057,3 +1057,47 @@ body {
   flex: 1 1 calc(25% - 10px);
   min-width: 80px;
 }
+/* -------------------------------
+   COMPONENTS TABLE STYLES
+------------------------------- */
+#componentsListTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+#componentsListTable th,
+#componentsListTable td {
+  padding: 4px 8px;
+  border: 1px solid #333;
+  font-size: 0.9em;
+  text-align: left;
+  word-wrap: break-word;
+}
+
+#componentsListTable thead tr:nth-child(1) th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #333;
+  color: #fff;
+  cursor: pointer;
+}
+
+#componentsListTable thead tr:nth-child(2) td {
+  position: sticky;
+  top: 30px;
+  z-index: 2;
+  background: #eee;
+}
+
+#componentsListTable tbody tr:hover {
+  background-color: #e9e9e9;
+  cursor: pointer;
+}
+
+/* Make sure components panel has proper scroll */
+#bundlesComponentsPanel {
+  overflow-y: auto;
+  max-height: calc(100vh - 140px);
+}

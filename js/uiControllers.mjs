@@ -38,41 +38,60 @@ export function toggleBundlesSidebar(){
   rightSidebar.classList.toggle("collapsed");
 }
 export function switchBundlesTab(tab) {
-  // Handle top-level tabs (Bundles, Backup)
-  if (tab === "bundles" || tab === "backup") {
-    // Hide all top-level panels
-    document.querySelectorAll(".bundles-panel").forEach(p => p.classList.remove("active"));
+  // Remove active class from all top-level tabs
+  document.querySelectorAll(".bundles-tabs.top-tabs .bundles-tab").forEach(btn => 
+    btn.classList.remove("active"));
+  
+  // Hide all panels
+  document.querySelectorAll(".bundles-panel").forEach(p => 
+    p.classList.remove("active"));
+  
+  // Handle bundles tab differently (it contains subtabs)
+  if(tab === "bundles") {
+    // Show the subtabs row
+    document.getElementById("bundlesSubTabs").style.display = "flex";
     
-    // Remove active class from all top-level tabs
-    document.querySelectorAll(".bundles-tabs.top-tabs .bundles-tab").forEach(btn => 
-      btn.classList.remove("active"));
+    // Activate the bundles top-level tab
+    document.getElementById("bundlesBundlesTab").classList.add("active");
     
-    // Activate the selected top-level tab
-    document.getElementById("bundles" + tab.charAt(0).toUpperCase() + tab.slice(1) + "Tab").classList.add("active");
-    
-    if (tab === "bundles") {
-      // Show the subtabs when Bundles is selected
-      document.getElementById("bundlesSubTabs").style.display = "flex";
+    // If no subtab is active, activate the first one (manage)
+    if(!document.querySelector("#bundlesSubTabs .bundles-tab.active")) {
+      document.getElementById("bundlesManageTab").classList.add("active");
       
-      // If no subtab is active, default to Manage
-      if (!document.querySelector("#bundlesSubTabs .bundles-tab.active")) {
-        switchBundlesTab("manage");
-      } else {
-        // Get the currently active subtab and reactivate it
-        const activeSubtab = document.querySelector("#bundlesSubTabs .bundles-tab.active").id;
-        const subtabName = activeSubtab.replace("bundles", "").replace("Tab", "").toLowerCase();
-        document.getElementById("bundles" + subtabName.charAt(0).toUpperCase() + subtabName.slice(1) + "Panel").classList.add("active");
-      }
-      
-      // Show the bundles container panel
-      document.getElementById("bundlesBundlesPanel").classList.add("active");
+      // Show the manage panel
+      document.getElementById("bundlesManagePanel").classList.add("active");
     } else {
-      // Hide the subtabs for other top-level tabs
-      document.getElementById("bundlesSubTabs").style.display = "none";
-      
-      // Activate the backup panel
-      document.getElementById("bundlesBackupPanel").classList.add("active");
+      // Show the active subtab's panel
+      const activeSubtab = document.querySelector("#bundlesSubTabs .bundles-tab.active").id;
+      const subtabName = activeSubtab.replace("bundles", "").replace("Tab", "").toLowerCase();
+      document.getElementById("bundles" + subtabName.charAt(0).toUpperCase() + subtabName.slice(1) + "Panel").classList.add("active");
     }
+    
+    // Show the bundles container panel
+    document.getElementById("bundlesBundlesPanel").classList.add("active");
+  } else if(tab === "components") {
+    // Hide the subtabs for other top-level tabs
+    document.getElementById("bundlesSubTabs").style.display = "none";
+    
+    // Activate the components tab
+    document.getElementById("bundlesComponentsTab").classList.add("active");
+    
+    // Activate the components panel
+    document.getElementById("bundlesComponentsPanel").classList.add("active");
+    
+    // Render the components list
+    import('./componentManagement.mjs').then(module => {
+      module.renderComponentsList();
+    });
+  } else if(tab === "backup") {
+    // Hide the subtabs for other top-level tabs
+    document.getElementById("bundlesSubTabs").style.display = "none";
+    
+    // Activate the backup tab
+    document.getElementById("bundlesBackupTab").classList.add("active");
+    
+    // Activate the backup panel
+    document.getElementById("bundlesBackupPanel").classList.add("active");
   } else {
     // Handle subtabs (manage, upload, create, merge)
     // Remove active class from all subtabs
@@ -108,6 +127,7 @@ export function setInitialSidebarVisibility(){
   }
 }
 // Add initialization for bundle panels on page load
+// Add initialization for bundle panels on page load
 export function initBundlePanels() {
   // Move all subtab panels into the bundles container panel if they're not already there
   const bundlesContainerPanel = document.getElementById("bundlesBundlesPanel");
@@ -117,6 +137,13 @@ export function initBundlePanels() {
       bundlesContainerPanel.appendChild(panel);
     }
   });
+  
+  // Make sure components panel is not inside the bundles container panel
+  const componentsPanel = document.getElementById("bundlesComponentsPanel");
+  if (componentsPanel && componentsPanel.parentElement === bundlesContainerPanel) {
+    componentsPanel.parentElement.removeChild(componentsPanel);
+    document.getElementById("bundlesSidebar").appendChild(componentsPanel);
+  }
 }
 
 // Sidebar Resizing

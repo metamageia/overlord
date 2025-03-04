@@ -178,6 +178,7 @@
       <!-- Top Tab Row: Now Bundles and Backup -->
       <div class="bundles-tabs top-tabs">
         <div id="bundlesBundlesTab" class="bundles-tab active">Bundles</div>
+        <div id="bundlesComponentsTab" class="bundles-tab">Components</div>
         <div id="bundlesBackupTab" class="bundles-tab">Backup</div>
       </div>
       <!-- Bottom Tab Row: Now conditionally shown when Bundles is active -->
@@ -210,6 +211,12 @@
         <div style="margin-top:10px; text-align:center;">
           <button id="deleteAllBtn" class="inline-btn" style="background:#f88; color:#fff;">Delete All Statblocks and Bundles</button>
         </div>
+      </div>
+      <!-- COMPONENTS -->
+      <div class="bundles-panel" id="bundlesComponentsPanel">
+        <div class="section-title">Statblock Components</div>
+        <p style="font-size:0.9em;">Manage YAML snippets that can be used in statblocks.</p>
+        <div id="componentsListContainer" tabindex="0"></div>
       </div>
       <!-- UPLOAD -->
       <div class="bundles-panel" id="bundlesUploadPanel">

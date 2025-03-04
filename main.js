@@ -7,6 +7,7 @@ import { matchesNumericQuery, matchesStringQuery } from './js/utilityFunctions.m
 import { decodeStatblockData, encodeStatblockData,exportCurrentDetail } from "./js/shareStatblocks.mjs";
 import { renderStatblockLibrary, updateSelectedRow, currentFilteredList, saveToLibrary, showManageStatsModal, closeManageStatsModal, selectedStatblockID, currentDetail, setCurrentDetail, setSelectedStatblockID } from "./js/libraryBrowser.mjs";
 import { toggleSidebar, toggleBundlesSidebar, setInitialSidebarVisibility, initBundlePanels, switchSidebarTab, switchBundlesTab, initResizeHandlers } from "./js/uiControllers.mjs";
+import { renderComponentsList } from './js/componentManagement.mjs';
 
 /************************************************
  * Global Variables
@@ -101,6 +102,7 @@ function attachEventHandlers() {
     renderCreateBundleList();
     fillManageMergeSelect();
     renderUploadedBundles();
+    renderComponentsList(); // Add this line
     updateRenderedStatblock();
   });
   document.addEventListener('saveLibraryChanges', () => {
@@ -117,6 +119,9 @@ function attachEventHandlers() {
   
   // Add event listeners for top-level bundle tabs
   document.getElementById("bundlesBundlesTab").addEventListener("click", () => switchBundlesTab("bundles"));
+  document.getElementById("bundlesComponentsTab").addEventListener("click", () => {
+    switchBundlesTab("components");
+  });
   document.getElementById("bundlesBackupTab").addEventListener("click", () => switchBundlesTab("backup"));
   
   // Add event listeners for bundle subtabs
@@ -339,4 +344,20 @@ function attachEventHandlers() {
     updateYamlTextArea();
     updateRenderedStatblock();
   });
+}
+
+function refreshUI() {
+  initSearch();
+  renderStatblockLibrary();
+  renderUploadedBundles();
+  renderCreateBundleList();
+  
+  // Only render components list if the panel is active
+  if (document.getElementById("bundlesComponentsPanel").classList.contains("active")) {
+    import('./js/componentManagement.mjs').then(module => {
+      module.renderComponentsList();
+    });
+  }
+  
+  updateRenderedStatblock();
 }
