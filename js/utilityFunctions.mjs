@@ -1,3 +1,4 @@
+
 // Title:Content Line Parsing on Deeds
 export function parseDeedsStringNew(str){
   let deedBlocks = str.split(/\n\s*\n/).map(block => block.trim()).filter(block => block !== "");
@@ -22,3 +23,4 @@ export function parseDeedsStringNew(str){
   });
   return result;
 }
+
