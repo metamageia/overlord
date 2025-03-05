@@ -11,6 +11,7 @@ let cbFilterRole = "";
 let cbFilterTemplate = ""; 
 let cbFilterTR = "";
 let cbFilterBundle = "";
+let cbFilterType = "";
 
 let bundleList = [];
 
@@ -286,7 +287,8 @@ export async function handleUpload(){
       { field: "monsterName", width: 150 },
       { field: "level",       width: 50 },
       { field: "role",        width: 100 },
-      { field: "template",    width: 100 }, // Add this line
+      { field: "type",        width: 80 },
+      { field: "template",    width: 100 },
       { field: "tr",          width: 50 },
       { field: "bundle",      width: 100 }
     ];
@@ -316,7 +318,8 @@ export async function handleUpload(){
       { field: "monsterName", label: "Name" },
       { field: "level",       label: "LV" },
       { field: "role",        label: "Role" },
-      { field: "template",    label: "Template" }, // Add this line
+      { field: "type",        label: "Type" },
+      { field: "template",    label: "Template" },
       { field: "tr",          label: "TR" },
       { field: "bundle",      label: "Bundle" }
     ];
@@ -353,6 +356,7 @@ export async function handleUpload(){
         case "monsterName": input.value = cbFilterName; break;
         case "level": input.value = cbFilterLV; break;
         case "role": input.value = cbFilterRole; break;
+        case "type": input.value = cbFilterType; break;
         case "template": input.value = cbFilterTemplate; break;
         case "tr": input.value = cbFilterTR; break;
         case "bundle": input.value = cbFilterBundle; break;
@@ -364,6 +368,7 @@ export async function handleUpload(){
           case "monsterName": cbFilterName = this.value; break;
           case "level": cbFilterLV = this.value; break;
           case "role": cbFilterRole = this.value; break;
+          case "type": cbFilterType = this.value; break;
           case "template": cbFilterTemplate = this.value; break;
           case "tr": cbFilterTR = this.value; break;
           case "bundle": cbFilterBundle = this.value; break;
@@ -382,6 +387,7 @@ export async function handleUpload(){
       cbFilterName = "";
       cbFilterLV = "";
       cbFilterRole = "";
+      cbFilterType = "";
       cbFilterTemplate = "";
       cbFilterTR = "";
       cbFilterBundle = "";
@@ -399,11 +405,13 @@ export async function handleUpload(){
     let filtered = statblocks.filter(sb => {
       const matchesName = matchesStringQuery(sb.monsterName || "", cbFilterName);
       const matchesRole = matchesStringQuery(sb.role || "", cbFilterRole);
-      const matchesTemplate = matchesStringQuery(sb.template || "", cbFilterTemplate); // Add this line
+      const matchesTemplate = matchesStringQuery(sb.template || "", cbFilterTemplate);
       const matchesLV = matchesNumericQuery(sb.level, cbFilterLV);
       const matchesTR = matchesNumericQuery(sb.tr, cbFilterTR);
       const matchesBundle = matchesStringQuery(getBundleName(sb.bundleId), cbFilterBundle);
-      return matchesName && matchesRole && matchesTemplate && matchesLV && matchesTR && matchesBundle; // Add matchesTemplate
+      const itemType = sb.componentType || "statblock";
+      const matchesType = matchesStringQuery(itemType, cbFilterType);
+      return matchesName && matchesRole && matchesTemplate && matchesType && matchesLV && matchesTR && matchesBundle;
     });
     filtered = filtered.filter(sb => {
       if(sb.bundleId === undefined) return true;
@@ -466,7 +474,13 @@ export async function handleUpload(){
         tr.appendChild(favTd);
         columns.forEach(ci => {
           const td = document.createElement("td");
-          td.textContent = ci.field === "bundle" ? getBundleName(sb.bundleId) : (sb[ci.field] || "");
+          if (ci.field === "bundle") {
+            td.textContent = getBundleName(sb.bundleId) || "";
+          } else if (ci.field === "type") {
+            td.textContent = sb.componentType || "statblock";
+          } else {
+            td.textContent = sb[ci.field] || "";
+          }
           tr.appendChild(td);
         });
         const tdAction = document.createElement("td");
@@ -515,7 +529,8 @@ export async function handleUpload(){
       { field: "monsterName", width: 150 },
       { field: "level", width: 50 },
       { field: "role", width: 100 },
-      { field: "template",    label: "Template" }, // Add this line
+      { field: "type", width: 80 },  // Add new Type column
+      { field: "template", width: 80 },
       { field: "tr", width: 50 },
       { field: "bundle", width: 120 },
       { field: "action", width: 50 }
@@ -535,7 +550,7 @@ export async function handleUpload(){
     const favTh = document.createElement("th");
     favTh.textContent = "⭐";
     headerRow.appendChild(favTh);
-    ["Name", "LV", "Role", "TR", "Bundle", "Action"].forEach(text => {
+    ["Name", "LV", "Role", "Type", "Template", "TR", "Bundle", "Action"].forEach(text => {
       const th = document.createElement("th");
       th.textContent = text;
       headerRow.appendChild(th);
@@ -570,18 +585,22 @@ export async function handleUpload(){
       favTd.appendChild(starSpan);
       tr.appendChild(favTd);
       
-      // Other cells: monsterName, level, role, tr, bundle name
+      // Other cells: monsterName, level, role, type, tr, bundle name
       const tdName = document.createElement("td");
       tdName.textContent = sb.monsterName || "";
       const tdLV = document.createElement("td");
       tdLV.textContent = sb.level || "";
       const tdRole = document.createElement("td");
       tdRole.textContent = sb.role || "";
+      const tdType = document.createElement("td");
+      tdType.textContent = sb.componentType || "statblock";
+      const tdTemplate = document.createElement("td");
+      tdTemplate.textContent = sb.template || "";
       const tdTR = document.createElement("td");
       tdTR.textContent = sb.tr || "";
       const tdBundle = document.createElement("td");
       tdBundle.textContent = getBundleName(sb.bundleId) || "";
-      tr.append(tdName, tdLV, tdRole, tdTR, tdBundle);
+      tr.append(tdName, tdLV, tdRole, tdType, tdTemplate, tdTR, tdBundle);
       
       // Action cell with "Remove" button
       const tdAction = document.createElement("td");
