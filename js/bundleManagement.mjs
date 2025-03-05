@@ -25,9 +25,15 @@ let pendingUpload = null;
 
 // Get Bundle Name from ID
 export function getBundleName(bundleId) {
-    const bun = uploadedBundles.find(x => x.id === bundleId);
-    return bun ? bun.bundleName : "";
-  }
+    if (!bundleId) return "";
+    
+    // Find the bundle in uploadedBundles array
+    const bundle = uploadedBundles.find(bundle => bundle.id === bundleId);
+    
+    // Return the bundle name if found, otherwise the ID as fallback
+    return bundle && bundle.bundleName ? bundle.bundleName : bundleId;
+}
+
 
 // --- Manage Bundles --- //
 // Update the renderUploadedBundles function to handle the new bundle format
@@ -353,7 +359,8 @@ export async function handleUpload() {
   }
   
   // Create bundle entry
-  const bundleName = file.name.replace(/\.(json|yaml)$/i, "");
+  const customBundleName = document.getElementById("uploadBundleNameInput").value.trim();
+  const bundleName = customBundleName || file.name.replace(/\.(json|yaml)$/i, "");
   uploadedBundles.push({
     id: bundleId,
     bundleName: bundleName,
@@ -1012,7 +1019,8 @@ export function renderCreateBundleList(){
     
     // Bundle cell
     const tdBundle = document.createElement("td");
-    tdBundle.textContent = getBundleName(sb.bundleId) || "";
+    const bundleName = getBundleName(sb.bundleId);
+    tdBundle.textContent = bundleName || ""; // Use empty string as ultimate fallback
     tr.appendChild(tdBundle);
     
     // Action cell with remove button
