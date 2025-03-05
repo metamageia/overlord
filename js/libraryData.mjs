@@ -206,6 +206,13 @@ export function addStatblockComponent(component) {
     component.componentID = generateComponentID(component);
   }
   
+  // Check for duplicate components
+  const duplicate = statblockComponents.find(c => c.componentID === component.componentID);
+  if (duplicate) {
+    alert(`A component with identical content already exists: "${duplicate.name}"`);
+    return false;
+  }
+  
   // Add to components array
   statblockComponents.push(component);
   saveToLocalStorage();
