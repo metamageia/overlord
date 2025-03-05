@@ -81,6 +81,15 @@ export function clearLocalStorage(){
   
 
 }
+// Remove Statblocks
+export function deleteStatblock(statblockToDelete) {
+  const index = statblocks.indexOf(statblockToDelete);
+  if (index > -1) {
+    statblocks.splice(index, 1);
+    return true;
+  }
+  return false;
+}
 
 /* ---------------------------------------------
  * Bundle Data Management

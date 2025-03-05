@@ -1,11 +1,11 @@
 import { updateMasterYamlData } from "./yamlDataState.mjs";
 import {updateUIFromMasterYaml, updateYamlTextArea} from "./masterYamlData.mjs";
 import { currentSortDirection, currentSortField, setCurrentSortDirection, setCurrentSortField, toggleSortDirection } from "./libraryUtilities.mjs";
-import { statblocks, uploadedBundles, favoritesMap } from "./libraryData.mjs";
+import { statblocks, uploadedBundles, favoritesMap, deleteStatblock, saveToLocalStorage } from "./libraryData.mjs";
 import { matchesStringQuery, matchesNumericQuery } from "./utilityFunctions.mjs";
-import { getBundleName } from "./bundleManagement.mjs";
+import { getBundleName, fillManageMergeSelect, renderUploadedBundles } from "./bundleManagement.mjs";
 import { generateStatblockID, } from "./idManagement.mjs";
-
+import { renderDefaultDetail } from "./statblockRender.mjs";
 
 // Global filters for library table
 let filterName = "";
@@ -274,7 +274,7 @@ export function renderStatblockLibrary(){
       delBtn.addEventListener("click", e => {
         e.stopPropagation();
         if(!confirm(`Delete statblock "${sb.monsterName}"?`)) return;
-        statblocks = statblocks.filter(x => x !== sb);
+        deleteStatblock(sb);
         saveToLocalStorage();
         renderStatblockLibrary();
         fillManageMergeSelect();
