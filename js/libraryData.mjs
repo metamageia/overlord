@@ -132,7 +132,7 @@ export async function importBackup(e){
     const zip = await JSZip.loadAsync(arrayBuffer);
     const libFile = zip.file("library.json");
     const bundlesFile = zip.file("bundles.json");
-    const componentsFile = zip.file("components.json"); // Add components file
+    const componentsFile = zip.file("components.json");
     if(!libFile || !bundlesFile){
       alert("The backup file is missing library.json or bundles.json.");
       e.target.value = "";
@@ -152,8 +152,11 @@ export async function importBackup(e){
       favArray.forEach(id => favoritesMap[id] = true);
     }
     uploadedBundles = JSON.parse(bundlesData);
-
-    // Handle components import
+    
+    // Always clear existing components when importing a backup
+    statblockComponents = [];
+    
+    // Import components if they exist in the backup
     if (componentsFile) {
       const componentsData = await componentsFile.async("string");
       try {
