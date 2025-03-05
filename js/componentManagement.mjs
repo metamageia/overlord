@@ -2,12 +2,14 @@ import { statblockComponents, favoritesMap, saveToLocalStorage, addStatblockComp
 import { matchesStringQuery, parseDeedsStringNew } from './utilityFunctions.mjs';
 import { masterYamlData, updateMasterYamlData } from './yamlDataState.mjs';
 import { updateUIFromMasterYaml, updateMasterYamlDataFromUI } from './masterYamlData.mjs';
+import { getBundleName } from './bundleManagement.mjs';
 
 // Global variables
 let currentSortField = "name";
 let currentSortDirection = "asc";
 let filterName = "";
 let filterType = "";
+let filterBundle = "";
 let currentFilteredComponents = [];
 // Replace single selection with a Set to track multiple selections
 let selectedComponentIDs = new Set();
@@ -469,7 +471,8 @@ export function renderComponentsList() {
   
   const columns = [
     { field: "name", width: 200, label: "Name" },
-    { field: "type", width: 150, label: "Type" }
+    { field: "type", width: 150, label: "Type" },
+    { field: "bundle", width: 120, label: "Bundle" }
   ];
   
   columns.forEach(col => {
@@ -562,11 +565,13 @@ export function renderComponentsList() {
     // Set current filter values
     if (col.field === "name") input.value = filterName;
     if (col.field === "type") input.value = filterType;
+    if (col.field === "bundle") input.value = filterBundle;
     
     input.style.width = "100%";
     input.addEventListener("input", function() {
       if (col.field === "name") filterName = this.value;
       if (col.field === "type") filterType = this.value;
+      if (col.field === "bundle") filterBundle = this.value;
       renderComponentsList();
     });
     td.appendChild(input);
@@ -582,6 +587,7 @@ export function renderComponentsList() {
     // Reset filter variables
     filterName = "";
     filterType = "";
+    filterBundle = ""; // Add bundle filter reset
     // Clear input values
     columns.forEach(col => {
       const input = document.getElementById("compSearch" + col.field.charAt(0).toUpperCase() + col.field.slice(1));
@@ -598,7 +604,9 @@ export function renderComponentsList() {
   let filtered = statblockComponents.filter(comp => {
     const matchesName = matchesStringQuery(comp.name || "", filterName);
     const matchesType = matchesStringQuery(comp.type || "", filterType);
-    return matchesName && matchesType;
+    const bundleName = getBundleName(comp.bundleId) || "";
+    const matchesBundle = matchesStringQuery(bundleName, filterBundle);
+    return matchesName && matchesType && matchesBundle;
   });
   
   // Sort components
@@ -693,7 +701,11 @@ export function renderComponentsList() {
       // Name and Type cells
       columns.forEach(col => {
         const td = document.createElement("td");
-        td.textContent = comp[col.field] || "";
+        if (col.field === "bundle") {
+          td.textContent = getBundleName(comp.bundleId) || "";
+        } else {
+          td.textContent = comp[col.field] || "";
+        }
         tr.appendChild(td);
       });
       
