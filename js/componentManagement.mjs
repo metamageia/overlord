@@ -439,6 +439,7 @@ export function renderComponentsList() {
   const container = document.getElementById("componentsListContainer");
   if (!container) return;
   
+  // Save focus state
   let focusedId = "";
   let selStart = 0, selEnd = 0;
   const activeEl = document.activeElement;
@@ -453,43 +454,48 @@ export function renderComponentsList() {
   // Create table with the same styling as library table
   const table = document.createElement("table");
   table.id = "componentsTable";
+  table.style.tableLayout = "auto"; // Allow table to size columns based on content
   
-  // Create colgroup with column widths
+  // Create colgroup for column styling
   const colgroup = document.createElement("colgroup");
   
-  // Selection column
+  // Selection column - minimal width
   const selCol = document.createElement("col");
-  selCol.style.width = "30px";
+  selCol.style.minWidth = "30px"; // Use min-width instead of fixed width
+  selCol.style.width = "auto";
   selCol.id = "col-comp-select";
   colgroup.appendChild(selCol);
   
-  // Favorites column
+  // Favorites column - minimal width
   const favCol = document.createElement("col");
-  favCol.style.width = "30px";
+  favCol.style.minWidth = "30px"; // Use min-width instead of fixed width
+  favCol.style.width = "auto";
   favCol.id = "col-comp-favorite";
   colgroup.appendChild(favCol);
   
   const columns = [
-    { field: "name", width: 200, label: "Name" },
-    { field: "type", width: 150, label: "Type" },
-    { field: "bundle", width: 120, label: "Bundle" }
+    { field: "name", label: "Name", minWidth: "100px" },
+    { field: "type", label: "Type", minWidth: "80px" },
+    { field: "bundle", label: "Bundle", minWidth: "80px" }
   ];
   
   columns.forEach(col => {
     const colEl = document.createElement("col");
-    colEl.style.width = col.width + "px";
+    colEl.style.minWidth = col.minWidth; // Set minimum width
+    colEl.style.width = "auto"; // Let the browser determine optimal width
     colEl.id = "col-comp-" + col.field;
     colgroup.appendChild(colEl);
   });
   
-  // Action column
+  // Action column - minimal width
   const actionCol = document.createElement("col");
-  actionCol.style.width = "70px";
+  actionCol.style.minWidth = "70px"; // Use min-width instead of fixed width
+  actionCol.style.width = "auto";
   actionCol.id = "col-comp-action";
   colgroup.appendChild(actionCol);
   
   table.appendChild(colgroup);
-  
+
   // Create thead with header row and filter row
   const thead = document.createElement("thead");
   
@@ -701,6 +707,11 @@ export function renderComponentsList() {
       // Name and Type cells
       columns.forEach(col => {
         const td = document.createElement("td");
+        td.style.whiteSpace = "nowrap";
+        td.style.overflow = "hidden";
+        td.style.textOverflow = "ellipsis";
+        td.style.maxWidth = "300px"; // Add a reasonable max width to prevent one column from taking too much space
+        
         if (col.field === "bundle") {
           td.textContent = getBundleName(comp.bundleId) || "";
         } else {
