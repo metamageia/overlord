@@ -95,6 +95,13 @@
               <label for="tr">TR</label>
               <input type="text" id="tr" placeholder="TR" />
             </div>
+          </div>
+          <!-- Add this after level/TR fields and before basic stats -->
+          <div class="form-group">
+            <label for="description">Description:</label>
+            <textarea id="description" class="form-control" rows="3" placeholder="Enter monster description"></textarea>
+          </div>
+          <div class="basic-stats-grid">
             <div>
               <label for="hp">HP</label>
               <input type="text" id="hp" placeholder="HP" />
@@ -276,6 +283,10 @@
           <span id="dsb-template"></span>
           <span id="dsb-level"> [LV]</span>
           <span id="dsb-tr" style="float:right;">[TR]</span>
+        </div>
+        <!-- Add this after statblock-header and before dsb-basicSection -->
+        <div class="statblock-description" id="dsb-description-section" style="display:none;">
+          <p id="dsb-description"></p>
         </div>
         <div id="defaultDetail" style="text-align:center; padding:20px; color:#888;">No statblock selected.</div>
         <!-- Add whitespace after basic stats -->

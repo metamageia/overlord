@@ -10,13 +10,29 @@ import { generateComponentID } from "./idManagement.mjs";
  */
 
 // Update YAML text area from MasterYAML?
-export function updateYamlTextArea(){
+export function updateYamlTextArea() {
     try {
       const clone = Object.assign({}, masterYamlData);
       delete clone.statblockID;
       delete clone.bundleId;
-      document.getElementById("yamlArea").value = jsyaml.dump(clone, { lineWidth: -1 });
-    } catch(e){
+      
+      // Special handling for description to ensure proper multiline formatting
+      if (clone.description) {
+        // Use custom dumping to handle the description field
+        const yamlOutput = jsyaml.dump(clone, { 
+          lineWidth: -1, 
+          noRefs: true,
+          // Use literal style for multiline strings
+          styles: {
+            '!!str': 'literal'
+          }
+        });
+        
+        document.getElementById("yamlArea").value = yamlOutput;
+      } else {
+        document.getElementById("yamlArea").value = jsyaml.dump(clone, { lineWidth: -1 });
+      }
+    } catch(e) {
       console.error(e);
     }
 }
@@ -46,6 +62,7 @@ export function updateUIFromMasterYaml(){
     document.getElementById("template").value = masterYamlData.template || "";
     document.getElementById("level").value = masterYamlData.level || "";
     document.getElementById("tr").value = masterYamlData.tr || "";
+    document.getElementById("description").value = masterYamlData.description || ""; // Add this line
   
     // Update basic stats visibility based on masterYamlData
     Object.keys(DEFAULT_STATS).forEach(key => {
@@ -96,6 +113,13 @@ export function updateMasterYamlDataFromUI() {
     masterYamlData.template = document.getElementById("template").value;
     masterYamlData.level = document.getElementById("level").value;
     masterYamlData.tr = document.getElementById("tr").value;
+    
+    const description = document.getElementById("description").value.trim();
+    if (description) {
+        masterYamlData.description = description;
+    } else {
+        delete masterYamlData.description;
+    }
   
     // Update basic stats, excluding hidden ones
     Object.keys(DEFAULT_STATS).forEach(key => {

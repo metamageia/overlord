@@ -8,7 +8,7 @@ import { masterYamlData, updateMasterYamlData, resetMasterYamlData, hiddenStats,
 
 // --- Utilities --- //
 // Update Rendered Statblock
-export function updateRenderedStatblock(){
+export function updateRenderedStatblock() {
   if(!masterYamlData || !masterYamlData.monsterName){
     renderDefaultDetail();
     return;
@@ -22,24 +22,35 @@ export function updateRenderedStatblock(){
   document.getElementById("dsb-name").textContent = masterYamlData.monsterName || "[Monster Name]";
   
   if (masterYamlData.role) {
-  document.getElementById("dsb-role").textContent = masterYamlData.role || "[Role]";
-  document.getElementById("dsb-role").style.display = "inline";
-} else {
-  document.getElementById("dsb-role").style.display = "none";
-}
+    document.getElementById("dsb-role").textContent = masterYamlData.role || "[Role]";
+    document.getElementById("dsb-role").style.display = "inline";
+  } else {
+    document.getElementById("dsb-role").style.display = "none";
+  }
 
-const hasTitleExtras = masterYamlData.role || masterYamlData.template || masterYamlData.level;
-document.getElementById("dsb-title-separator").style.display = hasTitleExtras ? "inline" : "none";
+  const hasTitleExtras = masterYamlData.role || masterYamlData.template || masterYamlData.level;
+  document.getElementById("dsb-title-separator").style.display = hasTitleExtras ? "inline" : "none";
 
-if(masterYamlData.template) {
-  document.getElementById("dsb-template").textContent = " " + masterYamlData.role;
-  document.getElementById("dsb-template").style.display = "inline";
-} else {
-  document.getElementById("dsb-template").style.display = "none";
-}
+  if(masterYamlData.template) {
+    document.getElementById("dsb-template").textContent = " " + masterYamlData.role;
+    document.getElementById("dsb-template").style.display = "inline";
+  } else {
+    document.getElementById("dsb-template").style.display = "none";
+  }
   
   document.getElementById("dsb-level").textContent = masterYamlData.level ? " " + masterYamlData.level : "";
   document.getElementById("dsb-tr").textContent = masterYamlData.tr ? "TR " + masterYamlData.tr : "";
+
+  // Handle description section
+  const descriptionSection = document.getElementById("dsb-description-section");
+  const descriptionElement = document.getElementById("dsb-description");
+  
+  if (masterYamlData.description && masterYamlData.description.trim()) {
+    descriptionElement.innerText = masterYamlData.description; // Use innerText to preserve line breaks
+    descriptionSection.style.display = "block";
+  } else {
+    descriptionSection.style.display = "none";
+  }
 
   // Update basic stats display
   Object.keys(DEFAULT_STATS).forEach(key => {
@@ -97,11 +108,12 @@ if(masterYamlData.template) {
   }
 }
 // Render Stats & Title
-export function renderDefaultDetail(){
+export function renderDefaultDetail() {
   document.getElementById("defaultDetail").style.display = "block";
   document.getElementById("dsb-basicSection").style.display = "none";
   document.getElementById("dsb-featuresSection").style.display = "none";
   document.getElementById("dsb-deedsSection").style.display = "none";
+  document.getElementById("dsb-description-section").style.display = "none"; // Add this line
   document.getElementById("dsb-ids").innerHTML = "";
   document.getElementById("dsb-name").textContent = "[Monster Name]";
   document.getElementById("dsb-title-separator").style.display = "none";

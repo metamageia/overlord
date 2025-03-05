@@ -1390,3 +1390,19 @@ body {
   padding: 5px;
   border-radius: 4px;
 }
+/* Update these styles to reduce padding */
+.statblock-description {
+  margin: 3px 0 8px 0;
+  padding: 0 3px;
+  font-style: italic;
+  font-size: 0.95em;
+  line-height: .1;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 1px;
+}
+
+#description {
+  width: 100%;
+  font-family: inherit;
+  resize: vertical;
+}

@@ -156,6 +156,12 @@ function attachEventHandlers() {
     addFeature();
     uiFieldChanged();
   });
+  // Add this to event listeners for form fields (find where other input fields have event listeners)
+document.getElementById("description").addEventListener("input", function() {
+  updateMasterYamlDataFromUI();
+  updateYamlTextArea();
+  updateRenderedStatblock();
+});
   document.getElementById("addLightDeedBtn").addEventListener("click", () => {
     addDeed("light");
     uiFieldChanged();
