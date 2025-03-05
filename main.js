@@ -88,6 +88,30 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+// Add to main.js
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/serviceworker.js')
+    .then(registration => {
+      // Check for updates
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            // New content is available, show refresh button/notification
+            if (confirm('New version available! Reload to update?')) {
+              window.location.reload();
+            }
+          }
+        });
+      });
+    });
+
+  // Check for updates when page loads
+  navigator.serviceWorker.ready.then(registration => {
+    registration.update();
+  });
+}
+
 /* ---------------------------------------------
  * Event Handles
  * ---------------------------------------------
