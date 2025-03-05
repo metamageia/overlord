@@ -1,4 +1,4 @@
-import { statblocks, favoritesMap, uploadedBundles, downloadBlob, statblockComponents } from './libraryData.mjs';
+import { statblocks, favoritesMap, uploadedBundles, downloadBlob, statblockComponents, addStatblockComponent, saveToLocalStorage } from './libraryData.mjs';
 import {generateStatblockID, generateBundleID,} from './idManagement.mjs';
 import { matchesNumericQuery, matchesStringQuery } from './utilityFunctions.mjs';
 import { currentSortDirection, currentSortField, setCurrentSortDirection, setCurrentSortField, toggleSortDirection } from "./libraryUtilities.mjs";
@@ -15,6 +15,8 @@ let cbFilterType = "";
 
 let bundleList = [];
 
+// Global variable to store pending upload information
+let pendingUpload = null;
 
 /* ---------------------------------------------
  * Bundle Management
@@ -28,6 +30,7 @@ export function getBundleName(bundleId) {
   }
 
 // --- Manage Bundles --- //
+// Update the renderUploadedBundles function to handle the new bundle format
 export function renderUploadedBundles(){
   const container = document.getElementById("uploadedBundleList");
   container.innerHTML = "";
@@ -69,18 +72,24 @@ export function renderUploadedBundles(){
     const tdId = document.createElement("td");
     tdId.textContent = bundle.id;
     const tdTotal = document.createElement("td");
-    // Recalculate active count from statblocks with matching bundle id.
-    const activeCount = statblocks.filter(sb => sb.bundleId === bundle.id).length;
-    // Also update the bundle's total property (in case it needs refreshing)
-    bundle.total = bundle.data.length;
-    tdTotal.textContent = `${activeCount}/${bundle.total}`;
+    
+    // Calculate total from statblocks and components with matching bundle ID
+    const statblockCount = statblocks.filter(sb => sb.bundleId === bundle.id).length;
+    const componentCount = statblockComponents.filter(comp => comp.bundleId === bundle.id).length;
+    const totalCount = statblockCount + componentCount;
+    
+    // Set total property based on calculated counts
+    bundle.total = totalCount;
+    
+    tdTotal.textContent = `${totalCount}`;
+    
     const tdActive = document.createElement("td");
     const activeCheckbox = document.createElement("input");
     activeCheckbox.type = "checkbox";
     activeCheckbox.checked = bundle.active;
     activeCheckbox.addEventListener("change", () => {
       bundle.active = activeCheckbox.checked;
-      document.dispatchEvent(new CustomEvent('saveLibraryChanges'));      
+      saveToLocalStorage("bundles", uploadedBundles);      
       document.dispatchEvent(new CustomEvent('refreshUI'));
     });
     tdActive.appendChild(activeCheckbox);
@@ -94,20 +103,10 @@ export function renderUploadedBundles(){
       const bundleId = refreshBtn.dataset.id;
       const bun = uploadedBundles.find(b => b.id === bundleId);
       if(bun){
-        let added = 0;
-        bun.data.forEach(sb => {
-          sb.statblockID = generateStatblockID(sb);
-          if(!statblocks.find(x => x.statblockID === sb.statblockID)){
-            sb.bundleId = bundleId;
-            statblocks.push(sb);
-            added++;
-          }
-        });
-        // Update bundle total explicitly.
-        bun.total = bun.data.length;
+        // Since we no longer have bundle.data, this button is now just for refreshing the UI
         document.dispatchEvent(new CustomEvent('saveLibraryChanges'));
         document.dispatchEvent(new CustomEvent('refreshUI'));
-        alert(`Refreshed bundle: added ${added} missing statblock(s).`);
+        alert(`Refreshed bundle display.`);
       }
     });
     const delBtn = document.createElement("button");
@@ -118,17 +117,21 @@ export function renderUploadedBundles(){
         
         // Remove the bundle from uploadedBundles
         uploadedBundles.splice(idx, 1);
-        document.dispatchEvent(new CustomEvent('saveLibraryChanges'));
+        saveToLocalStorage("bundles", uploadedBundles);
 
         // Remove statblocks with matching bundleId from the library
-        statblocks = statblocks.filter(sb => sb.bundleId !== bundleId);
-        saveToLocalStorage();
+        const newStatblocks = statblocks.filter(sb => sb.bundleId !== bundleId);
+        if (newStatblocks.length !== statblocks.length) {
+          statblocks = newStatblocks;
+          saveToLocalStorage("statblocks", statblocks);
+        }
         
-        // Clear current selection if it was from the deleted bundle
-        if(currentDetail && currentDetail.bundleId === bundleId) {
-          currentDetail = null;
-          selectedStatblockID = null;
-          renderDefaultDetail();
+        // Remove components with matching bundleId from the library
+        const newComponents = statblockComponents.filter(comp => comp.bundleId !== bundleId);
+        if (newComponents.length !== statblockComponents.length) {
+          statblockComponents.length = 0; // Clear the array
+          newComponents.forEach(comp => statblockComponents.push(comp)); // Add filtered items back
+          saveToLocalStorage("components", statblockComponents);
         }
         
         document.dispatchEvent(new CustomEvent('refreshUI'));
@@ -145,126 +148,383 @@ export function renderUploadedBundles(){
 }
 
 // --- Upload Bundles --- //
-export async function handleUpload(){
-    const fileInput = document.getElementById("uploadFile");
-    if(!fileInput.files.length){
-      alert("No file selected!");
-      return;
-    }
-    const file = fileInput.files[0];
-    const text = await file.text();
-    let uploaded = null;
-    try {
+export async function handleUpload() {
+  const fileInput = document.getElementById("uploadFile");
+  if(!fileInput.files.length){
+    alert("Please select a file to upload");
+    return;
+  }
+
+  const file = fileInput.files[0];
+  const text = await file.text();
+  let uploaded = null;
+  
+  try {
+    // Check if it's JSON format
+    if (file.name.toLowerCase().endsWith('.json')) {
       uploaded = JSON.parse(text);
-      if(!Array.isArray(uploaded)) uploaded = null;
-    } catch(e){}
-    if(!uploaded){
-      try {
-        uploaded = [];
-        jsyaml.loadAll(text).forEach(doc => {
-          if(Array.isArray(doc)){
-            uploaded.push(...doc);
-          } else {
-            uploaded.push(doc);
+    } else {
+      // Handle YAML format
+      const documents = text.split(/^---$/m).filter(doc => doc.trim());
+      
+      uploaded = {
+        statblocks: [],
+        components: []
+      };
+      
+      // Process each YAML document
+      documents.forEach(doc => {
+        const trimmedDoc = doc.trim();
+        if (!trimmedDoc) return;
+        
+        try {
+          const parsed = jsyaml.load(trimmedDoc);
+          if (parsed && parsed.documentType === "component") {
+            // This is a component
+            const component = {
+              componentID: parsed.componentID,
+              name: parsed.name,
+              type: parsed.type,
+              yaml: parsed.yaml,
+              bundleId: parsed.bundleId
+            };
+            uploaded.components.push(component);
+          } else if (parsed) {
+            // Assume it's a statblock if not explicitly a component
+            uploaded.statblocks.push(parsed);
           }
-        });
-      } catch(e){
-        alert("Could not parse file as JSON or YAML.");
-        return;
-      }
+        } catch (e) {
+          console.error("Error parsing YAML document:", e);
+        }
+      });
     }
-    let count = 0;
-    const bundleData = [];
-    const duplicates = [];
-    const newStatblocks = [];
-    uploaded.forEach(sb => {
-      if(sb && sb.monsterName){
-        delete sb.statblockID;
-        sb.statblockID = generateStatblockID(sb);
-        bundleData.push(sb);
-        const existing = statblocks.find(x => x.statblockID === sb.statblockID);
-        if(existing){
-          duplicates.push({uploaded: sb, existing});
-        } else {
-          newStatblocks.push(sb);
-          statblocks.push(sb);
-          count++;
+  } catch(e) {
+    console.error("Error processing uploaded file:", e);
+    alert(`Error processing file: ${e.message}`);
+    return;
+  }
+  
+  if(!uploaded){
+    alert("Could not parse the uploaded file");
+    return;
+  }
+  
+  // Process statblocks
+  let statblockCount = 0;
+  let componentCount = 0;
+  let bundleId = null;
+  
+  // Get bundle ID
+  if (uploaded.statblocks && uploaded.statblocks.length) {
+    bundleId = uploaded.statblocks[0].bundleId;
+  } else if (uploaded.components && uploaded.components.length) {
+    bundleId = uploaded.components[0].bundleId;
+  }
+  
+  if (!bundleId) {
+    bundleId = generateBundleID();
+  }
+
+  // Check for duplicate statblocks with proper structure
+  const duplicates = [];
+  
+  // Check statblock duplicates
+  if (uploaded.statblocks && uploaded.statblocks.length) {
+    uploaded.statblocks.forEach(uploadedSb => {
+      const existingSb = statblocks.find(sb => sb.statblockID === uploadedSb.statblockID);
+      if (existingSb) {
+        duplicates.push({
+          uploaded: uploadedSb,
+          existing: existingSb,
+          type: 'statblock'
+        });
+      }
+    });
+  }
+  
+  // Check component duplicates
+  if (uploaded.components && uploaded.components.length) {
+    uploaded.components.forEach(uploadedComp => {
+      const existingComp = statblockComponents.find(comp => comp.componentID === uploadedComp.componentID);
+      if (existingComp) {
+        duplicates.push({
+          uploaded: {
+            // Create a structure that matches what the modal expects
+            monsterName: uploadedComp.name,
+            statblockID: uploadedComp.componentID
+          },
+          existing: existingComp,
+          type: 'component'
+        });
+      }
+    });
+  }
+  
+  if (duplicates.length > 0) {
+    // Store the pending upload information
+    pendingUpload = {
+      bundleId: bundleId,
+      duplicates: duplicates,
+      uploaded: uploaded,
+      fileName: file.name,
+      finalBundleName: file.name.replace(/\.(json|yaml)$/i, "")
+    };
+    
+    // Show the overwrite modal
+    showOverwriteModal(duplicates);
+    return;
+  }
+  
+  // No duplicates, proceed with adding all items
+  
+  // Add statblocks
+  if (uploaded.statblocks && uploaded.statblocks.length) {
+    uploaded.statblocks.forEach(sb => {
+      sb.bundleId = bundleId; // Ensure bundleId is set
+      statblocks.push(sb);
+      statblockCount++;
+    });
+  }
+  
+  // Add components
+  if (uploaded.components && uploaded.components.length) {
+    uploaded.components.forEach(comp => {
+      comp.bundleId = bundleId; // Ensure bundleId is set
+      addStatblockComponent(comp);
+      componentCount++;
+    });
+  }
+  
+  // Create bundle entry
+  const bundleName = file.name.replace(/\.(json|yaml)$/i, "");
+  uploadedBundles.push({
+    id: bundleId,
+    bundleName: bundleName,
+    active: true
+  });
+  
+  // Save changes
+  saveToLocalStorage("statblocks", statblocks);
+  saveToLocalStorage("components", statblockComponents);
+  saveToLocalStorage("bundles", uploadedBundles);
+  
+  // Display success message
+  let message = "";
+  if(statblockCount > 0) {
+    message += `Added ${statblockCount} statblock${statblockCount !== 1 ? 's' : ''} to library. `;
+  }
+  if(componentCount > 0) {
+    message += `Added ${componentCount} component${componentCount !== 1 ? 's' : ''} to library.`;
+  }
+  
+  alert(message);
+  
+  // Reset file input
+  fileInput.value = "";
+  
+  // Refresh UI
+  renderUploadedBundles();
+  document.dispatchEvent(new CustomEvent('refreshUI'));
+}
+
+// Existing modal functions remain unchanged
+function showOverwriteModal(duplicates) {
+  const listDiv = document.getElementById("overwriteList");
+  listDiv.innerHTML = "";
+  duplicates.forEach((dup, index) => {
+    const label = document.createElement("label");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = true;
+    checkbox.dataset.index = index;
+    label.appendChild(checkbox);
+    label.appendChild(document.createTextNode(" " + dup.uploaded.monsterName + " (ID: " + dup.uploaded.statblockID + ")"));
+    listDiv.appendChild(label);
+  });
+  document.getElementById("overwriteModal").style.display = "flex";
+}
+
+export function confirmOverwrite() {
+  if (!pendingUpload) return;
+  
+  const checkboxes = document.querySelectorAll("#overwriteList input[type='checkbox']");
+  const uploaded = pendingUpload.uploaded;
+  const bundleId = pendingUpload.bundleId;
+  
+  let statblockCount = 0;
+  let componentCount = 0;
+  
+  // Process the selected items to overwrite
+  checkboxes.forEach(cb => {
+    if (cb.checked) {
+      const idx = parseInt(cb.dataset.index, 10);
+      const dup = pendingUpload.duplicates[idx];
+      
+      if (dup.type === 'component') {
+        // Handle component overwrite
+        const compId = dup.existing.componentID;
+        const compIdx = statblockComponents.findIndex(c => c.componentID === compId);
+        
+        if (compIdx !== -1) {
+          // Remove existing component
+          statblockComponents.splice(compIdx, 1);
+        }
+        
+        // Find the uploaded component
+        const uploadedComp = uploaded.components.find(c => c.componentID === dup.uploaded.statblockID);
+        if (uploadedComp) {
+          uploadedComp.bundleId = bundleId;
+          statblockComponents.push(uploadedComp);
+          componentCount++;
+        }
+      } else {
+        // Handle statblock overwrite
+        const sbId = dup.existing.statblockID;
+        const sbIdx = statblocks.findIndex(s => s.statblockID === sbId);
+        
+        if (sbIdx !== -1) {
+          // Remove existing statblock
+          statblocks.splice(sbIdx, 1);
+        }
+        
+        // Find the uploaded statblock
+        const uploadedSb = uploaded.statblocks.find(s => s.statblockID === dup.uploaded.statblockID);
+        if (uploadedSb) {
+          uploadedSb.bundleId = bundleId;
+          statblocks.push(uploadedSb);
+          statblockCount++;
         }
       }
-    });
-    const bundleId = generateBundleID(bundleData);
-    bundleData.forEach(sb => sb.bundleId = bundleId);
-    const nameInput = document.getElementById("uploadBundleNameInput");
-    const userBundleName = nameInput.value.trim();
-    const finalBundleName = userBundleName !== "" ? userBundleName : bundleId;
-  
-    if(duplicates.length > 0){
-      pendingUpload = {bundleId, bundleData, newStatblocks, duplicates, fileName: file.name, finalBundleName};
-      showOverwriteModal(duplicates);
-    } else {
-      uploadedBundles.push({
-        id: bundleId,
-        filename: file.name,
-        bundleName: finalBundleName,
-        total: bundleData.length,
-        active: true,
-        data: bundleData
-      });
-      document.dispatchEvent(new CustomEvent('saveLibraryChanges'));
-      document.dispatchEvent(new CustomEvent('refreshUI'));
-      alert(`Uploaded ${count} new statblock(s) from your bundle.`);
     }
-  }
-  // Overwrite Statblocks on Bundle Upload
-  function showOverwriteModal(duplicates) {
-    const listDiv = document.getElementById("overwriteList");
-    listDiv.innerHTML = "";
-    duplicates.forEach((dup, index) => {
-      const label = document.createElement("label");
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.checked = true;
-      checkbox.dataset.index = index;
-      label.appendChild(checkbox);
-      label.appendChild(document.createTextNode(" " + dup.uploaded.monsterName + " (ID: " + dup.uploaded.statblockID + ")"));
-      listDiv.appendChild(label);
-    });
-    document.getElementById("overwriteModal").style.display = "flex";
-  }
-  // Confirm Overwrite
- export function confirmOverwrite() {
-    if(!pendingUpload) return;
-    const checkboxes = document.querySelectorAll("#overwriteList input[type='checkbox']");
-    checkboxes.forEach(cb => {
-      const idx = parseInt(cb.dataset.index, 10);
-      if(cb.checked){
-        const dup = pendingUpload.duplicates[idx];
-        dup.existing.bundleId = pendingUpload.bundleId;
+  });
+  
+  // Add non-duplicate items
+  
+  // Add non-duplicate statblocks
+  if (uploaded.statblocks) {
+    uploaded.statblocks.forEach(sb => {
+      if (!pendingUpload.duplicates.some(dup => dup.type !== 'component' && dup.uploaded.statblockID === sb.statblockID)) {
+        sb.bundleId = bundleId;
+        statblocks.push(sb);
+        statblockCount++;
       }
     });
-    uploadedBundles.push({
-      id: pendingUpload.bundleId,
-      filename: pendingUpload.fileName,
-      bundleName: pendingUpload.finalBundleName,
-      total: pendingUpload.bundleData.length,
-      active: true,
-      data: pendingUpload.bundleData
-    });
-    document.dispatchEvent(new CustomEvent('saveLibraryChanges'));
-    document.dispatchEvent(new CustomEvent('refreshUI'));
-    document.getElementById("overwriteModal").style.display = "none";
-    pendingUpload = null;
-    alert("Bundle upload processed with selected overwrites.");
-  }
-  //Cancel Overwrite
-  export function cancelOverwrite() {
-    pendingUpload = null;
-    document.getElementById("overwriteModal").style.display = "none";
-    alert("Bundle upload cancelled for duplicates. New statblocks (non-duplicates) have been added.");
   }
   
-  // --- Create Bundles --- //
-  export function renderCreateBundleList(){
+  // Add non-duplicate components
+  if (uploaded.components) {
+    uploaded.components.forEach(comp => {
+      if (!pendingUpload.duplicates.some(dup => dup.type === 'component' && dup.uploaded.statblockID === comp.componentID)) {
+        comp.bundleId = bundleId;
+        statblockComponents.push(comp);
+        componentCount++;
+      }
+    });
+  }
+  
+  // Create bundle entry
+  uploadedBundles.push({
+    id: bundleId,
+    bundleName: pendingUpload.finalBundleName,
+    active: true
+  });
+  
+  // Save changes
+  saveToLocalStorage("statblocks", statblocks);
+  saveToLocalStorage("components", statblockComponents);
+  saveToLocalStorage("bundles", uploadedBundles);
+  
+  document.getElementById("overwriteModal").style.display = "none";
+  
+  // Display success message
+  let message = "";
+  if(statblockCount > 0) {
+    message += `Added ${statblockCount} statblock${statblockCount !== 1 ? 's' : ''} to library. `;
+  }
+  if(componentCount > 0) {
+    message += `Added ${componentCount} component${componentCount !== 1 ? 's' : ''} to library.`;
+  }
+  
+  alert(message);
+  
+  // Reset pending upload
+  pendingUpload = null;
+  
+  // Refresh UI
+  renderUploadedBundles();
+  document.dispatchEvent(new CustomEvent('refreshUI'));
+}
+
+export function cancelOverwrite() {
+  if (!pendingUpload) return;
+  const uploaded = pendingUpload.uploaded;
+  const bundleId = pendingUpload.bundleId;
+  
+  let statblockCount = 0;
+  let componentCount = 0;
+  
+  // Only add non-duplicate statblocks
+  if (uploaded.statblocks) {
+    uploaded.statblocks.forEach(sb => {
+      if (!pendingUpload.duplicates.some(dup => dup.type !== 'component' && dup.uploaded.statblockID === sb.statblockID)) {
+        sb.bundleId = bundleId;
+        statblocks.push(sb);
+        statblockCount++;
+      }
+    });
+  }
+  
+  // Only add non-duplicate components
+  if (uploaded.components) {
+    uploaded.components.forEach(comp => {
+      if (!pendingUpload.duplicates.some(dup => dup.type === 'component' && dup.uploaded.statblockID === comp.componentID)) {
+        comp.bundleId = bundleId;
+        statblockComponents.push(comp);
+        componentCount++;
+      }
+    });
+  }
+  
+  // Create bundle entry if any items were added
+  if (statblockCount > 0 || componentCount > 0) {
+    uploadedBundles.push({
+      id: bundleId,
+      bundleName: pendingUpload.finalBundleName,
+      active: true
+    });
+    
+    // Save changes
+    saveToLocalStorage("statblocks", statblocks);
+    saveToLocalStorage("components", statblockComponents);
+    saveToLocalStorage("bundles", uploadedBundles);
+  }
+  
+  document.getElementById("overwriteModal").style.display = "none";
+  
+  // Display success message for non-duplicates
+  let message = "";
+  if(statblockCount > 0) {
+    message += `Added ${statblockCount} non-duplicate statblock${statblockCount !== 1 ? 's' : ''} to library. `;
+  }
+  if(componentCount > 0) {
+    message += `Added ${componentCount} non-duplicate component${componentCount !== 1 ? 's' : ''} to library.`;
+  }
+  if (statblockCount === 0 && componentCount === 0) {
+    message = "No items added. All were duplicates.";
+  }
+  
+  alert(message);
+  
+  // Reset pending upload
+  pendingUpload = null;
+  
+  // Refresh UI
+  renderUploadedBundles();
+  document.dispatchEvent(new CustomEvent('refreshUI'));
+}
+
+// --- Create Bundles --- //
+export function renderCreateBundleList(){
     const container = document.getElementById("createBundleList");
     container.innerHTML = "";
     const table = document.createElement("table");
@@ -706,24 +966,87 @@ export async function handleUpload(){
     renderBundleList();
   }
   // Export Created Bundle
- export function downloadCurrentBundle(fmt){
-    if(!bundleList.length){
-      alert("No statblocks in the bundle!");
-      return;
-    }
-    const bundleId = generateBundleID(bundleList);
-    const modified = bundleList.map(sb => Object.assign({}, sb, { bundleId }));
-    if(fmt === "json"){
-      const filename = "bundle-" + bundleId + ".json";
-      downloadBlob(JSON.stringify(modified, null, 2), "application/json", filename);
-    } else {
-      let y = "";
-      modified.forEach(sb => { y += jsyaml.dump(sb, { lineWidth: -1 }) + "\n---\n"; });
-      y = y.trim().replace(/---$/, "");
-      const filename = "bundle-" + bundleId + ".yaml";
-      downloadBlob(y, "text/yaml", filename);
-    }
+export function downloadCurrentBundle(fmt){
+  if(!bundleList.length){
+    alert("No items in the bundle!");
+    return;
   }
+  
+  // Generate a bundle ID
+  const bundleId = generateBundleID(bundleList);
+  
+  // Separate components and statblocks
+  const statblockItems = [];
+  const componentItems = [];
+  
+  // Sort items into their respective arrays
+  bundleList.forEach(item => {
+    if (item.componentID !== undefined) {
+      // This is a component - make a clean copy with required fields
+      const componentCopy = {
+        componentID: item.componentID,
+        name: item.name,
+        type: item.type || "Component",
+        yaml: item.yaml,
+        bundleId: bundleId
+      };
+      componentItems.push(componentCopy);
+    } else {
+      // This is a regular statblock - copy and add bundle ID
+      const statblockCopy = Object.assign({}, item, { bundleId });
+      statblockItems.push(statblockCopy);
+    }
+  });
+  
+  if(fmt === "json"){
+    // For JSON format, create an object with separate arrays
+    const bundleData = {
+      bundleId: bundleId,
+      statblocks: statblockItems,
+      components: componentItems
+    };
+    
+    const filename = "bundle-" + bundleId + ".json";
+    downloadBlob(JSON.stringify(bundleData, null, 2), "application/json", filename);
+  } else {
+    // For YAML format
+    let yamlContent = "";
+    
+    // Add statblocks with special comment to identify them
+    if (statblockItems.length > 0) {
+      yamlContent += "# BEGIN STATBLOCKS\n";
+      statblockItems.forEach(sb => { 
+        yamlContent += "---\n";
+        yamlContent += "documentType: statblock\n"; // Add an identifier field
+        yamlContent += jsyaml.dump(sb, { lineWidth: -1 }); 
+      });
+    }
+    
+    // Add components with special comment to identify them
+    if (componentItems.length > 0) {
+      yamlContent += "---\n# BEGIN COMPONENTS\n";
+      componentItems.forEach(component => {
+        yamlContent += "---\n";
+        yamlContent += "documentType: component\n"; // Add an identifier field
+        yamlContent += "componentID: " + component.componentID + "\n";
+        yamlContent += "name: " + component.name + "\n";
+        yamlContent += "type: " + component.type + "\n";
+        yamlContent += "bundleId: " + component.bundleId + "\n";
+        yamlContent += "yaml: |\n";
+        
+        // Indent the YAML content to preserve it as a literal block
+        const indentedYaml = component.yaml.split('\n').map(line => "  " + line).join('\n');
+        yamlContent += indentedYaml + "\n";
+      });
+    }
+    
+    // Clean up the YAML string
+    yamlContent = yamlContent.trim();
+    
+    const filename = "bundle-" + bundleId + ".yaml";
+    downloadBlob(yamlContent, "text/yaml", filename);
+  }
+}
   
   // --- Merge Bundles --- //
 // Bundle Merge Selection
