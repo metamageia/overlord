@@ -316,13 +316,17 @@ export async function handleUpload() {
   }
   
   if (duplicates.length > 0) {
+    // Get the custom bundle name
+    const customBundleName = document.getElementById("uploadBundleNameInput").value.trim();
+    const bundleName = customBundleName || file.name.replace(/\.(json|yaml)$/i, "");
+    
     // Store the pending upload information
     pendingUpload = {
       bundleId: bundleId,
       duplicates: duplicates,
       uploaded: uploaded,
       fileName: file.name,
-      finalBundleName: file.name.replace(/\.(json|yaml)$/i, "")
+      finalBundleName: bundleName  // Use proper bundle name here
     };
     
     // Show the overwrite modal
