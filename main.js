@@ -239,13 +239,14 @@ function attachEventHandlers() {
   
   initResizeHandlers();
 
-  ["cbSearchName", "cbSearchLV", "cbSearchRole", "cbSearchTR", "cbSearchBundle"].forEach(id => {
+  ["cbSearchName", "cbSearchLV", "cbSearchRole", "cbSearchType", "cbSearchTemplate", "cbSearchTR", "cbSearchBundle"].forEach(id => {
     const el = document.getElementById(id);
     if(el){
       el.addEventListener("input", () => {
         if(id === "cbSearchName") cbFilterName = el.value;
         if(id === "cbSearchLV") cbFilterLV = el.value;
         if(id === "cbSearchRole") cbFilterRole = el.value;
+        if(id === "cbSearchType") cbFilterType = el.value;
         if(id === "cbSearchTemplate") cbFilterTemplate = el.value; 
         if(id === "cbSearchTR") cbFilterTR = el.value;
         if(id === "cbSearchBundle") cbFilterBundle = el.value;
@@ -259,10 +260,12 @@ function attachEventHandlers() {
     let filtered = statblocks.filter(sb => {
       const matchesName = matchesStringQuery(sb.monsterName || "", cbFilterName);
       const matchesRole = matchesStringQuery(sb.role || "", cbFilterRole);
+      const matchesType = matchesStringQuery(sb.type || "statblock", cbFilterType);
+      const matchesTemplate = matchesStringQuery(sb.template || "", cbFilterTemplate);
       const matchesLV = matchesNumericQuery(sb.level, cbFilterLV);
       const matchesTR = matchesNumericQuery(sb.tr, cbFilterTR);
       const matchesBundle = matchesStringQuery(getBundleName(sb.bundleId), cbFilterBundle);
-      return matchesName && matchesRole && matchesLV && matchesTR && matchesBundle;
+      return matchesName && matchesRole && matchesType && matchesTemplate && matchesLV && matchesTR && matchesBundle;
     });
     filtered = filtered.filter(sb => {
       if(sb.bundleId === undefined) return true;
