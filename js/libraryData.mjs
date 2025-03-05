@@ -38,17 +38,38 @@ export function loadFromLocalStorage(){
     }
 
 }
-export function saveToLocalStorage(){
+// Fix the saveToLocalStorage function to handle specific keys or save all data
+export function saveToLocalStorage(key, data) {
+  // If no key is provided, save everything
+  if (!key) {
     // Generate favorites array from favoritesMap
     const favArray = Object.keys(favoritesMap).filter(id => favoritesMap[id]);
-    const data = { statblocks, favorites: favArray };
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
-
-
-    // Save statblock components
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ statblocks, favorites: favArray }));
     localStorage.setItem(LOCAL_STORAGE_COMPONENTS_KEY, JSON.stringify(statblockComponents));
-
+    localStorage.setItem(LOCAL_STORAGE_BUNDLES_KEY, JSON.stringify(uploadedBundles));
+    return;
   }
+  
+  // Handle specific keys
+  switch(key) {
+    case "statblocks":
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ 
+        statblocks: data || statblocks, 
+        favorites: Object.keys(favoritesMap).filter(id => favoritesMap[id]) 
+      }));
+      break;
+    case "components":
+      localStorage.setItem(LOCAL_STORAGE_COMPONENTS_KEY, JSON.stringify(data || statblockComponents));
+      break;
+    case "bundles":
+      localStorage.setItem(LOCAL_STORAGE_BUNDLES_KEY, JSON.stringify(data || uploadedBundles));
+      break;
+    case "favorites":
+      const favArray = Object.keys(data).filter(id => data[id]);
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ statblocks, favorites: favArray }));
+      break;
+  }
+}
 export function clearLocalStorage(){
     localStorage.removeItem(LOCAL_STORAGE_KEY);
     localStorage.removeItem(LOCAL_STORAGE_BUNDLES_KEY);

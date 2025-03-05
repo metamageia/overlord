@@ -162,7 +162,18 @@ export async function handleUpload() {
   try {
     // Check if it's JSON format
     if (file.name.toLowerCase().endsWith('.json')) {
-      uploaded = JSON.parse(text);
+      const parsedData = JSON.parse(text);
+      
+      // Check if it's a legacy format (plain array of statblocks)
+      if (Array.isArray(parsedData)) {
+        uploaded = {
+          statblocks: parsedData,
+          components: []
+        };
+      } else {
+        // It's already in the new format
+        uploaded = parsedData;
+      }
     } else {
       // Handle YAML format
       const documents = text.split(/^---$/m).filter(doc => doc.trim());
@@ -172,31 +183,67 @@ export async function handleUpload() {
         components: []
       };
       
-      // Process each YAML document
-      documents.forEach(doc => {
+      // Check if it's a legacy format (no documentType fields)
+      let isLegacyFormat = true;
+      
+      for (const doc of documents) {
         const trimmedDoc = doc.trim();
-        if (!trimmedDoc) return;
+        if (!trimmedDoc) continue;
         
         try {
           const parsed = jsyaml.load(trimmedDoc);
-          if (parsed && parsed.documentType === "component") {
-            // This is a component
-            const component = {
-              componentID: parsed.componentID,
-              name: parsed.name,
-              type: parsed.type,
-              yaml: parsed.yaml,
-              bundleId: parsed.bundleId
-            };
-            uploaded.components.push(component);
-          } else if (parsed) {
-            // Assume it's a statblock if not explicitly a component
-            uploaded.statblocks.push(parsed);
+          if (parsed && parsed.documentType) {
+            isLegacyFormat = false;
+            break;
           }
         } catch (e) {
-          console.error("Error parsing YAML document:", e);
+          console.error("Error checking YAML format:", e);
         }
-      });
+      }
+      
+      // Process each YAML document based on format
+      if (isLegacyFormat) {
+        // Legacy format - all documents are statblocks
+        documents.forEach(doc => {
+          const trimmedDoc = doc.trim();
+          if (!trimmedDoc) return;
+          
+          try {
+            const parsed = jsyaml.load(trimmedDoc);
+            if (parsed) {
+              uploaded.statblocks.push(parsed);
+            }
+          } catch (e) {
+            console.error("Error parsing YAML document:", e);
+          }
+        });
+      } else {
+        // New format - check documentType field
+        documents.forEach(doc => {
+          const trimmedDoc = doc.trim();
+          if (!trimmedDoc) return;
+          
+          try {
+            const parsed = jsyaml.load(trimmedDoc);
+            if (parsed && parsed.documentType === "component") {
+              // This is a component
+              const component = {
+                componentID: parsed.componentID,
+                name: parsed.name,
+                type: parsed.type,
+                yaml: parsed.yaml,
+                bundleId: parsed.bundleId
+              };
+              uploaded.components.push(component);
+            } else if (parsed) {
+              // Assume it's a statblock
+              uploaded.statblocks.push(parsed);
+            }
+          } catch (e) {
+            console.error("Error parsing YAML document:", e);
+          }
+        });
+      }
     }
   } catch(e) {
     console.error("Error processing uploaded file:", e);
@@ -204,8 +251,8 @@ export async function handleUpload() {
     return;
   }
   
-  if(!uploaded){
-    alert("Could not parse the uploaded file");
+  if(!uploaded || (!uploaded.statblocks.length && !uploaded.components.length)){
+    alert("Could not parse the uploaded file or no valid statblocks/components found");
     return;
   }
   
@@ -214,15 +261,17 @@ export async function handleUpload() {
   let componentCount = 0;
   let bundleId = null;
   
-  // Get bundle ID
+  // Get bundle ID from first statblock or component
   if (uploaded.statblocks && uploaded.statblocks.length) {
     bundleId = uploaded.statblocks[0].bundleId;
   } else if (uploaded.components && uploaded.components.length) {
     bundleId = uploaded.components[0].bundleId;
   }
   
+  // Generate a new bundleId if none found
   if (!bundleId) {
-    bundleId = generateBundleID();
+    // Use generateBundleID with empty array if no items to avoid errors
+    bundleId = generateBundleID([]);
   }
 
   // Check for duplicate statblocks with proper structure
@@ -290,7 +339,15 @@ export async function handleUpload() {
   if (uploaded.components && uploaded.components.length) {
     uploaded.components.forEach(comp => {
       comp.bundleId = bundleId; // Ensure bundleId is set
-      addStatblockComponent(comp);
+      // Make sure the component has all required fields
+      const component = {
+        componentID: comp.componentID,
+        name: comp.name,
+        type: comp.type || "Component",
+        yaml: comp.yaml,
+        bundleId: bundleId
+      };
+      statblockComponents.push(component);
       componentCount++;
     });
   }
@@ -303,10 +360,8 @@ export async function handleUpload() {
     active: true
   });
   
-  // Save changes
-  saveToLocalStorage("statblocks", statblocks);
-  saveToLocalStorage("components", statblockComponents);
-  saveToLocalStorage("bundles", uploadedBundles);
+  // Save changes - use the proper approach without parameters
+  saveToLocalStorage(); // Save all data at once
   
   // Display success message
   let message = "";
@@ -429,10 +484,8 @@ export function confirmOverwrite() {
     active: true
   });
   
-  // Save changes
-  saveToLocalStorage("statblocks", statblocks);
-  saveToLocalStorage("components", statblockComponents);
-  saveToLocalStorage("bundles", uploadedBundles);
+  // Save changes with proper method
+  saveToLocalStorage();
   
   document.getElementById("overwriteModal").style.display = "none";
   
@@ -493,10 +546,8 @@ export function cancelOverwrite() {
       active: true
     });
     
-    // Save changes
-    saveToLocalStorage("statblocks", statblocks);
-    saveToLocalStorage("components", statblockComponents);
-    saveToLocalStorage("bundles", uploadedBundles);
+    // Save changes with proper method
+    saveToLocalStorage();
   }
   
   document.getElementById("overwriteModal").style.display = "none";
@@ -675,19 +726,31 @@ export function renderCreateBundleList(){
     thead.appendChild(filterRow);
     table.appendChild(thead);
     
-    // Combine statblocks and components into one array
+    // Combine statblocks and components into one array - fix any issues
     const combinedItems = [
-      ...statblocks.map(sb => ({ ...sb, type: "statblock" })),
+      ...statblocks.map(sb => ({ 
+        ...sb, 
+        type: "statblock",
+        // Make sure we have consistent property names for filtering
+        statblockID: sb.statblockID,
+        monsterName: sb.monsterName,
+        level: sb.level,
+        role: sb.role,
+        template: sb.template,
+        tr: sb.tr,
+        bundleId: sb.bundleId
+      })),
       ...statblockComponents.map(comp => ({
         statblockID: comp.componentID,
-        monsterName: comp.name,
+        monsterName: comp.name || "Unnamed Component",
         type: comp.type || "Component",
-        // Other fields might be empty for components
         level: "",
         role: "",
         template: "",
         tr: "",
-        bundleId: comp.bundleId
+        bundleId: comp.bundleId,
+        // Add componentID for later identification
+        componentID: comp.componentID
       }))
     ];
     
@@ -771,17 +834,28 @@ export function renderCreateBundleList(){
           
           // Find the item in the original arrays
           let itemToAdd;
-          if (item.type === "statblock") {
-            itemToAdd = statblocks.find(sb => sb.statblockID === item.statblockID);
+          if (item.componentID) {
+            // This is a component
+            itemToAdd = statblockComponents.find(comp => comp.componentID === item.componentID);
           } else {
-            // For components
-            itemToAdd = statblockComponents.find(comp => comp.componentID === item.statblockID);
+            // This is a regular statblock
+            itemToAdd = statblocks.find(sb => sb.statblockID === item.statblockID);
           }
           
-          // Add to bundle if not already there
-          if (itemToAdd && !bundleList.some(bundleItem => bundleItem.statblockID === itemToAdd.statblockID)) {
-            bundleList.push(itemToAdd);
-            renderBundleList();
+          // Add to bundle if not already there and if found
+          if (itemToAdd) {
+            const alreadyInBundle = bundleList.some(bundleItem => {
+              if (item.componentID) {
+                return bundleItem.componentID === item.componentID;
+              } else {
+                return bundleItem.statblockID === item.statblockID;
+              }
+            });
+            
+            if (!alreadyInBundle) {
+              bundleList.push(itemToAdd);
+              renderBundleList();
+            }
           }
         });
         
