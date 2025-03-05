@@ -11,7 +11,7 @@ let cbFilterRole = "";
 let cbFilterTemplate = ""; 
 let cbFilterTR = "";
 let cbFilterBundle = "";
-let cbFilterType = "";
+export let cbFilterType = "";
 
 let bundleList = [];
 
@@ -577,6 +577,18 @@ export function cancelOverwrite() {
 // --- Create Bundles --- //
 export function renderCreateBundleList(){
     const container = document.getElementById("createBundleList");
+    if(!container) return;
+    
+    // Store active element and selection state
+    let focusedId = "";
+    let selStart = 0, selEnd = 0;
+    const activeEl = document.activeElement;
+    if(activeEl && activeEl.tagName === "INPUT" && activeEl.id.startsWith("cbSearch")){
+        focusedId = activeEl.id;
+        selStart = activeEl.selectionStart;
+        selEnd = activeEl.selectionEnd;
+    }
+    
     container.innerHTML = "";
     const table = document.createElement("table");
     table.id = "createBundleTable";
@@ -865,6 +877,15 @@ export function renderCreateBundleList(){
     
     table.appendChild(tbody);
     container.appendChild(table);
+    
+    // After rendering is complete, restore focus and selection
+    if(focusedId){
+        const newFocused = document.getElementById(focusedId);
+        if(newFocused){
+            newFocused.focus();
+            newFocused.setSelectionRange(selStart, selEnd);
+        }
+    }
   }
   // Render Bundle Contents List function for the Create Bundle Tab
   export function renderBundleList() {
