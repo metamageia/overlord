@@ -32,7 +32,7 @@ export function updateRenderedStatblock() {
   document.getElementById("dsb-title-separator").style.display = hasTitleExtras ? "inline" : "none";
 
   if(masterYamlData.template) {
-    document.getElementById("dsb-template").textContent = " " + masterYamlData.role;
+    document.getElementById("dsb-template").textContent = " " + masterYamlData.template;
     document.getElementById("dsb-template").style.display = "inline";
   } else {
     document.getElementById("dsb-template").style.display = "none";
