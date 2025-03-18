@@ -5,15 +5,15 @@ import { currentSortDirection, currentSortField, setCurrentSortDirection, setCur
 
 
 // Global filters for Create Bundle table
-let cbFilterName = "";
-let cbFilterLV = "";
-let cbFilterRole = "";
-let cbFilterTemplate = ""; 
-let cbFilterTR = "";
-let cbFilterBundle = "";
+export let cbFilterName = "";
+export let cbFilterLV = "";
+export let cbFilterRole = "";
+export let cbFilterTemplate = ""; 
+export let cbFilterTR = "";
+export let cbFilterBundle = "";
 export let cbFilterType = "";
 
-let bundleList = [];
+export let bundleList = [];
 
 // Global variable to store pending upload information
 let pendingUpload = null;

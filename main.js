@@ -2,7 +2,7 @@ import { masterYamlData, updateMasterYamlData, resetMasterYamlData, hiddenStats,
 import { updateYamlTextArea, updateMasterYamlDataFromYaml, updateUIFromMasterYaml, updateMasterYamlDataFromUI, uiFieldChanged } from "./js/masterYamlData.mjs";
 import { updateRenderedStatblock, renderDefaultDetail } from "./js/statblockRender.mjs";
 import { statblocks, uploadedBundles, loadFromLocalStorage, saveToLocalStorage, loadUploadedBundles, saveUploadedBundles, exportBackup, importBackup, clearLocalStorage, initSearch, } from "./js/libraryData.mjs";
-import { handleUpload, renderCreateBundleList, renderBundleList, downloadCurrentBundle, mergeSelectedBundles, getBundleName, confirmOverwrite, cancelOverwrite, fillManageMergeSelect, renderUploadedBundles} from './js/bundleManagement.mjs';
+import { handleUpload, renderCreateBundleList, renderBundleList, downloadCurrentBundle, mergeSelectedBundles, getBundleName, confirmOverwrite, cancelOverwrite, fillManageMergeSelect, renderUploadedBundles, cbFilterName, cbFilterBundle, cbFilterLV, cbFilterRole, cbFilterTR, cbFilterTemplate, cbFilterType, bundleList} from './js/bundleManagement.mjs';
 import { matchesNumericQuery, matchesStringQuery } from './js/utilityFunctions.mjs';
 import { decodeStatblockData, encodeStatblockData,exportCurrentDetail } from "./js/shareStatblocks.mjs";
 import { renderStatblockLibrary, updateSelectedRow, currentFilteredList, saveToLibrary, showManageStatsModal, closeManageStatsModal, selectedStatblockID, currentDetail, setCurrentDetail, setSelectedStatblockID } from "./js/libraryBrowser.mjs";

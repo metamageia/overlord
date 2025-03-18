@@ -3,7 +3,7 @@ import {updateUIFromMasterYaml, updateYamlTextArea} from "./masterYamlData.mjs";
 import { currentSortDirection, currentSortField, setCurrentSortDirection, setCurrentSortField, toggleSortDirection } from "./libraryUtilities.mjs";
 import { statblocks, uploadedBundles, favoritesMap, deleteStatblock, saveToLocalStorage } from "./libraryData.mjs";
 import { matchesStringQuery, matchesNumericQuery } from "./utilityFunctions.mjs";
-import { getBundleName, fillManageMergeSelect, renderUploadedBundles } from "./bundleManagement.mjs";
+import { getBundleName, fillManageMergeSelect, renderUploadedBundles, renderCreateBundleList } from "./bundleManagement.mjs";
 import { generateStatblockID, } from "./idManagement.mjs";
 import { renderDefaultDetail } from "./statblockRender.mjs";
 
