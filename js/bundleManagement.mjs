@@ -632,17 +632,10 @@ export function renderCreateBundleList(){
     const thead = document.createElement("thead");
     const headerRow = document.createElement("tr");
     
-    // Checkbox header cell
-    const checkTh = document.createElement("th");
-    const selectAllCb = document.createElement("input");
-    selectAllCb.type = "checkbox";
-    selectAllCb.id = "selectAllCb";
-    selectAllCb.addEventListener("change", function(){
-      const checkboxes = document.querySelectorAll("#createBundleTable tbody input[type='checkbox']");
-      checkboxes.forEach(cb => cb.checked = this.checked);
-    });
-    checkTh.appendChild(selectAllCb);
-    headerRow.appendChild(checkTh);
+    // Favorite header cell
+    const favTh = document.createElement("th");
+    favTh.textContent = "⭐";
+    headerRow.appendChild(favTh);
     
     const columns = [
       { field: "monsterName", label: "Name" },
@@ -682,8 +675,8 @@ export function renderCreateBundleList(){
     
     // Filter row
     const filterRow = document.createElement("tr");
-    const checkFilterTd = document.createElement("td");
-    filterRow.appendChild(checkFilterTd);
+    const favFilterTd = document.createElement("td");
+    filterRow.appendChild(favFilterTd);
     
     columns.forEach(col => {
       const td = document.createElement("td");
@@ -828,13 +821,17 @@ export function renderCreateBundleList(){
       filtered.forEach(item => {
         const tr = document.createElement("tr");
         
-        // Checkbox cell
-        const checkTd = document.createElement("td");
-        const cb = document.createElement("input");
-        cb.type = "checkbox";
-        cb.dataset.id = item.statblockID;
-        checkTd.appendChild(cb);
-        tr.appendChild(checkTd);
+        // Favorite star cell instead of checkbox
+        const favTd = document.createElement("td");
+        const itemId = item.componentID || item.statblockID;
+        
+        const favStar = document.createElement("span");
+        favStar.className = "favorite-star " + (favoritesMap[itemId] ? "favorited" : "");
+        favStar.innerHTML = favoritesMap[itemId] ? "⭐" : "☆";
+
+        
+        favTd.appendChild(favStar);
+        tr.appendChild(favTd);
         
         // Data cells
         columns.forEach(ci => {
@@ -852,8 +849,8 @@ export function renderCreateBundleList(){
         
         // Add click handler to add item to bundle
         tr.addEventListener("click", (e) => {
-          // Don't trigger if they clicked the checkbox
-          if (e.target.type === "checkbox") return;
+          // Don't trigger if they clicked the favorite star
+          if (e.target.classList.contains('favorite-star')) return;
           
           // Find the item in the original arrays
           let itemToAdd;
@@ -897,7 +894,7 @@ export function renderCreateBundleList(){
             newFocused.setSelectionRange(selStart, selEnd);
         }
     }
-  }
+}
   // Render Bundle Contents List function for the Create Bundle Tab
   export function renderBundleList() {
   const container = document.getElementById("bundleListContainer");
@@ -974,19 +971,8 @@ export function renderCreateBundleList(){
     const tdFav = document.createElement("td");
     const favStar = document.createElement("span");
     favStar.className = "favorite-star " + (favoritesMap[itemId] ? "favorited" : "");
-    favStar.innerHTML = favoritesMap[itemId] ? "★" : "☆";
-    favStar.addEventListener("click", function() {
-      if (favoritesMap[itemId]) {
-        delete favoritesMap[itemId];
-        this.innerHTML = "☆";
-        this.classList.remove("favorited");
-      } else {
-        favoritesMap[itemId] = true;
-        this.innerHTML = "★";
-        this.classList.add("favorited");
-      }
-      saveToLocalStorage("favorites", favoritesMap);
-    });
+    favStar.innerHTML = favoritesMap[itemId] ? "⭐" : "☆";
+
     
     tdFav.appendChild(favStar);
     tr.appendChild(tdFav);
