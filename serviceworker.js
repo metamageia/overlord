@@ -5,7 +5,6 @@ const ASSETS = [
     "main.js",
     "styles.css",
     "manifest.json"
-    // Add other critical assets here
 ];
 
 // Install event - cache assets

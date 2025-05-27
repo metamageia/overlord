@@ -12,7 +12,6 @@ import { renderComponentsList } from './js/componentManagement.mjs';
 /************************************************
  * Global Variables
  ************************************************/
-// PWA Add this to your global variables
 let deferredPrompt;
 
 /* ---------------------------------------------
@@ -29,13 +28,8 @@ window.addEventListener("DOMContentLoaded", () => {
   fillManageMergeSelect();
   renderUploadedBundles();
   
-  // Initialize bundle panels structure
   initBundlePanels();
-  
-  // NEW: Set the initial sidebar visibility based on device width
   setInitialSidebarVisibility();
-  
-  // (Optional) Update sidebar visibility on window resize
   window.addEventListener("resize", setInitialSidebarVisibility);
   
   attachEventHandlers();
@@ -55,7 +49,7 @@ window.addEventListener("DOMContentLoaded", () => {
   updateUIFromMasterYaml();
   updateYamlTextArea();
 
-  // NEW: Check URL for share parameter "s" and load statblock if present
+  // Check URL for share parameter "s" and load statblock if present
   const urlParams = new URLSearchParams(window.location.search);
   const shareParam = urlParams.get('s');
   if(shareParam) {
@@ -73,15 +67,10 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Add this to your window.addEventListener("DOMContentLoaded", () => {}) function
   window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevent the default prompt
     e.preventDefault();
-    // Store the event for later
     deferredPrompt = e;
-    
-
-    
+        
     // Add it after the toggle buttons
     const togglesContainer = document.querySelector('.sidebar-toggles');
     
