@@ -11,7 +11,6 @@ let filterName = "";
 let filterType = "";
 let filterBundle = "";
 let currentFilteredComponents = [];
-// Replace single selection with a Set to track multiple selections
 let selectedComponentIDs = new Set();
 
 // Sort direction toggles
@@ -28,8 +27,6 @@ function toggleSortDirection() {
 }
 
 
-// Updated to render previews for multiple components
-// Updated to render a combined statblock preview for multiple components
 function renderComponentPreview(components) {
   const defaultPreview = document.getElementById("defaultComponentPreview");
   const componentRender = document.getElementById("componentRender");
@@ -762,9 +759,32 @@ export function renderComponentsList() {
   table.appendChild(tbody);
   container.appendChild(table);
   
-  // MOVED: Add selection actions buttons below the table
-  const selectionActions = document.createElement("div");
-  selectionActions.className = "selection-actions";
+
+  
+  // Restore focus if needed
+  if (focusedId) {
+    const newFocused = document.getElementById(focusedId);
+    if (newFocused) {
+      newFocused.focus();
+      newFocused.setSelectionRange(selStart, selEnd);
+    }
+  }
+  
+  // Add keyboard navigation event listener
+  container.addEventListener("keydown", handleKeyNavigation);
+  
+  // Update preview for selected components
+  updateComponentsPreview();
+  renderComponentSelectionButtons();
+
+}
+
+export function renderComponentSelectionButtons() {
+  const container = document.getElementById("componentSelectionButtons");
+  if (!container) return;
+  
+  container.innerHTML = "";
+  container.className = "selection-actions";
   
   const selectAllBtn = document.createElement("button");
   selectAllBtn.textContent = "Select All";
@@ -786,24 +806,8 @@ export function renderComponentsList() {
     renderComponentsList();
   });
   
-  selectionActions.appendChild(selectAllBtn);
-  selectionActions.appendChild(clearSelectionBtn);
-  container.appendChild(selectionActions);
-  
-  // Restore focus if needed
-  if (focusedId) {
-    const newFocused = document.getElementById(focusedId);
-    if (newFocused) {
-      newFocused.focus();
-      newFocused.setSelectionRange(selStart, selEnd);
-    }
-  }
-  
-  // Add keyboard navigation event listener
-  container.addEventListener("keydown", handleKeyNavigation);
-  
-  // Update preview for selected components
-  updateComponentsPreview();
+  container.appendChild(selectAllBtn);
+  container.appendChild(clearSelectionBtn);
 }
 
 // Helper function to update the preview based on selected components

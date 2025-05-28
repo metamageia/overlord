@@ -7,7 +7,7 @@ import { matchesNumericQuery, matchesStringQuery } from './js/utilityFunctions.m
 import { decodeStatblockData, encodeStatblockData,exportCurrentDetail } from "./js/shareStatblocks.mjs";
 import { renderStatblockLibrary, updateSelectedRow, currentFilteredList, saveToLibrary, showManageStatsModal, closeManageStatsModal, selectedStatblockID, currentDetail, setCurrentDetail, setSelectedStatblockID } from "./js/libraryBrowser.mjs";
 import { toggleSidebar, toggleBundlesSidebar, setInitialSidebarVisibility, initBundlePanels, switchSidebarTab, switchBundlesTab, initResizeHandlers } from "./js/uiControllers.mjs";
-import { renderComponentsList } from './js/componentManagement.mjs';
+import { renderComponentsList, } from './js/componentManagement.mjs';
 
 /************************************************
  * Global Variables
