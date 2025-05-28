@@ -1,7 +1,7 @@
-import { updateMasterYamlData } from "./yamlDataState.mjs";
+import { updateMasterYamlData, masterYamlData } from "./yamlDataState.mjs";
 import {updateUIFromMasterYaml, updateYamlTextArea} from "./masterYamlData.mjs";
 import { currentSortDirection, currentSortField, setCurrentSortDirection, setCurrentSortField, toggleSortDirection } from "./libraryUtilities.mjs";
-import { statblocks, uploadedBundles, favoritesMap, deleteStatblock, saveToLocalStorage } from "./libraryData.mjs";
+import { statblocks, uploadedBundles, favoritesMap, deleteStatblock, saveToLocalStorage, initSearch } from "./libraryData.mjs";
 import { matchesStringQuery, matchesNumericQuery } from "./utilityFunctions.mjs";
 import { getBundleName, fillManageMergeSelect, renderUploadedBundles, renderCreateBundleList } from "./bundleManagement.mjs";
 import { generateStatblockID, } from "./idManagement.mjs";
@@ -437,7 +437,6 @@ export function closeManageStatsModal() {
 
 // Save Statblock to Library //
 export function saveToLibrary(){
-  // *** NEW STEP: Always generate statblockID from masterYamlData BEFORE duplicate checking ***
   const newID = generateStatblockID(masterYamlData);
   masterYamlData.statblockID = newID;
   

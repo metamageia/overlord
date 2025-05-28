@@ -169,7 +169,6 @@ function attachEventHandlers() {
     addFeature();
     uiFieldChanged();
   });
-  // Add this to event listeners for form fields (find where other input fields have event listeners)
 document.getElementById("description").addEventListener("input", function() {
   updateMasterYamlDataFromUI();
   updateYamlTextArea();
@@ -195,6 +194,7 @@ document.getElementById("description").addEventListener("input", function() {
     addDeed("special");
     uiFieldChanged();
   });
+  document.getElementById("dsb-description-section").addEventListener("input", updateMasterYamlDataFromYaml);
   document.getElementById("yamlArea").addEventListener("input", updateMasterYamlDataFromYaml);
   document.getElementById("copyYaml").addEventListener("click", () => {
     navigator.clipboard.writeText(document.getElementById("yamlArea").value)

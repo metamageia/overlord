@@ -38,7 +38,6 @@ export function loadFromLocalStorage(){
     }
 
 }
-// Fix the saveToLocalStorage function to handle specific keys or save all data
 export function saveToLocalStorage(key, data) {
   // If no key is provided, save everything
   if (!key) {
@@ -50,7 +49,6 @@ export function saveToLocalStorage(key, data) {
     return;
   }
   
-  // Handle specific keys
   switch(key) {
     case "statblocks":
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ 

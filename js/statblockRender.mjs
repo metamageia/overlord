@@ -113,7 +113,7 @@ export function renderDefaultDetail() {
   document.getElementById("dsb-basicSection").style.display = "none";
   document.getElementById("dsb-featuresSection").style.display = "none";
   document.getElementById("dsb-deedsSection").style.display = "none";
-  document.getElementById("dsb-description-section").style.display = "none"; // Add this line
+  document.getElementById("dsb-description-section").style.display = "none"; 
   document.getElementById("dsb-ids").innerHTML = "";
   document.getElementById("dsb-name").textContent = "[Monster Name]";
   document.getElementById("dsb-title-separator").style.display = "none";
@@ -122,6 +122,7 @@ export function renderDefaultDetail() {
   document.getElementById("dsb-level").textContent = "";
   document.getElementById("dsb-tr").textContent = "";
 }
+// Render Features
 function renderFeatures(data){
   const featSec = document.getElementById("dsb-featuresSection");
   const featList = document.getElementById("dsb-featuresList");
@@ -150,6 +151,8 @@ function renderFeatures(data){
   }
   featSec.style.display = hasFeature ? "block" : "none";
 }
+
+// Render Deeds
 function renderDeeds(data){
   const dsbDeeds = document.getElementById("dsb-deedsContainer");
   const dsbDeedsSec = document.getElementById("dsb-deedsSection");
