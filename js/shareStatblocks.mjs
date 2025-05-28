@@ -1,3 +1,5 @@
+import {currentDetail} from "./libraryBrowser.mjs";
+
 /* ---------------------------------------------
  Statblock Export and Sharing
  * ---------------------------------------------
@@ -34,7 +36,10 @@ export function exportCurrentDetail(){
       a.download = baseName + ".png";
       a.href = canvas.toDataURL("image/png");
       a.click();
-    } else {
+    } 
+    
+    // Temporarily disable PDF Export
+    /* else {
       const pdf = new jspdf.jsPDF({
         orientation: "landscape",
         unit: "px",
@@ -42,7 +47,8 @@ export function exportCurrentDetail(){
       });
       pdf.addImage(canvas.toDataURL("image/png"), 'PNG', 0, 0, canvas.width, canvas.height);
       pdf.save(baseName + ".pdf");
-    }
+    } */
+   
     document.body.removeChild(exportContainer);
   });
 }
