@@ -605,17 +605,18 @@ export function renderCreateBundleList(){
     table.id = "createBundleTable";
     const colgroup = document.createElement("colgroup");
     
-    // Favorites column (30px)
+    // Favorites column
     const favCol = document.createElement("col");
     favCol.style.width = "30px";
     favCol.id = "col-favorite";
     colgroup.appendChild(favCol);
     
+    
     const cols = [
       { field: "monsterName", width: 150 },
       { field: "level",       width: 50 },
       { field: "role",        width: 100 },
-      { field: "type",        width: 80 },  // Add Type column
+      { field: "type",        width: 80 },  
       { field: "template",    width: 100 },
       { field: "tr",          width: 50 },
       { field: "bundle",      width: 100 }
@@ -635,6 +636,15 @@ export function renderCreateBundleList(){
     // Favorite header cell
     const favTh = document.createElement("th");
     favTh.textContent = "⭐";
+    favTh.addEventListener("click", () => {
+      if (currentSortField === "favorite") {
+          toggleSortDirection();
+      } else {
+          setCurrentSortField("favorite");
+          setCurrentSortDirection("asc");
+      }
+      renderCreateBundleList();
+  });
     headerRow.appendChild(favTh);
     
     const columns = [
@@ -689,7 +699,7 @@ export function renderCreateBundleList(){
         case "monsterName": input.value = cbFilterName; break;
         case "level": input.value = cbFilterLV; break;
         case "role": input.value = cbFilterRole; break;
-        case "type": input.value = cbFilterType; break; // Add Type filter
+        case "type": input.value = cbFilterType; break; 
         case "template": input.value = cbFilterTemplate; break;
         case "tr": input.value = cbFilterTR; break;
         case "bundle": input.value = cbFilterBundle; break;
@@ -702,7 +712,7 @@ export function renderCreateBundleList(){
           case "monsterName": cbFilterName = this.value; break;
           case "level": cbFilterLV = this.value; break;
           case "role": cbFilterRole = this.value; break;
-          case "type": cbFilterType = this.value; break; // Add Type filter
+          case "type": cbFilterType = this.value; break; 
           case "template": cbFilterTemplate = this.value; break;
           case "tr": cbFilterTR = this.value; break;
           case "bundle": cbFilterBundle = this.value; break;
@@ -722,7 +732,7 @@ export function renderCreateBundleList(){
       cbFilterName = "";
       cbFilterLV = "";
       cbFilterRole = "";
-      cbFilterType = ""; // Add Type filter reset
+      cbFilterType = ""; 
       cbFilterTemplate = "";
       cbFilterTR = "";
       cbFilterBundle = "";
@@ -802,7 +812,20 @@ export function renderCreateBundleList(){
         return currentSortDirection === "asc" 
           ? bundleNameA.localeCompare(bundleNameB)
           : bundleNameB.localeCompare(bundleNameA);
-      } else {
+      }    
+        else if(currentSortField === "favorite") {
+          // Get the favorite status for both items
+          const favA = favoritesMap[a.componentID || a.statblockID] || false;
+          const favB = favoritesMap[b.componentID || b.statblockID] || false;
+        // Sort favorites first if ascending, last if descending
+        if (favA === favB) return 0;
+        if (currentSortDirection === "asc") {
+          return favA ? -1 : 1;
+        } else {
+        return favA ? 1 : -1;
+        }
+      }
+      else {
         const A = String(a?.[currentSortField] || "");
         const B = String(b?.[currentSortField] || "");
         return currentSortDirection === "asc" ? A.localeCompare(B) : B.localeCompare(A);

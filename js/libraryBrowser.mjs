@@ -56,7 +56,7 @@ export function renderStatblockLibrary(){
     { field: "monsterName", width: 150 },
     { field: "level",       width: 50 },
     { field: "role",        width: 100 },
-    { field: "template",    width: 100 }, // Add this line
+    { field: "template",    width: 100 }, 
     { field: "tr",          width: 50 },
     { field: "bundle",      width: 120 },
     { field: "action",      width: 50 }
