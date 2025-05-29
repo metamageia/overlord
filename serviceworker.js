@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v2.0.4";
+const CACHE_VERSION = "v2.0.5";
 const CACHE_NAME = "pwa-cache-" + CACHE_VERSION;
 const ASSETS = [
     "index.html",
@@ -40,7 +40,9 @@ self.addEventListener("fetch", event => {
     // For HTML documents, try network first and fall back to cache
     if (event.request.mode === 'navigate' || 
         (event.request.method === 'GET' && 
-         event.request.headers.get('accept').includes('text/html'))) {
+         (event.request.headers.get('accept').includes('text/html') ||
+          event.request.url.endsWith('.js') ||
+          event.request.url.endsWith('.mjs')))) {
         event.respondWith(
             fetch(event.request).then(response => {
                 // Clone the response before using it
