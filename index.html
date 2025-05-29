@@ -45,9 +45,7 @@
     <button id="toggleBundlesSidebarBtn" class="inline-btn">Toggle Manager</button>
   </div>
 
-  <!-- Shared container for everything below the toggle buttons -->
   <div class="main-container">
-    <!-- LEFT SIDEBAR (absolute positioned for desktop, relative on mobile) -->
     <div class="sidebar" id="sidebar">
       <div id="leftResizeHandle" class="resize-handle"></div>
       <div class="sidebar-toggle-container">
@@ -55,14 +53,12 @@
         <div id="editorToggle" class="sidebar-toggle">Editor</div>
         <div id="yamlToggle" class="sidebar-toggle">YAML</div>
       </div>
-      <!-- Library Panel updated to use flex for full height -->
       <div class="sidebar-panel active" id="libraryPanel">
         <div class="section-title">
           Statblock Library <span id="libraryTotal"></span>
         </div>
         <div id="statblockList" tabindex="0"></div>
       </div>
-      <!-- Editor Panel with black title bar -->
       <div class="sidebar-panel" id="editorPanel">
         <div class="section-title">Editor</div>
         <div class="editor-container">
@@ -102,7 +98,6 @@
               <input type="text" id="tr" placeholder="TR" />
             </div>
           </div>
-          <!-- Add this after level/TR fields and before basic stats -->
           <div class="form-group">
             <label for="description">Description:</label>
             <textarea id="description" class="form-control" rows="3" placeholder="Enter monster description"></textarea>
@@ -164,12 +159,10 @@
           <label>Mighty Deeds</label>
           <div id="mightyDeedsContainer" class="dynamic-list"></div>
           <button type="button" class="add-btn" id="addMightyDeedBtn">Add Mighty Deed</button>
-          <!-- NEW: Tyrant Deeds Section -->
           <hr class="section-divider">
           <label>Tyrant Deeds</label>
           <div id="tyrantDeedsContainer" class="dynamic-list"></div>
           <button type="button" class="add-btn" id="addTyrantDeedBtn">Add Tyrant Deed</button>
-          <!-- NEW: Special Deeds Section -->
           <hr class="section-divider">
           <label>Special Deeds</label>
           <div id="specialDeedsContainer" class="dynamic-list"></div>
@@ -188,13 +181,11 @@
     <div class="bundles-sidebar" id="bundlesSidebar">
       <div id="rightResizeHandle" class="resize-handle"></div>
       <div class="section-title" style="text-align:center;">Manage Library</div>
-      <!-- Top Tab Row: Now Bundles and Backup -->
       <div class="bundles-tabs top-tabs">
         <div id="bundlesBundlesTab" class="bundles-tab active">Bundles</div>
         <div id="bundlesComponentsTab" class="bundles-tab">Components</div>
         <div id="bundlesBackupTab" class="bundles-tab">Backup</div>
       </div>
-      <!-- Bottom Tab Row: Now conditionally shown when Bundles is active -->
       <div class="bundles-tabs bottom-tabs" id="bundlesSubTabs">
         <div id="bundlesManageTab" class="bundles-tab active">Manage</div>
         <div id="bundlesUploadTab" class="bundles-tab">Upload</div>
@@ -202,9 +193,7 @@
         <div id="bundlesMergeTab" class="bundles-tab">Merge</div>
       </div>
       
-      <!-- Bundles panel to serve as container for subtabs -->
       <div class="bundles-panel active" id="bundlesBundlesPanel">
-        <!-- This will be dynamically filled with the active subtab panel -->
       </div>
       
       <!-- MANAGE -->
@@ -249,17 +238,19 @@
             <input type="text" id="uploadBundleNameInput" placeholder="Choose Bundle Name (optional)" style="width:65%; font-size:0.9em;" />
             <button id="uploadBtn" class="inline-btn">Upload</button>
           </div>
+          <div class="core-bundles-area">
+            <div class="section-title">Core Bundles</div>
+            <div id="coreBundlesList" class="core-bundles-list"></div>
+          </div>
         </div>
       </div>
       <!-- CREATE -->
       <div class="bundles-panel" id="bundlesCreatePanel">
         <div class="section-title">Create Statblock Bundle</div>
         <div id="createBundleList" tabindex="0"></div>
-        <!-- NEW: Select All button for create bundle filter -->
         <div style="margin-top:5px; text-align:center;">
           <button id="selectAllBundleBtn" class="inline-btn">Select All</button>
         </div>
-        <!-- UPDATED: Bundle Contents now uses a table with the same styling as Create -->
         <div id="bundleListArea" style="margin-top:10px;">
           <p><strong>Bundle Contents:</strong></p>
           <div id="bundleListContainer" tabindex="0"></div>
@@ -290,15 +281,12 @@
           <span id="dsb-level"> [LV]</span>
           <span id="dsb-tr" style="float:right;">[TR]</span>
         </div>
-        <!-- Add this after statblock-header and before dsb-basicSection -->
         <div class="statblock-description" id="dsb-description-section" style="display:none;">
           <p id="dsb-description"></p>
         </div>
         <div id="defaultDetail" style="text-align:center; padding:20px; color:#888;">No statblock selected.</div>
-        <!-- Add whitespace after basic stats -->
         <div class="statblock-section" id="dsb-basicSection" style="display:none;">
           <h3>Basic Stats</h3>
-          <!-- First Row: HP, INIT, SPD -->
           <div class="basic-stats-row first-row">
             <div class="basic-stat-card">
               <div class="basic-stat-header">HP</div>
@@ -313,7 +301,6 @@
               <div class="basic-stat-value" id="dsb-spd">[SPD]</div>
             </div>
           </div>
-          <!-- Second Row: ACC, GRD, RES, ROLL -->
           <div class="basic-stats-row second-row">
             <div class="basic-stat-card">
               <div class="basic-stat-header">ACC</div>
@@ -349,7 +336,6 @@
         <button id="saveToLibraryBtn" class="inline-btn">Save to Library</button>
         <select id="exportFormat">
           <option value="png">PNG</option>
-          <!-- <option value="pdf">PDF</option> -->
         </select>
         <button id="exportBtn" class="inline-btn">Export</button>
       </div>
@@ -363,8 +349,6 @@
         <button id="decodeShareBtn" class="inline-btn">Load Share Link</button>
       </div>
     </div>
-
-    <!-- RIGHT SIDEBAR (absolute positioned for desktop, relative on mobile) -->
   </div>
 
   <!-- OVERWRITE MODAL POPUP -->
@@ -396,7 +380,6 @@
     </div>
   </div>
 
-  <!-- External JavaScript file -->
   <script type="module" src="main.js"></script>
   <script>
     if ("serviceWorker" in navigator) {

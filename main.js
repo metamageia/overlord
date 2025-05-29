@@ -8,6 +8,8 @@ import { decodeStatblockData, encodeStatblockData,exportCurrentDetail } from "./
 import { renderStatblockLibrary, updateSelectedRow, currentFilteredList, saveToLibrary, showManageStatsModal, closeManageStatsModal, selectedStatblockID, currentDetail, setCurrentDetail, setSelectedStatblockID, addCustomStat } from "./js/libraryBrowser.mjs";
 import { toggleSidebar, toggleBundlesSidebar, setInitialSidebarVisibility, initBundlePanels, switchSidebarTab, switchBundlesTab, initResizeHandlers } from "./js/uiControllers.mjs";
 import { renderComponentsList, } from './js/componentManagement.mjs';
+import { loadCoreBundles } from './js/bundleManagement.mjs';
+
 
 /************************************************
  * Global Variables
@@ -41,7 +43,8 @@ window.addEventListener("DOMContentLoaded", () => {
   // Initialize bundles tabs - default to Bundles top tab and Manage subtab
   switchBundlesTab("bundles");
   switchBundlesTab("manage");
-  
+  loadCoreBundles();
+
   // Initialize resize handlers
   initResizeHandlers();
   
@@ -77,7 +80,6 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// Add to main.js
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/serviceworker.js')
     .then(registration => {
@@ -142,6 +144,11 @@ function attachEventHandlers() {
   document.getElementById("bundlesUploadTab").addEventListener("click", () => switchBundlesTab("upload"));
   document.getElementById("bundlesCreateTab").addEventListener("click", () => switchBundlesTab("create"));
   document.getElementById("bundlesMergeTab").addEventListener("click", () => switchBundlesTab("merge"));
+
+  document.getElementById("bundlesUploadTab").addEventListener("click", () => {
+    switchBundlesTab("upload");
+    loadCoreBundles(); 
+  });
 
   document.getElementById("createNewBtn").addEventListener("click", () => {
     if (confirm("Create new empty statblock? Any unsaved changes will be lost.")) {

@@ -599,6 +599,92 @@ export function cancelOverwrite() {
   renderUploadedBundles();
   document.dispatchEvent(new CustomEvent('refreshUI'));
 }
+// --- Core Bundles -- //
+
+// Function to load core bundles list
+export async function loadCoreBundles() {
+  try {
+    const response = await fetch('./core-bundles/');
+    const text = await response.text();
+    
+    // Create a temporary element to parse the directory listing
+    const temp = document.createElement('div');
+    temp.innerHTML = text;
+    
+    // Get all links that end with .json
+    const bundleFiles = Array.from(temp.getElementsByTagName('a'))
+      .filter(a => a.href.toLowerCase().endsWith('.json'))
+      .map(a => a.href.split('/').pop());
+    
+    renderCoreBundlesList(bundleFiles);
+  } catch (error) {
+    console.error('Error loading core bundles:', error);
+  }
+}
+
+// Function to render core bundles list
+function renderCoreBundlesList(bundleFiles) {
+  const container = document.getElementById('coreBundlesList');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  if (!bundleFiles.length) {
+    container.innerHTML = '<p>No core bundles available.</p>';
+    return;
+  }
+  
+  bundleFiles.forEach(filename => {
+    const item = document.createElement('div');
+    item.className = 'core-bundle-item';
+    
+    const name = document.createElement('span');
+    name.className = 'core-bundle-name';
+    name.textContent = filename;
+    
+    const addButton = document.createElement('button');
+    addButton.className = 'add-core-bundle-btn';
+    addButton.textContent = 'Add to Library';
+    addButton.addEventListener('click', () => addCoreBundle(filename));
+    
+    item.appendChild(name);
+    item.appendChild(addButton);
+    container.appendChild(item);
+  });
+}
+
+// Function to handle adding a core bundle
+async function addCoreBundle(filename) {
+  try {
+    const response = await fetch(`./core-bundles/${filename}`);
+    const blob = await response.blob();
+    
+    // Create a File object from the blob
+    const file = new File([blob], filename, { type: 'application/json' });
+    
+    // Create a temporary input element
+    const tempInput = document.createElement('input');
+    tempInput.type = 'file';
+    tempInput.style.display = 'none';
+    tempInput.files = createFileList([file]);
+    
+    // Set the file input and trigger the upload
+    document.getElementById('uploadFile').files = tempInput.files;
+    handleUpload();
+    
+  } catch (error) {
+    console.error('Error adding core bundle:', error);
+    alert(`Error adding core bundle: ${error.message}`);
+  }
+}
+
+// Helper function to create a FileList object
+function createFileList(files) {
+  const dt = new DataTransfer();
+  files.forEach(file => dt.items.add(file));
+  return dt.files;
+}
+
 
 // --- Create Bundles --- //
 export function renderCreateBundleList(){
