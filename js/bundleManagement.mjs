@@ -115,48 +115,61 @@ export function renderUploadedBundles(){
     });
     tdActive.appendChild(activeCheckbox);
     const tdAction = document.createElement("td");
-    const refreshBtn = document.createElement("button");
-    refreshBtn.textContent = "Refresh";
-    refreshBtn.className = "refresh-bundle-btn";
-    refreshBtn.dataset.id = bundle.id;
-    refreshBtn.addEventListener("click", () => {
-      // Use dataset id directly as bundle id is a hex string.
-      const bundleId = refreshBtn.dataset.id;
-      const bun = uploadedBundles.find(b => b.id === bundleId);
-      if(bun){
-        // Since we no longer have bundle.data, this button is now just for refreshing the UI
-        document.dispatchEvent(new CustomEvent('saveLibraryChanges'));
-        document.dispatchEvent(new CustomEvent('refreshUI'));
-        alert(`Refreshed bundle display.`);
+// ...existing code...
+const refreshBtn = document.createElement("button");
+refreshBtn.textContent = "Reupload";
+refreshBtn.className = "refresh-bundle-btn";
+refreshBtn.dataset.id = bundle.id;
+refreshBtn.addEventListener("click", async () => {
+  const bundleId = refreshBtn.dataset.id;
+  
+  if(confirm(`Reupload bundle ${bundleId}? This will add any missing items from the original bundle file.`)) {
+    try {
+      const coreBundleResponse = await fetch(`./core-bundles/${bundle.bundleName}.json`);
+      
+      if (coreBundleResponse.ok) {
+        const blob = await coreBundleResponse.blob();
+        const file = new File([blob], `${bundle.bundleName}.json`, { type: 'application/json' });
+        
+        const tempInput = document.createElement('input');
+        tempInput.type = 'file';
+        tempInput.style.display = 'none';
+        tempInput.files = createFileList([file]);
+        
+        document.getElementById('uploadFile').files = tempInput.files;
+        await handleUpload();
+        
+      } else {
+        alert(`Could not find bundle in core-bundles. Please reupload the original bundle file manually.`);
       }
-    });
+    } catch(error) {
+      console.error('Error reuploading bundle:', error);
+      alert(`Error reuploading bundle: ${error.message}`);
+    }
+  }
+});
     const delBtn = document.createElement("button");
     delBtn.textContent = "Delete";
     delBtn.addEventListener("click", () => {
       if(confirm(`Delete bundle ${bundle.id}?`)){
         const bundleId = bundle.id;
         
-        // Remove the bundle from uploadedBundles
         uploadedBundles.splice(idx, 1);
         
-        // Clear all statblocks with this bundleId using splice to modify array in place
         for(let i = statblocks.length - 1; i >= 0; i--) {
           if(statblocks[i].bundleId === bundleId) {
             statblocks.splice(i, 1);
           }
         }
         
-        // Clear all components with this bundleId using splice to modify array in place  
         for(let i = statblockComponents.length - 1; i >= 0; i--) {
           if(statblockComponents[i].bundleId === bundleId) {
             statblockComponents.splice(i, 1);
           }
         }
     
-        // Save all changes at once
         saveToLocalStorage();
         
-        // Refresh UI
         document.dispatchEvent(new CustomEvent('refreshUI'));
       }
     });
@@ -333,7 +346,7 @@ export async function handleUpload() {
   }
   
   if (duplicates.length > 0) {
-    // Get the custom bundle name
+    
     const customBundleName = document.getElementById("uploadBundleNameInput").value.trim();
     const bundleName = customBundleName || file.name.replace(/\.(json|yaml)$/i, "");
     
@@ -380,13 +393,33 @@ export async function handleUpload() {
   }
   
   // Create bundle entry
+  const existingBundleIndex = uploadedBundles.findIndex(bundle => bundle.id === bundleId);
   const customBundleName = document.getElementById("uploadBundleNameInput").value.trim();
   const bundleName = customBundleName || file.name.replace(/\.(json|yaml)$/i, "");
-  uploadedBundles.push({
-    id: bundleId,
-    bundleName: bundleName,
-    active: true
-  });
+
+  if (existingBundleIndex !== -1) {
+    // Update existing bundle
+    uploadedBundles[existingBundleIndex].bundleName = bundleName;
+    uploadedBundles[existingBundleIndex].active = true;
+  } else {
+  // Check if bundle already exists
+  const existingBundleIndex = uploadedBundles.findIndex(bundle => bundle.id === bundleId);
+  const customBundleName = document.getElementById("uploadBundleNameInput").value.trim();
+  const bundleName = customBundleName || file.name.replace(/\.(json|yaml)$/i, "");
+
+  if (existingBundleIndex !== -1) {
+    // Update existing bundle
+    uploadedBundles[existingBundleIndex].bundleName = bundleName;
+    uploadedBundles[existingBundleIndex].active = true;
+  } else {
+    // Create new bundle entry
+    uploadedBundles.push({
+      id: bundleId,
+      bundleName: bundleName,
+      active: true
+    });
+  }
+  }
   
   // Save changes - use the proper approach without parameters
   saveToLocalStorage(); // Save all data at once
@@ -505,12 +538,21 @@ export function confirmOverwrite() {
     });
   }
   
-  // Create bundle entry
-  uploadedBundles.push({
-    id: bundleId,
-    bundleName: pendingUpload.finalBundleName,
-    active: true
-  });
+  // Check if bundle already exists
+  const existingBundleIndex = uploadedBundles.findIndex(bundle => bundle.id === bundleId);
+  
+  if (existingBundleIndex !== -1) {
+    // Update existing bundle
+    uploadedBundles[existingBundleIndex].bundleName = pendingUpload.finalBundleName;
+    uploadedBundles[existingBundleIndex].active = true;
+  } else {
+    // Create new bundle entry
+    uploadedBundles.push({
+      id: bundleId,
+      bundleName: pendingUpload.finalBundleName,
+      active: true
+    });
+  }
   
   // Save changes with proper method
   saveToLocalStorage();
@@ -568,11 +610,21 @@ export function cancelOverwrite() {
   
   // Create bundle entry if any items were added
   if (statblockCount > 0 || componentCount > 0) {
-    uploadedBundles.push({
-      id: bundleId,
-      bundleName: pendingUpload.finalBundleName,
-      active: true
-    });
+    // Check if bundle already exists
+    const existingBundleIndex = uploadedBundles.findIndex(bundle => bundle.id === bundleId);
+    
+    if (existingBundleIndex !== -1) {
+      // Update existing bundle
+      uploadedBundles[existingBundleIndex].bundleName = pendingUpload.finalBundleName;
+      uploadedBundles[existingBundleIndex].active = true;
+    } else {
+      // Create new bundle entry
+      uploadedBundles.push({
+        id: bundleId,
+        bundleName: pendingUpload.finalBundleName,
+        active: true
+      });
+    }
     
     // Save changes with proper method
     saveToLocalStorage();
