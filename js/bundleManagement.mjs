@@ -15,6 +15,21 @@ export let cbFilterType = "";
 
 export let bundleList = [];
 
+// Add these new functions to manage bundleList
+export function clearBundleList() {
+    bundleList = [];
+}
+
+export function addToBundleList(item) {
+    if (!bundleList.includes(item)) {
+        bundleList.push(item);
+    }
+}
+
+export function getBundleList() {
+    return bundleList;
+}
+
 // Global variable to store pending upload information
 let pendingUpload = null;
 
@@ -753,7 +768,7 @@ export function renderCreateBundleList(){
     table.appendChild(thead);
     
     // Combine statblocks and components into one array - fix any issues
-    const combinedItems = [
+    let combinedItems = [
       ...statblocks.map(sb => ({ 
         ...sb, 
         type: "statblock",

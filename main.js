@@ -2,7 +2,7 @@ import { masterYamlData, updateMasterYamlData, resetMasterYamlData, hiddenStats,
 import { updateYamlTextArea, updateMasterYamlDataFromYaml, updateUIFromMasterYaml, updateMasterYamlDataFromUI, uiFieldChanged, addDeed, addFeature } from "./js/masterYamlData.mjs";
 import { updateRenderedStatblock, renderDefaultDetail } from "./js/statblockRender.mjs";
 import { statblocks, uploadedBundles, loadFromLocalStorage, saveToLocalStorage, loadUploadedBundles, saveUploadedBundles, exportBackup, importBackup, clearLocalStorage, initSearch, } from "./js/libraryData.mjs";
-import { handleUpload, renderCreateBundleList, renderBundleList, downloadCurrentBundle, mergeSelectedBundles, getBundleName, confirmOverwrite, cancelOverwrite, fillManageMergeSelect, renderUploadedBundles, cbFilterName, cbFilterBundle, cbFilterLV, cbFilterRole, cbFilterTR, cbFilterTemplate, cbFilterType, bundleList} from './js/bundleManagement.mjs';
+import { handleUpload, renderCreateBundleList, renderBundleList, downloadCurrentBundle, mergeSelectedBundles, getBundleName, confirmOverwrite, cancelOverwrite, fillManageMergeSelect, renderUploadedBundles, cbFilterName, cbFilterBundle, cbFilterLV, cbFilterRole, cbFilterTR, cbFilterTemplate, cbFilterType, addToBundleList, clearBundleList} from './js/bundleManagement.mjs';
 import { matchesNumericQuery, matchesStringQuery } from './js/utilityFunctions.mjs';
 import { decodeStatblockData, encodeStatblockData,exportCurrentDetail } from "./js/shareStatblocks.mjs";
 import { renderStatblockLibrary, updateSelectedRow, currentFilteredList, saveToLibrary, showManageStatsModal, closeManageStatsModal, selectedStatblockID, currentDetail, setCurrentDetail, setSelectedStatblockID, addCustomStat } from "./js/libraryBrowser.mjs";
@@ -220,7 +220,7 @@ document.getElementById("description").addEventListener("input", function() {
   if(removeAllBtn){
     removeAllBtn.addEventListener("click", () => {
       if(confirm("Are you sure you want to remove all statblocks from the current bundle?")){
-        bundleList = [];
+        clearBundleList();
         renderBundleList();
       }
     });
@@ -274,28 +274,27 @@ document.getElementById("description").addEventListener("input", function() {
     }
   });
 
-  // Fix for the broken "Select All" functionality in Create Bundle tab:
   document.getElementById("selectAllBundleBtn").addEventListener("click", () => {
     let filtered = statblocks.filter(sb => {
-      const matchesName = matchesStringQuery(sb.monsterName || "", cbFilterName);
-      const matchesRole = matchesStringQuery(sb.role || "", cbFilterRole);
-      const matchesType = matchesStringQuery(sb.type || "statblock", cbFilterType);
-      const matchesTemplate = matchesStringQuery(sb.template || "", cbFilterTemplate);
-      const matchesLV = matchesNumericQuery(sb.level, cbFilterLV);
-      const matchesTR = matchesNumericQuery(sb.tr, cbFilterTR);
-      const matchesBundle = matchesStringQuery(getBundleName(sb.bundleId), cbFilterBundle);
-      return matchesName && matchesRole && matchesType && matchesTemplate && matchesLV && matchesTR && matchesBundle;
+        const matchesName = matchesStringQuery(sb.monsterName || "", cbFilterName);
+        const matchesRole = matchesStringQuery(sb.role || "", cbFilterRole);
+        const matchesType = matchesStringQuery(sb.type || "statblock", cbFilterType);
+        const matchesTemplate = matchesStringQuery(sb.template || "", cbFilterTemplate);
+        const matchesLV = matchesNumericQuery(sb.level, cbFilterLV);
+        const matchesTR = matchesNumericQuery(sb.tr, cbFilterTR);
+        const matchesBundle = matchesStringQuery(getBundleName(sb.bundleId), cbFilterBundle);
+        return matchesName && matchesRole && matchesType && matchesTemplate && matchesLV && matchesTR && matchesBundle;
     });
     filtered = filtered.filter(sb => {
-      if(sb.bundleId === undefined) return true;
-      let bun = uploadedBundles.find(x => x.id === sb.bundleId);
-      return bun && bun.active;
+        if(sb.bundleId === undefined) return true;
+        let bun = uploadedBundles.find(x => x.id === sb.bundleId);
+        return bun && bun.active;
     });
     filtered.forEach(sb => {
-      if(!bundleList.includes(sb)) bundleList.push(sb);
+        addToBundleList(sb);
     });
     renderBundleList();
-  });
+});
 
   document.getElementById("generateShareLinkBtn").addEventListener("click", () => {
     if(!masterYamlData || !masterYamlData.monsterName){
