@@ -176,7 +176,7 @@ export function uiFieldChanged(){
 
 
 // Features & Deeds
-function addFeature(featureObj=null){
+export function addFeature(featureObj=null){
   const container = document.getElementById("featuresContainer");
   const div = document.createElement("div");
   div.className = "dynamic-feature";
@@ -265,7 +265,7 @@ function addFeature(featureObj=null){
   div.appendChild(reorderContainer);
   container.appendChild(div);
 }
-function addDeed(type, deedObj=null){
+export function addDeed(type, deedObj=null){
   const container = document.getElementById(type + "DeedsContainer");
   const div = document.createElement("div");
   div.className = "dynamic-deed " + type;

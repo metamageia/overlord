@@ -1,11 +1,11 @@
-import { updateMasterYamlData, masterYamlData } from "./yamlDataState.mjs";
-import {updateUIFromMasterYaml, updateYamlTextArea} from "./masterYamlData.mjs";
+import { updateMasterYamlData, masterYamlData, DEFAULT_STATS, hiddenStats } from "./yamlDataState.mjs";
+import {updateUIFromMasterYaml, updateYamlTextArea, updateMasterYamlDataFromUI} from "./masterYamlData.mjs";
 import { currentSortDirection, currentSortField, setCurrentSortDirection, setCurrentSortField, toggleSortDirection } from "./libraryUtilities.mjs";
 import { statblocks, uploadedBundles, favoritesMap, deleteStatblock, saveToLocalStorage, initSearch } from "./libraryData.mjs";
 import { matchesStringQuery, matchesNumericQuery } from "./utilityFunctions.mjs";
 import { getBundleName, fillManageMergeSelect, renderUploadedBundles, renderCreateBundleList } from "./bundleManagement.mjs";
 import { generateStatblockID, } from "./idManagement.mjs";
-import { renderDefaultDetail } from "./statblockRender.mjs";
+import { renderDefaultDetail,updateRenderedStatblock } from "./statblockRender.mjs";
 
 // Global filters for library table
 let filterName = "";
@@ -363,7 +363,7 @@ function clearEditorFields(){
 // --- Stats --- //
 // Custom Stats Management //
 // Add new functions for managing custom stats
-function addCustomStat(customStat = null) {
+export function addCustomStat(customStat = null) {
   const container = document.getElementById("customStatsContainer");
   const div = document.createElement("div");
   div.className = "custom-stat";

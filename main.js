@@ -5,9 +5,10 @@ import { statblocks, uploadedBundles, loadFromLocalStorage, saveToLocalStorage, 
 import { handleUpload, renderCreateBundleList, renderBundleList, downloadCurrentBundle, mergeSelectedBundles, getBundleName, confirmOverwrite, cancelOverwrite, fillManageMergeSelect, renderUploadedBundles, cbFilterName, cbFilterBundle, cbFilterLV, cbFilterRole, cbFilterTR, cbFilterTemplate, cbFilterType, bundleList} from './js/bundleManagement.mjs';
 import { matchesNumericQuery, matchesStringQuery } from './js/utilityFunctions.mjs';
 import { decodeStatblockData, encodeStatblockData,exportCurrentDetail } from "./js/shareStatblocks.mjs";
-import { renderStatblockLibrary, updateSelectedRow, currentFilteredList, saveToLibrary, showManageStatsModal, closeManageStatsModal, selectedStatblockID, currentDetail, setCurrentDetail, setSelectedStatblockID } from "./js/libraryBrowser.mjs";
+import { renderStatblockLibrary, updateSelectedRow, currentFilteredList, saveToLibrary, showManageStatsModal, closeManageStatsModal, selectedStatblockID, currentDetail, setCurrentDetail, setSelectedStatblockID, addCustomStat } from "./js/libraryBrowser.mjs";
 import { toggleSidebar, toggleBundlesSidebar, setInitialSidebarVisibility, initBundlePanels, switchSidebarTab, switchBundlesTab, initResizeHandlers } from "./js/uiControllers.mjs";
 import { renderComponentsList, } from './js/componentManagement.mjs';
+import { addDeed, addFeature} from './js/masterYamlData.mjs'
 
 /************************************************
  * Global Variables
