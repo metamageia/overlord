@@ -120,32 +120,65 @@ const refreshBtn = document.createElement("button");
 refreshBtn.textContent = "Reupload";
 refreshBtn.className = "refresh-bundle-btn";
 refreshBtn.dataset.id = bundle.id;
-refreshBtn.addEventListener("click", async () => {
+refreshBtn.addEventListener("click", () => {
   const bundleId = refreshBtn.dataset.id;
+  const bundle = uploadedBundles.find(b => b.id === bundleId);
   
-  if(confirm(`Reupload bundle ${bundleId}? This will add any missing items from the original bundle file.`)) {
-    try {
-      const coreBundleResponse = await fetch(`./core-bundles/${bundle.bundleName}.json`);
-      
-      if (coreBundleResponse.ok) {
-        const blob = await coreBundleResponse.blob();
-        const file = new File([blob], `${bundle.bundleName}.json`, { type: 'application/json' });
-        
-        const tempInput = document.createElement('input');
-        tempInput.type = 'file';
-        tempInput.style.display = 'none';
-        tempInput.files = createFileList([file]);
-        
-        document.getElementById('uploadFile').files = tempInput.files;
-        await handleUpload();
-        
-      } else {
-        alert(`Could not find bundle in core-bundles. Please reupload the original bundle file manually.`);
-      }
-    } catch(error) {
-      console.error('Error reuploading bundle:', error);
-      alert(`Error reuploading bundle: ${error.message}`);
+  if (!bundle) {
+    alert("Bundle not found!");
+    return;
+  }
+
+  if (confirm(`Refresh bundle ${bundle.bundleName || bundleId}? This will restore any missing items.`)) {
+    let addedStatblocks = 0;
+    let addedComponents = 0;
+
+    // Process statblocks
+    if (bundle.data?.statblocks) {
+      bundle.data.statblocks.forEach(sb => {
+        // Check if statblock exists
+        if (!statblocks.some(existing => existing.statblockID === sb.statblockID)) {
+          sb.bundleId = bundleId;
+          statblocks.push(sb);
+          addedStatblocks++;
+        }
+      });
     }
+
+    // Process components
+    if (bundle.data?.components) {
+      bundle.data.components.forEach(comp => {
+        // Check if component exists
+        if (!statblockComponents.some(existing => existing.componentID === comp.componentID)) {
+          comp.bundleId = bundleId;
+          statblockComponents.push(comp);
+          addedComponents++;
+        }
+      });
+    }
+
+    // Update bundle total
+    bundle.total = (bundle.data?.statblocks?.length || 0) + (bundle.data?.components?.length || 0);
+
+    // Save changes
+    saveToLocalStorage();
+
+    // Update UI
+    renderUploadedBundles();
+    document.dispatchEvent(new CustomEvent('refreshUI'));
+
+    // Show results
+    let message = "";
+    if (addedStatblocks > 0) {
+      message += `Added ${addedStatblocks} statblock${addedStatblocks !== 1 ? 's' : ''}. `;
+    }
+    if (addedComponents > 0) {
+      message += `Added ${addedComponents} component${addedComponents !== 1 ? 's' : ''}.`;
+    }
+    if (!message) {
+      message = "No new items were found to add.";
+    }
+    alert(message);
   }
 });
     const delBtn = document.createElement("button");
@@ -173,7 +206,7 @@ refreshBtn.addEventListener("click", async () => {
         document.dispatchEvent(new CustomEvent('refreshUI'));
       }
     });
-    tdAction.appendChild(refreshBtn);
+    // tdAction.appendChild(refreshBtn); // Temporarily disabled bundleRefresh. Rewrite handleUpload to preserve original bundle file. 
     tdAction.appendChild(document.createTextNode(" | "));
     tdAction.appendChild(delBtn);
     tr.append(tdName, tdId, tdTotal, tdActive, tdAction);
