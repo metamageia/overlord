@@ -1,5 +1,5 @@
 import { updateMasterYamlData, masterYamlData, DEFAULT_STATS, hiddenStats } from "./yamlDataState.mjs";
-import {updateUIFromMasterYaml, updateYamlTextArea, updateMasterYamlDataFromUI} from "./masterYamlData.mjs";
+import {updateUIFromMasterYaml, updateYamlTextArea, updateMasterYamlDataFromUI, uiFieldChanged} from "./masterYamlData.mjs";
 import { currentSortDirection, currentSortField, setCurrentSortDirection, setCurrentSortField, toggleSortDirection } from "./libraryUtilities.mjs";
 import { statblocks, uploadedBundles, favoritesMap, deleteStatblock, saveToLocalStorage, initSearch } from "./libraryData.mjs";
 import { matchesStringQuery, matchesNumericQuery } from "./utilityFunctions.mjs";

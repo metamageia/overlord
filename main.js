@@ -1,5 +1,5 @@
 import { masterYamlData, updateMasterYamlData, resetMasterYamlData, hiddenStats, DEFAULT_STATS } from "./js/yamlDataState.mjs";
-import { updateYamlTextArea, updateMasterYamlDataFromYaml, updateUIFromMasterYaml, updateMasterYamlDataFromUI, uiFieldChanged } from "./js/masterYamlData.mjs";
+import { updateYamlTextArea, updateMasterYamlDataFromYaml, updateUIFromMasterYaml, updateMasterYamlDataFromUI, uiFieldChanged, addDeed, addFeature } from "./js/masterYamlData.mjs";
 import { updateRenderedStatblock, renderDefaultDetail } from "./js/statblockRender.mjs";
 import { statblocks, uploadedBundles, loadFromLocalStorage, saveToLocalStorage, loadUploadedBundles, saveUploadedBundles, exportBackup, importBackup, clearLocalStorage, initSearch, } from "./js/libraryData.mjs";
 import { handleUpload, renderCreateBundleList, renderBundleList, downloadCurrentBundle, mergeSelectedBundles, getBundleName, confirmOverwrite, cancelOverwrite, fillManageMergeSelect, renderUploadedBundles, cbFilterName, cbFilterBundle, cbFilterLV, cbFilterRole, cbFilterTR, cbFilterTemplate, cbFilterType, bundleList} from './js/bundleManagement.mjs';
@@ -8,7 +8,6 @@ import { decodeStatblockData, encodeStatblockData,exportCurrentDetail } from "./
 import { renderStatblockLibrary, updateSelectedRow, currentFilteredList, saveToLibrary, showManageStatsModal, closeManageStatsModal, selectedStatblockID, currentDetail, setCurrentDetail, setSelectedStatblockID, addCustomStat } from "./js/libraryBrowser.mjs";
 import { toggleSidebar, toggleBundlesSidebar, setInitialSidebarVisibility, initBundlePanels, switchSidebarTab, switchBundlesTab, initResizeHandlers } from "./js/uiControllers.mjs";
 import { renderComponentsList, } from './js/componentManagement.mjs';
-import { addDeed, addFeature} from './js/masterYamlData.mjs'
 
 /************************************************
  * Global Variables
