@@ -414,22 +414,7 @@ function renderDeedComponent(component, container) {
   container.appendChild(deedDiv);
 }
 
-// Render generic component
-function renderGenericComponent(component, container) {
-  const genericDiv = document.createElement("div");
-  genericDiv.classList.add("generic-preview");
-  
-  genericDiv.innerHTML = `
-    <div class="statblock-section">
-      <h3>${component.type || "Component"}</h3>
-      <div class="generic-content">
-        <pre style="white-space: pre-wrap; font-family: inherit;">${component.yaml}</pre>
-      </div>
-    </div>
-  `;
-  
-  container.appendChild(genericDiv);
-}
+
 
 // Update rendering function to include checkboxes for selection
 export function renderComponentsList() {
