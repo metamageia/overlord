@@ -1,7 +1,7 @@
 import { masterYamlData, updateMasterYamlData, resetMasterYamlData, hiddenStats, DEFAULT_STATS } from "./js/yamlDataState.mjs";
 import { updateYamlTextArea, updateMasterYamlDataFromYaml, updateUIFromMasterYaml, updateMasterYamlDataFromUI, uiFieldChanged, addDeed, addFeature } from "./js/masterYamlData.mjs";
 import { updateRenderedStatblock, renderDefaultDetail } from "./js/statblockRender.mjs";
-import { statblocks, uploadedBundles, loadFromLocalStorage, saveToLocalStorage, loadUploadedBundles, saveUploadedBundles, exportBackup, importBackup, clearLocalStorage, initSearch, } from "./js/libraryData.mjs";
+import { statblocks, uploadedBundles, loadFromLocalStorage, saveToLocalStorage, loadUploadedBundles, saveUploadedBundles, exportBackup, importBackup, clearLocalStorage, initSearch, statblockComponents} from "./js/libraryData.mjs";
 import { handleUpload, renderCreateBundleList, renderBundleList, downloadCurrentBundle, mergeSelectedBundles, getBundleName, confirmOverwrite, cancelOverwrite, fillManageMergeSelect, renderUploadedBundles, cbFilterName, cbFilterBundle, cbFilterLV, cbFilterRole, cbFilterTR, cbFilterTemplate, cbFilterType, addToBundleList, clearBundleList} from './js/bundleManagement.mjs';
 import { matchesNumericQuery, matchesStringQuery } from './js/utilityFunctions.mjs';
 import { decodeStatblockData, encodeStatblockData,exportCurrentDetail } from "./js/shareStatblocks.mjs";
@@ -275,7 +275,8 @@ document.getElementById("description").addEventListener("input", function() {
   });
 
   document.getElementById("selectAllBundleBtn").addEventListener("click", () => {
-    let filtered = statblocks.filter(sb => {
+    // Filter statblocks
+    let filteredStatblocks = statblocks.filter(sb => {
         const matchesName = matchesStringQuery(sb.monsterName || "", cbFilterName);
         const matchesRole = matchesStringQuery(sb.role || "", cbFilterRole);
         const matchesType = matchesStringQuery(sb.type || "statblock", cbFilterType);
@@ -285,14 +286,37 @@ document.getElementById("description").addEventListener("input", function() {
         const matchesBundle = matchesStringQuery(getBundleName(sb.bundleId), cbFilterBundle);
         return matchesName && matchesRole && matchesType && matchesTemplate && matchesLV && matchesTR && matchesBundle;
     });
-    filtered = filtered.filter(sb => {
+
+    // Filter components
+    let filteredComponents = statblockComponents.filter(comp => {
+        const matchesName = matchesStringQuery(comp.name || "", cbFilterName);
+        const matchesType = matchesStringQuery(comp.type || "", cbFilterType);
+        const matchesBundle = matchesStringQuery(getBundleName(comp.bundleId), cbFilterBundle);
+        return matchesName && matchesType && matchesBundle;
+    });
+
+    // Filter out inactive bundles for both arrays
+    filteredStatblocks = filteredStatblocks.filter(sb => {
         if(sb.bundleId === undefined) return true;
         let bun = uploadedBundles.find(x => x.id === sb.bundleId);
         return bun && bun.active;
     });
-    filtered.forEach(sb => {
+
+    filteredComponents = filteredComponents.filter(comp => {
+        if(comp.bundleId === undefined) return true;
+        let bun = uploadedBundles.find(x => x.id === comp.bundleId);
+        return bun && bun.active;
+    });
+
+    // Add all filtered items to bundle list
+    filteredStatblocks.forEach(sb => {
         addToBundleList(sb);
     });
+    
+    filteredComponents.forEach(comp => {
+        addToBundleList(comp);
+    });
+
     renderBundleList();
 });
 
