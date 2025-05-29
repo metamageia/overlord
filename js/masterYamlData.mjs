@@ -2,7 +2,6 @@ import { parseDeedsStringNew } from "./utilityFunctions.mjs";
 import { masterYamlData, updateMasterYamlData, resetMasterYamlData, hiddenStats, DEFAULT_STATS } from "./yamlDataState.mjs";
 import { updateRenderedStatblock } from "./statblockRender.mjs";
 import { addStatblockComponent } from './libraryData.mjs';
-import { generateComponentID } from "./idManagement.mjs";
 
 /* ---------------------------------------------
  * MASTER YAML SYNCHRONIZATION
