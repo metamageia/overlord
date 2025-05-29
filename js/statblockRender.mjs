@@ -46,7 +46,7 @@ export function updateRenderedStatblock() {
   const descriptionElement = document.getElementById("dsb-description");
   
   if (masterYamlData.description && masterYamlData.description.trim()) {
-    descriptionElement.innerText = masterYamlData.description; // Use innerText to preserve line breaks
+    descriptionElement.textContent = masterYamlData.description;
     descriptionSection.style.display = "block";
   } else {
     descriptionSection.style.display = "none";

@@ -1406,3 +1406,17 @@ body {
   font-family: inherit;
   resize: vertical;
 }
+
+#dsb-description {
+  white-space: pre-line;
+  margin: 0;
+  line-height: 1.4;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+#dsb-description-section {
+  margin: .1em 0;
+  padding: 0;
+}
