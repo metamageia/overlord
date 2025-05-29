@@ -138,23 +138,25 @@ export function renderUploadedBundles(){
         
         // Remove the bundle from uploadedBundles
         uploadedBundles.splice(idx, 1);
-        saveToLocalStorage("bundles", uploadedBundles);
-
-        // Remove statblocks with matching bundleId from the library
-        const newStatblocks = statblocks.filter(sb => sb.bundleId !== bundleId);
-        if (newStatblocks.length !== statblocks.length) {
-          statblocks = newStatblocks;
-          saveToLocalStorage("statblocks", statblocks);
+        
+        // Clear all statblocks with this bundleId using splice to modify array in place
+        for(let i = statblocks.length - 1; i >= 0; i--) {
+          if(statblocks[i].bundleId === bundleId) {
+            statblocks.splice(i, 1);
+          }
         }
         
-        // Remove components with matching bundleId from the library
-        const newComponents = statblockComponents.filter(comp => comp.bundleId !== bundleId);
-        if (newComponents.length !== statblockComponents.length) {
-          statblockComponents.length = 0; // Clear the array
-          newComponents.forEach(comp => statblockComponents.push(comp)); // Add filtered items back
-          saveToLocalStorage("components", statblockComponents);
+        // Clear all components with this bundleId using splice to modify array in place  
+        for(let i = statblockComponents.length - 1; i >= 0; i--) {
+          if(statblockComponents[i].bundleId === bundleId) {
+            statblockComponents.splice(i, 1);
+          }
         }
+    
+        // Save all changes at once
+        saveToLocalStorage();
         
+        // Refresh UI
         document.dispatchEvent(new CustomEvent('refreshUI'));
       }
     });
