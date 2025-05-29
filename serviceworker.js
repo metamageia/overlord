@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v2.0.3";
+const CACHE_VERSION = "v2.0.4";
 const CACHE_NAME = "pwa-cache-" + CACHE_VERSION;
 const ASSETS = [
     "index.html",
