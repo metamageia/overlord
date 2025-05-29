@@ -1,0 +1,264 @@
+[
+  {
+    "monsterName": "Targel Crooktooth",
+    "role": "Stalker",
+    "template": "",
+    "level": "1",
+    "hp": "30",
+    "init": "14",
+    "acc": "16",
+    "grd": "14",
+    "res": "12",
+    "roll": "+4",
+    "spd": "5",
+    "features": {
+      "Belongings": [
+        "Hatchet (d6/melee, missile 4/Confer frail 2)",
+        "Leather Armor (L/+1 AR/d6)",
+        "Bracers (L/+1 AR/d8)",
+        "Statuette of the Grand Geist (treasure, 1 value, made of white quartz)",
+        "Bag of Copper Coins (treasure, 1 value)"
+      ]
+    },
+    "lightDeeds": "HATCHET\nMELEE ATTACK VS. GUARD\nTarget: 1 creature | Range: 1\nHit: Deal 2d6 damage.\nSpark: Confer frail 2.",
+    "heavyDeeds": "TWIN KNIVES\nMISSILE ATTACK VS. GUARD\nTarget: 2 creatures | Range: 4\nBase: Deal 2d6 damage.\nHit: Confer bleeding 2.",
+    "mightyDeeds": "POISONED EDGE\nMELEE ATTACK VS. GUARD\nTarget: 1 creature | Range: 1\nBase: Deal 2d6 damage.\nHit: Confer poisoned 4.",
+    "statblockID": "df2fcff1",
+    "bundleId": "34a3efc3"
+  },
+  {
+    "monsterName": "Barrel Corpse",
+    "role": "Enforcer",
+    "template": "",
+    "level": "1",
+    "hp": "20",
+    "init": "12",
+    "acc": "14",
+    "grd": "12",
+    "res": "14",
+    "roll": "+6",
+    "spd": "4",
+    "features": {
+      "Sluggish": "This creature only gains two action points on its turn, and its movement speed is reduced.",
+      "Squishy": "This creature has significantly less hit points than a normal one of its level.",
+      "Weakling": "This creature's damage dice are one size smaller than normal."
+    },
+    "lightDeeds": "SCRATCH\nMELEE ATTACK VS. GUARD\nTarget: 1 creature | Range: 1\nHit: Deal 2d6 damage.\nSolid: Confer grappled 2.",
+    "heavyDeeds": "DEADLY BITE\nMELEE ATTACK VS. GUARD\nTarget: 1 creature | Range: 1\nBase: Deal 2d6 damage.",
+    "statblockID": "c3988f82",
+    "bundleId": "34a3efc3"
+  },
+  {
+    "monsterName": "Animated Plume",
+    "role": "Harrier",
+    "template": "",
+    "level": "1",
+    "hp": "20",
+    "init": "16",
+    "acc": "14",
+    "grd": "14",
+    "res": "12",
+    "roll": "+2",
+    "spd": "6",
+    "features": {
+      "Flying": "This creature jumps instead of moving normally. When missed by an attack, it can spend a reaction to move half its speed."
+    },
+    "lightDeeds": "GO FOR THE EYES\nMELEE ATTACK VS. GUARD\nTarget: 1 creature | Range: 1\nHit: Deal 1d6 damage.\nShadow: Confer blinded 2.",
+    "statblockID": "f97c8409",
+    "bundleId": "34a3efc3"
+  },
+  {
+    "monsterName": "Skeletal Guard",
+    "role": "Guardian",
+    "template": "",
+    "level": "1",
+    "hp": "30",
+    "init": "12",
+    "acc": "14",
+    "grd": "16",
+    "res": "14",
+    "roll": "+4",
+    "spd": "5",
+    "features": {
+      "Belongings": [
+        "Longsword (d8/melee/Confer unguarded 2)",
+        "Round Shield (+1 AR/d8)",
+        "A key to the laboratory (in ribcage)"
+      ]
+    },
+    "lightDeeds": "ANCIENT SWORD\nMELEE ATTACK VS. GUARD\nTarget: 1 creature | Range: 1\nHit: Deal 2d6 damage.\nShadow: Confer bleeding 4.",
+    "heavyDeeds": "SHIELD BASH\nMELEE ATTACK VS. GUARD\nTarget: 1 creature | Range: 1\nBase: Deal 2d6 damage.\nHit: Shove 2. Confer toppled 2.",
+    "statblockID": "acc1c7b0",
+    "bundleId": "34a3efc3"
+  },
+  {
+    "monsterName": "Withered Harpy",
+    "role": "Harrier",
+    "level": 1,
+    "hp": 20,
+    "spd": 6,
+    "init": 16,
+    "acc": 14,
+    "grd": 14,
+    "res": 12,
+    "roll": "+2",
+    "features": {
+      "Flying": "This creature jumps instead of moving normally. When missed by an attack, it can spend a reaction to move half its speed."
+    },
+    "lightDeeds": "TALON\nMELEE ATTACK VS. GUARD\nTarget: 1 creature | Range: 1\nHit: Deal 2d6 damage.\n",
+    "heavyDeeds": "RENDING SWOOP\nMELEE ATTACK VS. GUARD\nStart: Jump 6 | Target: One creature passed through.\nBase: Deal 1d6 damage.\nHit: Add 1d6 damage. Confer bleeding 2.\n",
+    "mightyDeeds": "SCREECH\nINNATE ATTACK VS. RESIST\nArea: Close spread 2\nBase: Deal 1d6 damage.\nHit: The target loses two action points at the start of its next turn.\nSpecial: Other harpies are immune to this deed.\n",
+    "statblockID": "7d68ad12",
+    "bundleId": "34a3efc3"
+  },
+  {
+    "monsterName": "Nightmare Mule",
+    "role": "Hellion",
+    "level": 1,
+    "hp": 30,
+    "spd": 6,
+    "init": 14,
+    "acc": 16,
+    "grd": 12,
+    "res": 16,
+    "roll": "+2",
+    "features": {
+      "Large": "This creature occupies a 2x2 area. It counts as a wall for line of sight. It can resist forced movement by half."
+    },
+    "lightDeeds": "HOOF KICK\nMELEE ATTACK VS. GUARD\nTarget: 1 creature | Range: 1\nHit: Deal 2d8 damage.\nShadow: Push 1. Confer prone 4.\n",
+    "heavyDeeds": "TRAMPLE\nMELEE ATTACK VS. GUARD\nStart: Jump 6 | Target: Each creature jumped through.\nBase: Deal 1d8 damage.\nHit: Add 1d8 damage. Confer prone.\n",
+    "statblockID": "039fdd33",
+    "bundleId": "34a3efc3"
+  },
+  {
+    "monsterName": "The Laughing Hound",
+    "role": "Hellion",
+    "level": 2,
+    "hp": 50,
+    "spd": 6,
+    "init": 14,
+    "acc": 16,
+    "grd": 12,
+    "res": 16,
+    "roll": "+2",
+    "features": {
+      "Large": "This creature occupies a 2x2 area. It counts as a wall for line of sight. It can resist forced movement by half."
+    },
+    "lightDeeds": "DEADLY BITE\nMELEE ATTACK VS. GUARD\nTarget: 1 creature\nHit: Deal 2d6 damage.\nShadow: Add 1d6 damage.\n",
+    "heavyDeeds": "DEADLY BITE\nMELEE ATTACK VS. GUARD\nTarget: 1 creature\nBase: Deal 2d6 damage.\nShadow: Add 2d6 damage.\n",
+    "mightyDeeds": "GREEN FLAME BREATH\nINNATE ATTACK VS. RESIST\nArea: Close blast 2\nBase: Deal 1d6 damage.\nHit: Confer burning 1.\n",
+    "statblockID": "b1f374cf",
+    "bundleId": "34a3efc3"
+  },
+  {
+    "monsterName": "Chirping Herald",
+    "role": "Harrier",
+    "level": 2,
+    "hp": 30,
+    "spd": 6,
+    "init": 16,
+    "acc": 14,
+    "grd": 14,
+    "res": 12,
+    "roll": "+2",
+    "lightDeeds": "TAINTED CLAW\nMELEE ATTACK VS. GUARD\nTarget: 1 creature\nHit: Deal 1d6 damage. Confer poisoned 2.\nShadow: Confer poisoned 4 instead.\n",
+    "heavyDeeds": "SPINE SHOT\nMISSILE ATTACK VS. GUARD\nTarget: 1 creature | Range: 6\nBase: Deal 1d6 damage.\nHit: Add 1d6 damage. Confer bleeding 2.\n",
+    "mightyDeeds": "DRINK BLOOD\nMELEE ATTACK VS. GUARD\nTarget: 1 creature | Range: 1\nBase: Deal 1d6 damage. Regain hit points equal to the damage dealt.\nHit: Add 2d6 damage.\n",
+    "statblockID": "0e628361",
+    "bundleId": "34a3efc3"
+  },
+  {
+    "monsterName": "Crawling Limb",
+    "role": "Harrier",
+    "template": "Underling",
+    "level": 1,
+    "hp": 1,
+    "spd": 5,
+    "init": 16,
+    "acc": 14,
+    "grd": 14,
+    "res": 12,
+    "roll": "+2",
+    "lightDeeds": "BASH\nMELEE ATTACK VS. GUARD\nTarget: 1 creature\nHit: Deal 2d4 damage.\nShadow: Confer grappled 2.\n",
+    "statblockID": "86018a2f",
+    "bundleId": "34a3efc3"
+  },
+  {
+    "monsterName": "Ambush Slime",
+    "role": "Stalker",
+    "level": 1,
+    "hp": 30,
+    "spd": 5,
+    "init": 12,
+    "acc": 14,
+    "grd": 12,
+    "res": 14,
+    "roll": "+6",
+    "features": {
+      "Dissolve Weapons": "After any melee attack deed, the attacker must make a depletion check for their weapon. Magic weapons are unaffected.",
+      "Dissolve Armor": "Any creature that spends an armor die to reduce damage from this creature's attack must make a depletion check for that armor piece."
+    },
+    "lightDeeds": "CAUSTIC SLAP\nMELEE ATTACK VS. RESIST\nTarget: 1 creature | Range: 1\nHit: Deal 2d6 damage.\nShadow: Break one armor die. The defender must make a depletion check for that armor piece.\n",
+    "heavyDeeds": "ACIDIC GLOBULE\nINNATE ATTACK | POISON\nTarget: 1 creature | Range: 4\nBase: Deal 1d6 damage. Confer frail 2.\nHit: Add 1d6 damage. Confer frail 4 instead.\n",
+    "statblockID": "50fcccc8",
+    "bundleId": "34a3efc3"
+  },
+  {
+    "monsterName": "Champion of Senerath",
+    "role": "Hellion",
+    "level": 1,
+    "hp": 40,
+    "spd": 6,
+    "init": 14,
+    "acc": 16,
+    "grd": 12,
+    "res": 14,
+    "roll": "+2",
+    "lightDeeds": "TWISTED AXE\nMELEE ATTACK VS. GUARD\nTarget: 1 creature | Range: 1\nHit: Deal 2d8 damage.\nShadow: Confer frail 2.\n",
+    "heavyDeeds": "CLEAVING SWING\nMELEE ATTACK VS. GUARD\nArea: Close spread 1\nBase: Deal 1d8 damage.\nHit: Add 1d8 damage. Push 2. Confer toppled.\n",
+    "mightyDeeds": "CHAMPION'S LEAP\nMELEE ATTACK VS. GUARD\nStart: Jump 6 | Target: 1 creature jumped through\nBase: Deal 1d10 damage. Gain strong 2.\nHit: Add 1d10 damage. Gain strong 4 instead.\n",
+    "statblockID": "aa89b13b",
+    "bundleId": "34a3efc3"
+  },
+  {
+    "monsterName": "Stitch Knight",
+    "role": "Enforcer",
+    "level": 1,
+    "hp": 40,
+    "spd": 5,
+    "init": 12,
+    "acc": 14,
+    "grd": 12,
+    "res": 14,
+    "roll": "+4",
+    "features": {
+      "Pin Down": "When a creature willingly moves out of its melee range, this creature can spend a reaction to attempt a light melee attack deed against it. On a hit, the target's movement points are set to 0.",
+      "Belongings": [
+        "Greatsword (d10/melee, confer unguarded 2)",
+        "Great Helm (H/+2/d10). It is fused to the knight, but Tinkering might help remove it. On the forehead is the icon of a worm wrapped around an eye."
+      ]
+    },
+    "lightDeeds": "GREATSWORD\nMELEE ATTACK VS. GUARD\nTarget: 1 creature | Range: 1\nHit: Deal 2d10 damage.\nShadow: Confer unguarded 2.\n",
+    "heavyDeeds": "GRASP OF STITCHING\nINNATE ATTACK VS. RESIST\nTarget: 1 creature | Range: 4\nBase: Deal 1d6 damage. Pull 4.\nHit: Add 1d6 damage. Confer grappled 4.\n",
+    "mightyDeeds": "WILD CLEAVE\nMELEE ATTACK VS. GUARD\nArea: Close spread 1\nBase: Deal 1d10 damage. Push 1.\nHit: Add 1d10 damage. Confer prone.\n",
+    "statblockID": "5740b3ea",
+    "bundleId": "34a3efc3"
+  },
+  {
+    "monsterName": "Beast Man",
+    "role": "Hellion",
+    "template": "Underling",
+    "level": 1,
+    "hp": 1,
+    "spd": 6,
+    "init": 14,
+    "acc": 16,
+    "grd": 12,
+    "res": 14,
+    "roll": "+2",
+    "lightDeeds": "TWISTED AXE\nMELEE ATTACK VS. GUARD\nTarget: 1 creature | Range: 1\nHit: Deal 2d6 damage.\nShadow: Confer frail 2.\n",
+    "heavyDeeds": "BLINDING SPIT\nINNATE ATTACK VS. RESIST\nTarget: 1 creature | Range: 4\nBase: Confer inaccurate 2.\nHit: Confer inaccurate 4 instead.\n",
+    "statblockID": "d157b0b4",
+    "bundleId": "34a3efc3"
+  }
+]
