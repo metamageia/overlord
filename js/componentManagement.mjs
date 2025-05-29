@@ -1,8 +1,10 @@
 import { statblockComponents, favoritesMap, saveToLocalStorage, addStatblockComponent, deleteStatblockComponent } from './libraryData.mjs';
 import { matchesStringQuery, parseDeedsStringNew } from './utilityFunctions.mjs';
-import { masterYamlData, updateMasterYamlData } from './yamlDataState.mjs';
-import { updateUIFromMasterYaml, updateMasterYamlDataFromUI } from './masterYamlData.mjs';
+import { masterYamlData,  } from './yamlDataState.mjs';
+import { updateUIFromMasterYaml,  } from './masterYamlData.mjs';
 import { getBundleName } from './bundleManagement.mjs';
+import { updateRenderedStatblock } from "./statblockRender.mjs";
+
 
 // Global variables
 let currentSortField = "name";
@@ -211,7 +213,7 @@ function renderComponentPreview(components) {
   const applyBtn = document.createElement("button");
   applyBtn.textContent = `Apply ${components.length} Component${components.length > 1 ? 's' : ''}`;
   applyBtn.className = "action-btn apply-component-btn";
-  applyBtn.addEventListener("click", () => applyComponentsToStatblock(components));
+  applyBtn.addEventListener("click", () => applyComponentsToStatblock(components), updateRenderedStatblock);
   
   // Add Save as Preset button
   const savePresetBtn = document.createElement("button");
