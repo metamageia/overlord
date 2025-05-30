@@ -743,7 +743,7 @@ function renderCoreBundlesList(bundleFiles) {
 // Function to handle adding a core bundle
 async function addCoreBundle(filename) {
   try {
-    const response = await fetch(`./core-bundles/${filename}`);
+    const response = await fetch(`../core-bundles/${filename}`);
     const blob = await response.blob();
     
     // Create a File object from the blob
