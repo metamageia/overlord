@@ -14,6 +14,7 @@ export let cbFilterBundle = "";
 export let cbFilterType = "";
 
 export let bundleList = [];
+const basePath = window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname + '/';
 
 // Add these new functions to manage bundleList
 export function clearBundleList() {
