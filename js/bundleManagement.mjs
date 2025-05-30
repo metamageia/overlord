@@ -707,12 +707,15 @@ function renderCoreBundlesList(bundleFiles) {
   
   container.innerHTML = '';
   
-  if (!bundleFiles.length) {
+  // Filter out index.json from the bundle files
+  const displayFiles = bundleFiles.filter(filename => filename !== 'index.json');
+  
+  if (!displayFiles.length) {
     container.innerHTML = '<p>No core bundles available.</p>';
     return;
   }
   
-  bundleFiles.forEach(filename => {
+  displayFiles.forEach(filename => {
     const item = document.createElement('div');
     item.className = 'core-bundle-item';
     
