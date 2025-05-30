@@ -81,25 +81,13 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/serviceworker.js')
-    .then(registration => {
-      // Check for updates
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-        newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            // New content is available, show refresh button/notification
-            if (confirm('New version available! Reload to update?')) {
-              window.location.reload();
-            }
-          }
-        });
-      });
-    });
-
-  // Check for updates when page loads
-  navigator.serviceWorker.ready.then(registration => {
-    registration.update();
+  // Get the base path from current location
+  const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+  
+  navigator.serviceWorker.register('./serviceworker.js', {
+    scope: basePath
+  }).catch(error => {
+    console.error('Service Worker registration failed:', error);
   });
 }
 

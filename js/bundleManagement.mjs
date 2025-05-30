@@ -691,7 +691,7 @@ export function cancelOverwrite() {
 // Function to load core bundles list
 export async function loadCoreBundles() {
   try {
-    const response = await fetch('./core-bundles/');
+    const response = await fetch('../core-bundles/');
     const text = await response.text();
     
     // Create a temporary element to parse the directory listing

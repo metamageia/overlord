@@ -1,10 +1,10 @@
 const CACHE_VERSION = "v2.0.5";
 const CACHE_NAME = "pwa-cache-" + CACHE_VERSION;
 const ASSETS = [
-    "index.html",
-    "main.js",
-    "styles.css",
-    "manifest.json"
+    "./index.html",
+    "./main.js",
+    "./styles.css",
+    "./manifest.json"
 ];
 
 // Install event - cache assets
