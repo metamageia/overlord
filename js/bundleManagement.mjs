@@ -692,18 +692,8 @@ export function cancelOverwrite() {
 // Function to load core bundles list
 export async function loadCoreBundles() {
   try {
-    const response = await fetch(`./core-bundles/`);
-    const text = await response.text();
-    
-    // Create a temporary element to parse the directory listing
-    const temp = document.createElement('div');
-    temp.innerHTML = text;
-    
-    // Get all links that end with .json
-    const bundleFiles = Array.from(temp.getElementsByTagName('a'))
-      .filter(a => a.href.toLowerCase().endsWith('.json'))
-      .map(a => a.href.split('/').pop());
-    
+    const response = await fetch('./core-bundles/index.json');
+    const bundleFiles = await response.json();
     renderCoreBundlesList(bundleFiles);
   } catch (error) {
     console.error('Error loading core bundles:', error);
