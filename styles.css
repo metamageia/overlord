@@ -133,20 +133,30 @@ body {
 }
 
 /* -------------------------------
-   Removed: Resize handle CSS (no sidebar resizing)
-------------------------------- 
+   Resize handle CSS (no sidebar resizing)
+------------------------------- */
 .resize-handle {
-  position: absolute;
+  position: absolute; /* Keep as absolute, not fixed */
   top: 0;
   bottom: 0;
-  width: 5px;
+  width: 8px;
   cursor: ew-resize;
   background: rgba(0,0,0,0.1);
   z-index: 10;
+  height: 100%; /* Full height of container */
 }
-#leftResizeHandle { right: 0; }
-#rightResizeHandle { left: 0; }
-*/
+.resize-handle:hover {
+  background: rgba(0,0,0,0.2);
+}
+.resize-handle.active {
+  background: rgba(0,0,0,0.3);
+}
+#leftResizeHandle { 
+  right: 0; /* Position at right edge of sidebar */
+}
+#rightResizeHandle { 
+  display: none; /* Hidden as requested */
+}
 
 /* -------------------------------
    LEFT SIDEBAR CONTENT
@@ -371,14 +381,19 @@ body {
   margin: 5px 0 10px;
 }
 .dynamic-feature,
+.dynamic-deed,
+.dynamic-line {
+  display: flex;
+  align-items: center;
+}
 .dynamic-deed {
-  border: 1px solid #333;
-  background: #f7f7f7;
-  padding: 5px;
-  margin-bottom: 10px;
+  display: flex;
   position: relative;
-  width: 100%;
-  box-sizing: border-box;
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f9f9f9;
 }
 .dynamic-deed.light {
   background: #e0f7fa;
@@ -407,8 +422,8 @@ body {
 }
 .delete-deed-btn {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 5px;
+  right: 5px;
 }
 .small-btn {
   padding: 2px 4px;
@@ -430,20 +445,100 @@ body {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  margin: 10px 0;
+  margin: 5px 0;
+  width: 100%;
 }
 .dynamic-line {
   display: flex;
-  gap: 5px;
+  align-items: flex-start;
+  position: relative;
+  padding: 8px 30px 8px 8px; /* Space for delete button on right */
+  margin-bottom: 8px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.line-top-row {
+  display: flex;
   align-items: center;
+  width: 100%;
+  margin-bottom: 5px;
+}
+.line-bottom-row {
+  width: 100%;
 }
 .line-title {
-  width: 40%;
-  padding: 3px;
+  width: 100%;
+  font-weight: 500;
 }
 .line-content {
-  width: 50%;
-  padding: 3px;
+  width: 100%;
+  padding: 6px;
+}
+.line-reorder-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-right: 8px;
+  padding-top: 2px; /* Align vertically with the title input */
+}
+.reorder-btn {
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  line-height: 1;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+.reorder-btn:hover {
+  background: #e0e0e0;
+}
+.reorder-btn.line-up-btn, 
+.reorder-btn.line-down-btn {
+  width: 18px;
+  height: 18px;
+  font-size: 9px;
+  padding: 0;
+}
+.delete-btn {
+  position: absolute;
+  right: 5px;
+  top: 8px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.line-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 5px;
+}
+.deed-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: 10px;
+}
+.deed-title-row {
+  display: flex;
+  width: 100%;
+  margin-bottom: 5px;
+}
+.deed-title-input {
+  width: 100%;
+  font-weight: bold;
+  padding: 5px;
 }
 
 /* -------------------------------
@@ -792,6 +887,17 @@ body {
   .statblock, .save-export-box, .share-box, .decode-box {
     max-width: 90%;
   }
+  .sidebar, .bundles-sidebar {
+    width: 80% !important; /* Override any inline styles */
+    left: 10% !important;
+    right: 10% !important;
+  }
+  
+  .content {
+    width: 90% !important; /* Override any inline styles */
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
 }
 /* Small devices (phones, max-width: 480px) */
 @media (max-width: 480px) {
@@ -838,17 +944,23 @@ body {
      New width = 560px * 1.15 = 644px */
   .content {
     width: 644px;
+    transition: width 0.1s, margin 0.1s;
+    max-width: 644px;
   }
   /* Update left sidebar to align with the new content width */
   .sidebar {
     left: 10px;
     width: calc(((100% - 644px) / 2) - 12px);
+    transition: width 0.1s;
+    min-width: 200px;
   }
   /* Update right sidebar so it begins 2px after the content and extends flush to the viewport’s right edge */
   .bundles-sidebar {
     left: calc(((100% - 644px) / 2) + 644px + 2px);
     right: 0;
     width: auto;
+    transition: width 0.1s;
+    min-width: 200px;
   }
   /* Ensure the stat block container fills the content container */
   .statblock {
@@ -944,4 +1056,367 @@ body {
 .basic-stats-row.custom-stats-row .basic-stat-card {
   flex: 1 1 calc(25% - 10px);
   min-width: 80px;
+}
+/* -------------------------------
+   COMPONENTS TABLE STYLES
+------------------------------- */
+#componentsListTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+#componentsListTable th,
+#componentsListTable td {
+  padding: 4px 8px;
+  border: 1px solid #333;
+  font-size: 0.9em;
+  text-align: left;
+  word-wrap: break-word;
+}
+
+#componentsListTable thead tr:nth-child(1) th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #333;
+  color: #fff;
+  cursor: pointer;
+}
+
+#componentsListTable thead tr:nth-child(2) td {
+  position: sticky;
+  top: 30px;
+  z-index: 2;
+  background: #eee;
+}
+
+#componentsListTable tbody tr:hover {
+  background-color: #e9e9e9;
+  cursor: pointer;
+}
+
+/* Make sure components panel has proper scroll */
+#bundlesComponentsPanel {
+  overflow-y: auto;
+  max-height: calc(100vh - 140px);
+}
+
+/* Save component button */
+.save-component-btn {
+  margin-left: 10px;
+  background-color: #e1f5fe;
+  border: 1px solid #81d4fa;
+}
+
+.save-component-btn:hover {
+  background-color: #b3e5fc;
+}
+
+.deed-button-container {
+  display: flex;
+  margin-top: 5px;
+}
+
+/* Feature component button containers */
+.feature-button-container {
+  display: flex;
+  margin-top: 5px;
+}
+
+.feature-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  margin-right: 20px;
+}
+
+.feature-title-input {
+  margin-bottom: 5px;
+}
+
+/* Components Table Styles - Matching Library Table */
+#componentsTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+#componentsTable th,
+#componentsTable td {
+  padding: 4px 8px;
+  font-size: 0.9em;
+  text-align: left;
+  word-wrap: break-word;
+}
+
+#componentsTable thead tr:nth-child(1) th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #333;
+  color: #fff;
+  cursor: pointer;
+}
+
+#componentsTable thead tr:nth-child(2) td {
+  position: sticky;
+  top: 30px;
+  z-index: 2;
+  background: #eee;
+}
+
+#componentsTable tbody tr {
+  cursor: pointer;
+}
+
+#componentsTable tbody tr:hover {
+  background-color: #e9e9e9;
+}
+
+#componentsTable tbody tr.selected {
+  background-color: #e6f7ff;
+}
+
+#componentsListContainer {
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
+  width: 100%;
+  outline: none; /* Hide focus outline but keep it focusable */
+}
+
+/* Component total line styling */
+.library-total-line {
+  font-size: 0.9em;
+  padding: 5px 0;
+  opacity: 0.9;
+  text-align: right;
+  margin-right: 10px;
+}
+
+/* Component Preview Styling */
+#componentPreviewSection {
+  margin-top: 12px;
+  border-top: 1px solid #ccc;
+  padding-top: 8px;
+}
+
+#componentPreviewContainer {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  padding: 8px;
+  margin-top: 5px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+#defaultComponentPreview {
+  text-align: center;
+  color: #888;
+  padding: 10px;
+}
+
+.statblock-preview {
+  font-size: 0.9em;
+}
+
+/* More compact deed styling */
+.deed-compact .deed {
+  border: 1px solid #333;
+  background: #fff;
+  padding: 5px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: 350px;
+}
+
+.deed-compact .deed-header {
+  font-weight: bold;
+  margin-bottom: 1px;  /* Reduced from 2px */
+  font-size: 0.9em;
+  padding: 3px 5px;  /* Reduced padding */
+  margin: -4px -4px 1px -4px;  /* Match the reduced padding of parent */
+}
+
+.deed-compact .deed-title-output {
+  font-weight: bold;
+  font-size: 1.05em;
+  margin: 0 0 1px 0;  /* Reduced from 2px bottom margin */
+  padding: 0;
+  line-height: 1.2;  /* Add tighter line height */
+}
+
+.deed-compact .deed-separator {
+  border: 0;
+  border-top: 1px solid #ccc;
+  margin: 0 0 1px 0;  /* Reduced from 2px 0 3px */
+  padding: 0;
+}
+
+.deed-compact .line-indent {
+  margin-bottom: 1px;  /* Reduced from 2px */
+  line-height: 1.2;  /* Tighter line height */
+}
+
+/* Adjust the height of the components list when preview is shown */
+#componentsListContainer {
+  max-height: calc(100vh - 450px);
+}
+
+/* Make the components panel scrollable */
+#bundlesComponentsPanel {
+  overflow-y: auto;
+}
+
+/* Add to the existing CSS */
+
+/* Styling for component selection */
+.selection-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.selection-actions button {
+  padding: 4px 8px;
+  font-size: 0.9em;
+}
+
+#componentsSelected {
+  margin-left: 15px;
+  font-weight: bold;
+}
+
+.component-preview-item {
+  margin-bottom: 12px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+}
+
+.component-preview-header {
+  font-weight: bold;
+  font-size: 1.1em;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+}
+
+.component-selection-info {
+  font-weight: bold;
+  padding: 5px 0;
+  margin-bottom: 10px;
+  text-align: center;
+  border-bottom: 1px solid #ccc;
+}
+
+/* Visual indication of selected rows */
+#componentsTable tbody tr.selected {
+  background-color: #e6f7ff;
+}
+
+#componentsTable tbody tr:hover {
+  background-color: #e9e9e9;
+}
+
+#componentsTable tbody tr.selected:hover {
+  background-color: #d0e8ff;
+}
+
+/* Updated styling for component preview statblock */
+.preview-statblock {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f8f8f8;
+  padding: 12px;
+  margin-bottom: 15px;
+  font-family: inherit;
+}
+
+.preview-statblock .statblock-section {
+  margin-bottom: 15px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 10px;
+}
+
+.preview-statblock .statblock-section:last-child {
+  border-bottom: none;
+  margin-bottom: 5px;
+}
+
+/* Fix title colors to match regular statblocks */
+.preview-statblock h3 {
+  color: white;
+  font-size: 1.1em;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
+  background-color: #444;
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+.preview-statblock h4 {
+  color: #333;
+  font-size: 1em;
+  margin: 10px 0 5px 0;
+}
+
+.component-selection-info {
+  font-weight: bold;
+  padding: 5px 0;
+  margin-bottom: 10px;
+  text-align: center;
+  border-bottom: 1px solid #ccc;
+}
+
+.component-action-buttons {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.deed-list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.deed-list li {
+  margin-bottom: 5px;
+}
+
+.other-content {
+  background-color: #f2f2f2;
+  padding: 5px;
+  border-radius: 4px;
+}
+/* Update these styles to reduce padding */
+.statblock-description {
+  margin: 3px 0 8px 0;
+  padding: 0 3px;
+  font-style: italic;
+  font-size: 0.95em;
+  line-height: .1;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 1px;
+}
+
+#description {
+  width: 100%;
+  font-family: inherit;
+  resize: vertical;
+}
+
+#dsb-description {
+  white-space: pre-line;
+  margin: 0;
+  line-height: 1.4;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+#dsb-description-section {
+  margin: .1em 0;
+  padding: 0;
 }
