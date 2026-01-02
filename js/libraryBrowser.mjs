@@ -437,6 +437,8 @@ export function closeManageStatsModal() {
 
 // Save Statblock to Library //
 export function saveToLibrary(){
+  // Confirm save so the user has a cancel option on the popup
+  if(!confirm("Save statblock to library?")) return;
   const newID = generateStatblockID(masterYamlData);
   masterYamlData.statblockID = newID;
   
