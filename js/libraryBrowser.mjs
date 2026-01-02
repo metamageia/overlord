@@ -437,22 +437,50 @@ export function closeManageStatsModal() {
 
 // Save Statblock to Library //
 export function saveToLibrary(){
-  // Confirm save so the user has a cancel option on the popup
-  if(!confirm("Save statblock to library?")) return;
+  // Show custom confirm modal with Save / Overwrite Current / Cancel
+  showSaveConfirmModal();
+}
+
+// -----------------------------
+// Save Confirm Modal Helpers
+// -----------------------------
+let pendingCurrentId = null;
+
+function showSaveConfirmModal(){
+  const modal = document.getElementById("saveConfirmModal");
+  // Store the currently loaded statblock ID (if any)
+  pendingCurrentId = currentDetail ? currentDetail.statblockID : null;
+  // Show or hide Overwrite Current button
+  const overwriteBtn = document.getElementById("saveConfirmOverwriteBtn");
+  if(!pendingCurrentId){
+    overwriteBtn.style.display = 'none';
+  } else {
+    overwriteBtn.style.display = 'inline-block';
+  }
+  modal.style.display = 'flex';
+}
+
+function hideSaveConfirmModal(){
+  document.getElementById("saveConfirmModal").style.display = 'none';
+  pendingCurrentId = null;
+}
+
+function performSave(){
   const newID = generateStatblockID(masterYamlData);
   masterYamlData.statblockID = newID;
   
-  // Check for duplicate statblock by comparing the freshly generated statblockID
+  // Check for duplicate statblock
   const duplicate = findDuplicate(masterYamlData);
   if(duplicate){
     alert("A statblock with identical content already exists. Skipping.");
+    hideSaveConfirmModal();
     return;
   }
   
-  // Remove bundleId before saving (if applicable)
+  // Remove bundleId before saving
   removeBundleIdForSave(masterYamlData);
   
-  // Update existing statblock if in edit mode, otherwise add as new
+  // Update existing or add new
   if(currentDetail && currentDetail.statblockID === newID){
     Object.assign(currentDetail, masterYamlData);
   } else {
@@ -462,14 +490,55 @@ export function saveToLibrary(){
   
   selectedStatblockID = currentDetail.statblockID;
   saveToLocalStorage();
-  
-  // Refresh the UI components and search index
   initSearch();
   renderStatblockLibrary();
   fillManageMergeSelect();
   renderUploadedBundles();
-  
+  hideSaveConfirmModal();
   alert("Statblock saved to library!");
+}
+
+function overwriteCurrent(){
+  if(!pendingCurrentId) return;
+  const idx = statblocks.findIndex(s => s.statblockID === pendingCurrentId);
+  if(idx !== -1){
+    // Preserve the target's statblockID and bundleId
+    const existingBundle = statblocks[idx].bundleId;
+    masterYamlData.statblockID = pendingCurrentId;
+    masterYamlData.bundleId = existingBundle;
+    statblocks[idx] = structuredClone(masterYamlData);
+  } else {
+    // Fallback: just add
+    statblocks.push(structuredClone(masterYamlData));
+  }
+  currentDetail = statblocks.find(s => s.statblockID === pendingCurrentId) || masterYamlData;
+  selectedStatblockID = currentDetail.statblockID;
+  saveToLocalStorage();
+  initSearch();
+  renderStatblockLibrary();
+  fillManageMergeSelect();
+  renderUploadedBundles();
+  updateMasterYamlData(structuredClone(currentDetail));
+  updateUIFromMasterYaml();
+  updateYamlTextArea();
+  updateRenderedStatblock();
+  hideSaveConfirmModal();
+  alert("Current statblock overwritten!");
+}
+
+function attachSaveConfirmHandlers(){
+  const saveBtn = document.getElementById("saveConfirmSaveBtn");
+  const overwriteBtn = document.getElementById("saveConfirmOverwriteBtn");
+  const cancelBtn = document.getElementById("saveConfirmCancelBtn");
+  if(saveBtn) saveBtn.addEventListener("click", performSave);
+  if(overwriteBtn) overwriteBtn.addEventListener("click", overwriteCurrent);
+  if(cancelBtn) cancelBtn.addEventListener("click", hideSaveConfirmModal);
+}
+
+if (document.readyState === "complete" || document.readyState === "interactive") {
+  attachSaveConfirmHandlers();
+} else {
+  document.addEventListener("DOMContentLoaded", attachSaveConfirmHandlers);
 }
 // Duplicate Check
 function findDuplicate(statblock) {
