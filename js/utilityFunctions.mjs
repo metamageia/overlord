@@ -77,3 +77,19 @@ export function matchesStringQuery(text, query) {
   return positiveMatch && negativeMatch;
 }
 
+// Convert markdown to sanitized HTML using global `marked` and `DOMPurify` when available.
+export function mdToHtml(text) {
+  if (!text && text !== 0) return "";
+  const str = String(text);
+  try {
+    if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+      const raw = marked.parse(str);
+      return DOMPurify.sanitize(raw);
+    }
+  } catch (e) {
+    console.warn("mdToHtml: markdown render failed, falling back to plain text", e);
+  }
+  // Fallback: escape HTML and convert newlines to <br>
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+}
+

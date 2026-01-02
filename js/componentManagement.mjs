@@ -1,5 +1,5 @@
 import { statblockComponents, favoritesMap, saveToLocalStorage, addStatblockComponent, deleteStatblockComponent } from './libraryData.mjs';
-import { matchesStringQuery, parseDeedsStringNew } from './utilityFunctions.mjs';
+import { matchesStringQuery, parseDeedsStringNew, mdToHtml } from './utilityFunctions.mjs';
 import { masterYamlData,  } from './yamlDataState.mjs';
 import { updateUIFromMasterYaml,  } from './masterYamlData.mjs';
 import { getBundleName } from './bundleManagement.mjs';
@@ -89,14 +89,20 @@ function renderComponentPreview(components) {
       const lines = yamlContent.split("\n");
       const title = lines[0];
       const content = lines.slice(1).join("\n");
-      
+
       const featureDiv = document.createElement("div");
       featureDiv.className = "feature";
-      featureDiv.innerHTML = `
-        <div style="margin-bottom: 10px; font-size: 0.9em;">
-          <strong>${title}:</strong> ${content}
-        </div>
-      `;
+      const wrapper = document.createElement("div");
+      wrapper.style.marginBottom = "10px";
+      wrapper.style.fontSize = "0.9em";
+      const strong = document.createElement("strong");
+      strong.textContent = `${title}:`;
+      wrapper.appendChild(strong);
+      const span = document.createElement("span");
+      span.innerHTML = mdToHtml(content);
+      wrapper.appendChild(document.createTextNode(" "));
+      wrapper.appendChild(span);
+      featureDiv.appendChild(wrapper);
       featuresContainer.appendChild(featureDiv);
     });
     
@@ -136,30 +142,43 @@ function renderComponentPreview(components) {
         parsedDeeds.forEach(deed => {
           const deedDiv = document.createElement("div");
           deedDiv.className = `deed ${color}`;
-          
-          // Build HTML similar to statblockRender.mjs
+
           const cap = color.charAt(0).toUpperCase() + color.slice(1);
-          let html = `<div class="deed-header">${cap}</div>`;
-          
+          const headerDiv = document.createElement("div");
+          headerDiv.className = "deed-header";
+          headerDiv.textContent = cap;
+          deedDiv.appendChild(headerDiv);
+
           if (deed.title) {
-            html += `<div class="deed-title-output">${deed.title.trim()}</div><hr class="deed-separator">`;
+            const titleDiv = document.createElement("div");
+            titleDiv.className = "deed-title-output";
+            titleDiv.innerHTML = mdToHtml(deed.title.trim());
+            deedDiv.appendChild(titleDiv);
+            const hr = document.createElement("hr");
+            hr.className = "deed-separator";
+            deedDiv.appendChild(hr);
           }
-          
+
           if (deed.lines && deed.lines.length) {
             deed.lines.forEach(line => {
               if (line.title) {
-                html += `<div class="line-indent" style="font-size:0.9em;">`;
+                const lineDiv = document.createElement("div");
+                lineDiv.className = "line-indent";
+                lineDiv.style.fontSize = "0.9em";
+                const strong = document.createElement("strong");
+                strong.textContent = `${line.title}:`;
+                lineDiv.appendChild(strong);
                 if (line.content) {
-                  html += `<strong>${line.title}:</strong> ${line.content}`;
-                } else {
-                  html += `<strong>${line.title}</strong>`;
+                  const span = document.createElement("span");
+                  span.innerHTML = mdToHtml(line.content);
+                  lineDiv.appendChild(document.createTextNode(" "));
+                  lineDiv.appendChild(span);
                 }
-                html += `</div>`;
+                deedDiv.appendChild(lineDiv);
               }
             });
           }
-          
-          deedDiv.innerHTML = html;
+
           deedsContainer.appendChild(deedDiv);
         });
       } catch (e) {

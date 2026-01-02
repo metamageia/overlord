@@ -25,6 +25,8 @@ OVERLORD provides a complete workflow for managing your statblocks. Whether youâ
 - **Statblock Editor**  
     Use an interactive editor to build new statblocks or modify existing ones. The editor supports an arbitrary number features and deeds, giving you plenty of flexibility in designing your monsters.
     
+  - **Markdown support:** All user text fields rendered in the statblock (description, features, deeds, custom stat values, and titles) accept basic Markdown for formatting; content is sanitized before rendering.
+    
 - **YAML Editor**  
     For users who prefer direct data manipulation, the integrated YAML editor allows you to edit, copy, and paste statblock data. 
     

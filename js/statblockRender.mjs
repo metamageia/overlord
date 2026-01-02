@@ -1,4 +1,4 @@
-import { parseDeedsStringNew } from "./utilityFunctions.mjs";
+import { parseDeedsStringNew, mdToHtml } from "./utilityFunctions.mjs";
 import { masterYamlData, updateMasterYamlData, resetMasterYamlData, hiddenStats, DEFAULT_STATS } from "./yamlDataState.mjs";
 
 /* ---------------------------------------------
@@ -19,10 +19,10 @@ export function updateRenderedStatblock() {
   document.getElementById("dsb-basicSection").style.display = "block";
 
   // Update header information
-  document.getElementById("dsb-name").textContent = masterYamlData.monsterName || "[Monster Name]";
+  document.getElementById("dsb-name").innerHTML = masterYamlData.monsterName ? mdToHtml(masterYamlData.monsterName) : "[Monster Name]";
   
   if (masterYamlData.role) {
-    document.getElementById("dsb-role").textContent = masterYamlData.role || "[Role]";
+    document.getElementById("dsb-role").innerHTML = masterYamlData.role ? mdToHtml(masterYamlData.role) : "[Role]";
     document.getElementById("dsb-role").style.display = "inline";
   } else {
     document.getElementById("dsb-role").style.display = "none";
@@ -32,7 +32,7 @@ export function updateRenderedStatblock() {
   document.getElementById("dsb-title-separator").style.display = hasTitleExtras ? "inline" : "none";
 
   if(masterYamlData.template) {
-    document.getElementById("dsb-template").textContent = " " + masterYamlData.template;
+    document.getElementById("dsb-template").innerHTML = " " + mdToHtml(masterYamlData.template);
     document.getElementById("dsb-template").style.display = "inline";
   } else {
     document.getElementById("dsb-template").style.display = "none";
@@ -45,8 +45,8 @@ export function updateRenderedStatblock() {
   const descriptionSection = document.getElementById("dsb-description-section");
   const descriptionElement = document.getElementById("dsb-description");
   
-  if (masterYamlData.description && masterYamlData.description.trim()) {
-    descriptionElement.textContent = masterYamlData.description;
+  if (masterYamlData.description && masterYamlData.description.toString().trim()) {
+    descriptionElement.innerHTML = mdToHtml(masterYamlData.description);
     descriptionSection.style.display = "block";
   } else {
     descriptionSection.style.display = "none";
@@ -79,10 +79,14 @@ export function updateRenderedStatblock() {
     masterYamlData.customStats.forEach(stat => {
       const card = document.createElement("div");
       card.className = "basic-stat-card";
-      card.innerHTML = `
-        <div class="basic-stat-header">${stat.name}</div>
-        <div class="basic-stat-value">${stat.value}</div>
-      `;
+      const header = document.createElement("div");
+      header.className = "basic-stat-header";
+      header.textContent = stat.name;
+      const value = document.createElement("div");
+      value.className = "basic-stat-value";
+      value.innerHTML = mdToHtml(stat.value);
+      card.appendChild(header);
+      card.appendChild(value);
       customStatsRow.appendChild(card);
     });
     
@@ -135,7 +139,15 @@ function renderFeatures(data){
         const d = document.createElement("div");
         d.style.marginBottom = "10px";
         d.style.fontSize = "0.9em";
-        d.innerHTML = f.content ? `<strong>${f.title}:</strong> ${f.content}` : `<strong>${f.title}</strong>`;
+        const strong = document.createElement("strong");
+        strong.textContent = f.title ? `${f.title}:` : "";
+        d.appendChild(strong);
+        if(f.content) {
+          const span = document.createElement("span");
+          span.innerHTML = mdToHtml(f.content);
+          d.appendChild(document.createTextNode(" "));
+          d.appendChild(span);
+        }
         featList.appendChild(d);
       }
     });
@@ -145,7 +157,24 @@ function renderFeatures(data){
       const d = document.createElement("div");
       d.style.marginBottom = "10px";
       d.style.fontSize = "0.9em";
-      d.innerHTML = `<strong>${k}:</strong> ${data.features[k]}`;
+      const strong = document.createElement("strong");
+      strong.textContent = `${k}:`;
+      d.appendChild(strong);
+      const val = data.features[k];
+      if(Array.isArray(val)){
+        const list = document.createElement("ul");
+        val.forEach(item => {
+          const li = document.createElement("li");
+          li.innerHTML = mdToHtml(item);
+          list.appendChild(li);
+        });
+        d.appendChild(list);
+      } else {
+        const span = document.createElement("span");
+        span.innerHTML = mdToHtml(val);
+        d.appendChild(document.createTextNode(" "));
+        d.appendChild(span);
+      }
       featList.appendChild(d);
     }
   }
@@ -167,20 +196,40 @@ function renderDeeds(data){
       if(d.title || (d.lines && d.lines.length)){
         hasDeeds = true;
         const cap = color.charAt(0).toUpperCase() + color.slice(1);
-        let html = `<div class="deed-header">${cap}</div>`;
-        if(d.title){
-          html += `<div class="deed-title-output">${d.title.trim()}</div><hr class="deed-separator">`;
-        }
-        d.lines.forEach(line => {
-          if(line.title || line.content){
-            html += `<div class="line-indent" style="font-size:0.9em;">` +
-                    (line.content ? `<strong>${line.title}:</strong> ${line.content}` : `<strong>${line.title}</strong>`) +
-                    `</div>`;
-          }
-        }); // Added missing closing brace for d.lines.forEach
         const deedDiv = document.createElement("div");
         deedDiv.className = `deed ${color}`;
-        deedDiv.innerHTML = html;
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "deed-header";
+        headerDiv.textContent = cap;
+        deedDiv.appendChild(headerDiv);
+
+        if(d.title){
+          const titleDiv = document.createElement("div");
+          titleDiv.className = "deed-title-output";
+          titleDiv.innerHTML = mdToHtml(d.title.trim());
+          deedDiv.appendChild(titleDiv);
+          const hr = document.createElement("hr");
+          hr.className = "deed-separator";
+          deedDiv.appendChild(hr);
+        }
+
+        d.lines.forEach(line => {
+          if(line.title || line.content){
+            const lineDiv = document.createElement("div");
+            lineDiv.className = "line-indent";
+            lineDiv.style.fontSize = "0.9em";
+            const strong = document.createElement("strong");
+            strong.textContent = line.title ? `${line.title}:` : "";
+            lineDiv.appendChild(strong);
+            if(line.content){
+              const span = document.createElement("span");
+              span.innerHTML = mdToHtml(line.content);
+              lineDiv.appendChild(document.createTextNode(" "));
+              lineDiv.appendChild(span);
+            }
+            deedDiv.appendChild(lineDiv);
+          }
+        });
         dsbDeeds.appendChild(deedDiv);
       }
     });
