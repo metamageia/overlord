@@ -457,11 +457,12 @@ function showSaveConfirmModal(){
   } else {
     overwriteBtn.style.display = 'inline-block';
   }
-  modal.style.display = 'flex';
+  modal.classList.add('open');
 }
 
 function hideSaveConfirmModal(){
-  document.getElementById("saveConfirmModal").style.display = 'none';
+  const modal = document.getElementById("saveConfirmModal");
+  modal.classList.remove('open');
   pendingCurrentId = null;
 }
 

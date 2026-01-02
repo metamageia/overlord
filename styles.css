@@ -851,6 +851,31 @@ body {
   cursor: pointer;
 }
 
+/* Visible/open state (use JS to toggle class 'open') */
+#saveConfirmModal.open {
+  position: fixed;
+  inset: 0;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+/* Duplicate modal open state */
+#saveDuplicateModal.open {
+  position: fixed;
+  inset: 0;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+}
+
+#saveConfirmModalContent, #saveDuplicateModalContent {
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}
+
 /* -------------------------------
    NEW: Black Title Bars for Bundles Sidebar Panels
 ------------------------------- */
