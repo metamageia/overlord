@@ -457,8 +457,6 @@ function showSaveConfirmModal(){
   } else {
     overwriteBtn.style.display = 'inline-block';
   }
-  // Clear any inline display style so CSS .open class takes effect
-  modal.style.display = '';
   modal.classList.add('open');
 }
 
@@ -541,17 +539,11 @@ function attachSaveConfirmHandlers(){
   if(overwriteBtn) overwriteBtn.addEventListener("click", overwriteCurrent);
   if(cancelBtn) cancelBtn.addEventListener("click", hideSaveConfirmModal);
 
-  // Ensure modals are hidden on initial load (defensive in case classes/styles persisted)
+  // Ensure modals are hidden on initial load (just remove class, CSS handles display)
   const saveModal = document.getElementById("saveConfirmModal");
-  if(saveModal){
-    saveModal.classList.remove('open');
-    saveModal.style.display = 'none';
-  }
+  if(saveModal) saveModal.classList.remove('open');
   const dupModal = document.getElementById("saveDuplicateModal");
-  if(dupModal){
-    dupModal.classList.remove('open');
-    dupModal.style.display = 'none';
-  }
+  if(dupModal) dupModal.classList.remove('open');
 }
 
 if (document.readyState === "complete" || document.readyState === "interactive") {
