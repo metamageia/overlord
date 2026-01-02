@@ -1,5 +1,5 @@
 import { statblocks, favoritesMap, uploadedBundles, downloadBlob, statblockComponents, addStatblockComponent, saveToLocalStorage } from './libraryData.mjs';
-import {generateStatblockID, generateBundleID,} from './idManagement.mjs';
+import {generateStatblockID, generateBundleID, generateComponentID} from './idManagement.mjs';
 import { matchesNumericQuery, matchesStringQuery } from './utilityFunctions.mjs';
 import { currentSortDirection, currentSortField, setCurrentSortDirection, setCurrentSortField, toggleSortDirection } from "./libraryUtilities.mjs";
 
@@ -324,6 +324,26 @@ export async function handleUpload() {
   if(!uploaded || (!uploaded.statblocks.length && !uploaded.components.length)){
     alert("Could not parse the uploaded file or no valid statblocks/components found");
     return;
+  }
+  
+  // Verify and generate IDs for all statblocks
+  if (uploaded.statblocks && uploaded.statblocks.length) {
+    uploaded.statblocks.forEach(sb => {
+      const derivedId = generateStatblockID(sb);
+      if (!sb.statblockID || sb.statblockID !== derivedId) {
+        sb.statblockID = derivedId;
+      }
+    });
+  }
+  
+  // Verify and generate IDs for all components
+  if (uploaded.components && uploaded.components.length) {
+    uploaded.components.forEach(comp => {
+      const derivedId = generateComponentID(comp);
+      if (!comp.componentID || comp.componentID !== derivedId) {
+        comp.componentID = derivedId;
+      }
+    });
   }
   
   // Process statblocks
