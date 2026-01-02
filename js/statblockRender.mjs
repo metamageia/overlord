@@ -1,4 +1,4 @@
-import { parseDeedsStringNew, mdToHtml } from "./utilityFunctions.mjs";
+import { parseDeedsStringNew, mdToHtml, mdToHtmlInline } from "./utilityFunctions.mjs";
 import { masterYamlData, updateMasterYamlData, resetMasterYamlData, hiddenStats, DEFAULT_STATS } from "./yamlDataState.mjs";
 
 /* ---------------------------------------------
@@ -19,10 +19,10 @@ export function updateRenderedStatblock() {
   document.getElementById("dsb-basicSection").style.display = "block";
 
   // Update header information
-  document.getElementById("dsb-name").innerHTML = masterYamlData.monsterName ? mdToHtml(masterYamlData.monsterName) : "[Monster Name]";
+  document.getElementById("dsb-name").innerHTML = masterYamlData.monsterName ? mdToHtmlInline(masterYamlData.monsterName) : "[Monster Name]";
   
   if (masterYamlData.role) {
-    document.getElementById("dsb-role").innerHTML = masterYamlData.role ? mdToHtml(masterYamlData.role) : "[Role]";
+    document.getElementById("dsb-role").innerHTML = masterYamlData.role ? mdToHtmlInline(masterYamlData.role) : "[Role]";
     document.getElementById("dsb-role").style.display = "inline";
   } else {
     document.getElementById("dsb-role").style.display = "none";
@@ -32,7 +32,7 @@ export function updateRenderedStatblock() {
   document.getElementById("dsb-title-separator").style.display = hasTitleExtras ? "inline" : "none";
 
   if(masterYamlData.template) {
-    document.getElementById("dsb-template").innerHTML = " " + mdToHtml(masterYamlData.template);
+    document.getElementById("dsb-template").innerHTML = " " + mdToHtmlInline(masterYamlData.template);
     document.getElementById("dsb-template").style.display = "inline";
   } else {
     document.getElementById("dsb-template").style.display = "none";
@@ -84,7 +84,7 @@ export function updateRenderedStatblock() {
       header.textContent = stat.name;
       const value = document.createElement("div");
       value.className = "basic-stat-value";
-      value.innerHTML = mdToHtml(stat.value);
+      value.innerHTML = mdToHtmlInline(stat.value);
       card.appendChild(header);
       card.appendChild(value);
       customStatsRow.appendChild(card);
@@ -144,7 +144,7 @@ function renderFeatures(data){
         d.appendChild(strong);
         if(f.content) {
           const span = document.createElement("span");
-          span.innerHTML = mdToHtml(f.content);
+          span.innerHTML = mdToHtmlInline(f.content);
           d.appendChild(document.createTextNode(" "));
           d.appendChild(span);
         }
@@ -165,13 +165,13 @@ function renderFeatures(data){
         const list = document.createElement("ul");
         val.forEach(item => {
           const li = document.createElement("li");
-          li.innerHTML = mdToHtml(item);
+          li.innerHTML = mdToHtmlInline(item);
           list.appendChild(li);
         });
         d.appendChild(list);
       } else {
         const span = document.createElement("span");
-        span.innerHTML = mdToHtml(val);
+        span.innerHTML = mdToHtmlInline(val);
         d.appendChild(document.createTextNode(" "));
         d.appendChild(span);
       }
@@ -206,7 +206,7 @@ function renderDeeds(data){
         if(d.title){
           const titleDiv = document.createElement("div");
           titleDiv.className = "deed-title-output";
-          titleDiv.innerHTML = mdToHtml(d.title.trim());
+          titleDiv.innerHTML = mdToHtmlInline(d.title.trim());
           deedDiv.appendChild(titleDiv);
           const hr = document.createElement("hr");
           hr.className = "deed-separator";
@@ -223,7 +223,7 @@ function renderDeeds(data){
             lineDiv.appendChild(strong);
             if(line.content){
               const span = document.createElement("span");
-              span.innerHTML = mdToHtml(line.content);
+              span.innerHTML = mdToHtmlInline(line.content);
               lineDiv.appendChild(document.createTextNode(" "));
               lineDiv.appendChild(span);
             }

@@ -93,3 +93,20 @@ export function mdToHtml(text) {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
 }
 
+// Convert markdown to sanitized inline HTML (no block elements like <p>).
+// Use this for single-line content like titles, names, etc.
+export function mdToHtmlInline(text) {
+  if (!text && text !== 0) return "";
+  const str = String(text);
+  try {
+    if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+      const raw = marked.parseInline(str);
+      return DOMPurify.sanitize(raw);
+    }
+  } catch (e) {
+    console.warn("mdToHtmlInline: markdown render failed, falling back to plain text", e);
+  }
+  // Fallback: escape HTML
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
