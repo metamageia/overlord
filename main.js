@@ -8,6 +8,7 @@ import { decodeStatblockData, encodeStatblockData,exportCurrentDetail } from "./
 import { renderStatblockLibrary, updateSelectedRow, currentFilteredList, saveToLibrary, showManageStatsModal, closeManageStatsModal, selectedStatblockID, currentDetail, setCurrentDetail, setSelectedStatblockID, addCustomStat } from "./js/libraryBrowser.mjs";
 import { toggleSidebar, toggleBundlesSidebar, setInitialSidebarVisibility, initBundlePanels, switchSidebarTab, switchBundlesTab, initResizeHandlers } from "./js/uiControllers.mjs";
 import { renderComponentsList, } from './js/componentManagement.mjs';
+import { applyRoleTemplateFromUI } from './js/roleTemplates.mjs';
 import { loadCoreBundles } from './js/bundleManagement.mjs';
 
 
@@ -159,6 +160,12 @@ function attachEventHandlers() {
     el.addEventListener("input", uiFieldChanged);
     el.addEventListener("change", uiFieldChanged);
     el.addEventListener("blur", uiFieldChanged);
+  });
+  // Apply Preset button
+  document.getElementById("applyPresetBtn").addEventListener("click", async () => {
+    const role = document.getElementById("role").value;
+    const level = document.getElementById("level").value;
+    await applyRoleTemplateFromUI(role, level);
   });
   document.getElementById("addFeatureBtn").addEventListener("click", () => {
     addFeature();

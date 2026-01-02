@@ -71,8 +71,10 @@
           <hr class="section-divider">
           <label for="monsterName">Monster Name</label>
           <input type="text" id="monsterName" placeholder="Monster name..." />
-          <label for="role">Role</label>
-          <select id="role">
+          <div class="role-row">
+            <div class="role-field">
+              <label for="role">Role</label>
+              <select id="role">
             <option value="">Select Role</option>
             <option value="Archer">Archer</option>
             <option value="Enchanter">Enchanter</option>
@@ -82,7 +84,16 @@
             <option value="Hellion">Hellion</option>
             <option value="Stalker">Stalker</option>
             <option value="Sorcerer">Sorcerer</option>
-          </select>
+              </select>
+            </div>
+            <div class="level-field">
+              <label for="level">Level</label>
+              <input type="number" id="level" placeholder="Level" min="1" max="10" />
+            </div>
+          </div>
+          <div style="margin-top:6px;">
+            <button id="applyPresetBtn" class="inline-btn">Apply Preset</button>
+          </div>
           <label for="template">Template</label>
           <select id="template">
             <option value="">Select Template</option>
@@ -92,10 +103,6 @@
           </select>
           <hr class="section-divider">
           <div class="basic-stats-grid">
-            <div>
-              <label for="level">Level</label>
-              <input type="number" id="level" placeholder="Level" min="1" max="10" />
-            </div>
             <div>
               <label for="tr">TR</label>
               <input type="text" id="tr" placeholder="TR" />

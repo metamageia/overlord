@@ -377,6 +377,39 @@ body {
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
 }
+
+/* Role + Level inline row */
+.role-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+.role-row .role-field {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+.role-row .level-field {
+  width: 90px;
+  min-width: 70px;
+  display: flex;
+  flex-direction: column;
+}
+.role-row label {
+  margin: 0 0 4px 0; /* remove top margin and add small gap under label */
+  font-weight: bold;
+}
+
+@media (max-width: 480px) {
+  .role-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+  .role-row .level-field {
+    width: auto;
+  }
+}
 .dynamic-list {
   margin: 5px 0 10px;
 }
