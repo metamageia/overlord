@@ -1394,7 +1394,7 @@ body {
 .statblock-description {
   margin: 3px 0 8px 0;
   padding: 0 3px;
-  font-style: italic;
+  font-style: normal;
   font-size: 0.95em;
   line-height: .1;
   border-bottom: 1px solid #ddd;
