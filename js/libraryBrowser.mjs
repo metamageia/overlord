@@ -505,16 +505,20 @@ function overwriteCurrent(){
   if(!pendingCurrentId) return;
   const idx = statblocks.findIndex(s => s.statblockID === pendingCurrentId);
   if(idx !== -1){
-    // Preserve the target's statblockID and bundleId
+    // Preserve the target's bundleId
     const existingBundle = statblocks[idx].bundleId;
-    masterYamlData.statblockID = pendingCurrentId;
+    // Generate new ID from the content (deterministic)
+    const newID = generateStatblockID(masterYamlData);
+    masterYamlData.statblockID = newID;
     masterYamlData.bundleId = existingBundle;
     statblocks[idx] = structuredClone(masterYamlData);
   } else {
-    // Fallback: just add
+    // Fallback: just add with new ID
+    const newID = generateStatblockID(masterYamlData);
+    masterYamlData.statblockID = newID;
     statblocks.push(structuredClone(masterYamlData));
   }
-  currentDetail = statblocks.find(s => s.statblockID === pendingCurrentId) || masterYamlData;
+  currentDetail = statblocks[idx] || masterYamlData;
   selectedStatblockID = currentDetail.statblockID;
   saveToLocalStorage();
   initSearch();
