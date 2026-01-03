@@ -62,7 +62,8 @@ export function updateUIFromMasterYaml(){
     document.getElementById("template").value = masterYamlData.template || "";
     document.getElementById("level").value = masterYamlData.level || "";
     document.getElementById("tr").value = masterYamlData.tr || "";
-    document.getElementById("description").value = masterYamlData.description || ""; // Add this line
+    document.getElementById("description").value = masterYamlData.description || "";
+    document.getElementById("tags").value = masterYamlData.tags || "";
   
     // Update basic stats visibility based on masterYamlData
     Object.keys(DEFAULT_STATS).forEach(key => {
@@ -119,6 +120,13 @@ export function updateMasterYamlDataFromUI() {
         masterYamlData.description = description;
     } else {
         delete masterYamlData.description;
+    }
+
+    const tags = document.getElementById("tags").value.trim();
+    if (tags) {
+        masterYamlData.tags = tags;
+    } else {
+        delete masterYamlData.tags;
     }
   
     // Update basic stats, excluding hidden ones

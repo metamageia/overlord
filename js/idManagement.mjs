@@ -28,6 +28,7 @@ export function generateStatblockID(statblockObj) {
   const copy = JSON.parse(JSON.stringify(statblockObj));
   delete copy.statblockID;
   delete copy.bundleId;
+  delete copy.tags;
   const canonicalObj = canonicalize(copy);
   const str = JSON.stringify(canonicalObj);
   return hashString(str);

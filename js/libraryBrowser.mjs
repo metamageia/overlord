@@ -13,6 +13,7 @@ let filterLV = "";
 let filterRole = "";
 let filterTemplate = ""; 
 let filterTR = "";
+let filterTags = "";
 let filterBundle = "";
 
 export let currentDetail = null; 
@@ -58,6 +59,7 @@ export function renderStatblockLibrary(){
     { field: "role",        width: 100 },
     { field: "template",    width: 100 }, 
     { field: "tr",          width: 50 },
+    { field: "tags",        width: 120 },
     { field: "bundle",      width: 120 },
     { field: "action",      width: 50 }
   ];
@@ -89,6 +91,7 @@ export function renderStatblockLibrary(){
     { field: "role",        label: "Role" },
     { field: "template",    label: "Template" }, // Add this line
     { field: "tr",          label: "TR" },
+    { field: "tags",        label: "Tags" },
     { field: "bundle",      label: "Bundle" }
   ];
   columns.forEach((col, idx) => {
@@ -133,6 +136,7 @@ export function renderStatblockLibrary(){
       case "role": input.value = filterRole; break;
       case "template": input.value = filterTemplate; break;
       case "tr": input.value = filterTR; break;
+      case "tags": input.value = filterTags; break;
       case "bundle": input.value = filterBundle; break;
     }
     
@@ -144,6 +148,7 @@ export function renderStatblockLibrary(){
         case "role": filterRole = this.value; break;
         case "template": filterTemplate = this.value; break;
         case "tr": filterTR = this.value; break;
+        case "tags": filterTags = this.value; break;
         case "bundle": filterBundle = this.value; break;
       }
       renderStatblockLibrary();
@@ -162,6 +167,7 @@ export function renderStatblockLibrary(){
     filterRole = "";
     filterTemplate = "";
     filterTR = "";
+    filterTags = "";
     filterBundle = "";
     // Clear input values
     columns.forEach(col => {
@@ -180,9 +186,10 @@ export function renderStatblockLibrary(){
     const matchesTemplate = matchesStringQuery(sb.template || "", filterTemplate); // Add this line
     const matchesLV = matchesNumericQuery(sb.level, filterLV);
     const matchesTR = matchesNumericQuery(sb.tr, filterTR);
+    const matchesTags = matchesStringQuery(sb.tags || "", filterTags);
     const bundleName = getBundleName(sb.bundleId);
     const matchesBundle = matchesStringQuery(bundleName, filterBundle);
-    return matchesName && matchesRole && matchesTemplate && matchesLV && matchesTR && matchesBundle; // Add matchesTemplate
+    return matchesName && matchesRole && matchesTemplate && matchesLV && matchesTR && matchesTags && matchesBundle; // Add matchesTemplate
   });
   filtered = filtered.filter(sb => {
     if(sb.bundleId === undefined) return true;

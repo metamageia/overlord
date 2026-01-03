@@ -176,6 +176,10 @@ document.getElementById("description").addEventListener("input", function() {
   updateYamlTextArea();
   updateRenderedStatblock();
 });
+document.getElementById("tags").addEventListener("input", function() {
+  updateMasterYamlDataFromUI();
+  updateYamlTextArea();
+});
   document.getElementById("addLightDeedBtn").addEventListener("click", () => {
     addDeed("light");
     uiFieldChanged();
