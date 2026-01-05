@@ -21,12 +21,15 @@ export function exportCurrentDetail(){
     alert("No statblock selected.");
     return;
   }
+  const originalStatblock = document.getElementById("detailStatblock");
   const exportContainer = document.createElement("div");
   exportContainer.style.width = "560px";
   exportContainer.style.height = "auto";
   exportContainer.style.padding = "10px";
   exportContainer.style.boxSizing = "border-box";
-  exportContainer.innerHTML = document.getElementById("detailStatblock").innerHTML;
+  // Preserve the compact class if present
+  exportContainer.className = originalStatblock.className;
+  exportContainer.innerHTML = originalStatblock.innerHTML;
   document.body.appendChild(exportContainer);
   html2canvas(exportContainer, { scale: 2 }).then(canvas => {
     const fmt = document.getElementById("exportFormat").value;

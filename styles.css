@@ -1610,19 +1610,29 @@ body {
 }
 
 .statblock.compact .statblock-deeds {
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   gap: 0;
 }
 
 .statblock.compact .deed {
-  flex: 1 1 100%;
-  padding: 8px 0;
+  flex: 1 1 calc(50% - 1px);
+  padding: 8px 5px;
   border: none;
   border-bottom: 1px solid #ccc;
+  border-right: 1px solid #ccc;
   background: transparent !important;
+  box-sizing: border-box;
 }
 
-.statblock.compact .deed:last-child {
+.statblock.compact .deed:nth-child(2n) {
+  border-right: none;
+}
+
+.statblock.compact .deed:nth-last-child(1),
+.statblock.compact .deed:nth-last-child(2):nth-child(odd) ~ .deed,
+.statblock.compact .deed:nth-last-child(1):nth-child(even),
+.statblock.compact .deed:nth-last-child(2):nth-child(odd) {
   border-bottom: none;
 }
 
