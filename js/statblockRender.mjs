@@ -6,6 +6,24 @@ import { masterYamlData, updateMasterYamlData, resetMasterYamlData, hiddenStats,
  * ---------------------------------------------
  */
 
+// Compact mode state
+let isCompactMode = false;
+
+export function setCompactMode(enabled) {
+  isCompactMode = enabled;
+  const statblock = document.getElementById("detailStatblock");
+  if (enabled) {
+    statblock.classList.add("compact");
+  } else {
+    statblock.classList.remove("compact");
+  }
+  updateRenderedStatblock();
+}
+
+export function getCompactMode() {
+  return isCompactMode;
+}
+
 // --- Utilities --- //
 // Update Rendered Statblock
 export function updateRenderedStatblock() {
@@ -92,6 +110,9 @@ export function updateRenderedStatblock() {
     
     basicSection.appendChild(customStatsRow);
   }
+
+  // Render compact stats line for compact mode
+  renderCompactStatsLine(masterYamlData);
 
   // Continue with features and deeds
   renderFeatures(masterYamlData);
@@ -235,4 +256,77 @@ function renderDeeds(data){
     });
   });
   dsbDeedsSec.style.display = hasDeeds ? "block" : "none";
+}
+
+// Render compact stats line (inline stats for compact mode)
+function renderCompactStatsLine(data) {
+  const basicSection = document.getElementById("dsb-basicSection");
+  
+  // Remove existing compact stats line if present
+  const existingLine = basicSection.querySelector(".compact-stats-line");
+  if (existingLine) {
+    existingLine.remove();
+  }
+  
+  // Create compact stats line
+  const compactLine = document.createElement("div");
+  compactLine.className = "compact-stats-line";
+  
+  // Stats to display in order
+  const statsOrder = [
+    { key: "hp", label: "HP" },
+    { key: "init", label: "Init" },
+    { key: "spd", label: "Spd" },
+    { key: "acc", label: "Acc" },
+    { key: "grd", label: "Grd" },
+    { key: "res", label: "Res" },
+    { key: "roll", label: "Roll" }
+  ];
+  
+  statsOrder.forEach(stat => {
+    if (data[stat.key]) {
+      const statItem = document.createElement("span");
+      statItem.className = "stat-item";
+      
+      const label = document.createElement("span");
+      label.className = "stat-label";
+      label.textContent = stat.label + ":";
+      
+      const value = document.createElement("span");
+      value.className = "stat-value";
+      value.textContent = " " + data[stat.key];
+      
+      statItem.appendChild(label);
+      statItem.appendChild(value);
+      compactLine.appendChild(statItem);
+    }
+  });
+  
+  // Add custom stats
+  if (Array.isArray(data.customStats) && data.customStats.length > 0) {
+    data.customStats.forEach(stat => {
+      const statItem = document.createElement("span");
+      statItem.className = "stat-item";
+      
+      const label = document.createElement("span");
+      label.className = "stat-label";
+      label.textContent = stat.name + ":";
+      
+      const value = document.createElement("span");
+      value.className = "stat-value";
+      value.innerHTML = " " + mdToHtmlInline(stat.value);
+      
+      statItem.appendChild(label);
+      statItem.appendChild(value);
+      compactLine.appendChild(statItem);
+    });
+  }
+  
+  // Insert at the beginning of basicSection (after h3)
+  const h3 = basicSection.querySelector("h3");
+  if (h3 && h3.nextSibling) {
+    basicSection.insertBefore(compactLine, h3.nextSibling);
+  } else {
+    basicSection.appendChild(compactLine);
+  }
 }

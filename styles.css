@@ -1508,3 +1508,186 @@ body {
   margin: .1em 0;
   padding: 0;
 }
+
+/* -------------------------------
+   COMPACT VIEW TOGGLE
+------------------------------- */
+.compact-toggle-container {
+  text-align: right;
+  margin-bottom: 5px;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.compact-toggle-label {
+  cursor: pointer;
+  font-size: 0.9em;
+  user-select: none;
+}
+.compact-toggle-label input {
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+/* -------------------------------
+   COMPACT STATBLOCK LAYOUT
+------------------------------- */
+.statblock.compact {
+  font-size: 0.85em;
+  padding: 8px;
+}
+
+/* Compact header - single line */
+.statblock.compact .statblock-header {
+  padding: 5px 8px;
+  font-size: 1.1em;
+  margin-bottom: 5px;
+}
+
+/* Compact stats - inline row */
+.statblock.compact #dsb-basicSection {
+  margin-bottom: 8px;
+}
+
+.statblock.compact #dsb-basicSection h3 {
+  display: none;
+}
+
+.statblock.compact .basic-stats-row {
+  display: none;
+}
+
+/* Hide compact stats line in normal mode */
+.compact-stats-line {
+  display: none;
+}
+
+.statblock.compact .compact-stats-line {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid #333;
+  font-weight: bold;
+}
+
+.statblock.compact .compact-stats-line .stat-item {
+  white-space: nowrap;
+}
+
+.statblock.compact .compact-stats-line .stat-item .stat-label {
+  color: #666;
+  font-weight: normal;
+  margin-right: 2px;
+}
+
+.statblock.compact .compact-stats-line .stat-item .stat-value {
+  font-weight: bold;
+}
+
+/* Compact features */
+.statblock.compact #dsb-featuresSection {
+  margin-bottom: 8px;
+}
+
+.statblock.compact #dsb-featuresSection h3 {
+  font-size: 0.9em;
+  padding: 3px 5px;
+  margin-bottom: 5px;
+}
+
+.statblock.compact #dsb-featuresList > div {
+  margin-bottom: 5px !important;
+  font-size: 1em !important;
+}
+
+/* Compact deeds - text-based format */
+.statblock.compact #dsb-deedsSection h3 {
+  font-size: 0.9em;
+  padding: 3px 5px;
+  margin-bottom: 5px;
+}
+
+.statblock.compact .statblock-deeds {
+  flex-direction: column;
+  gap: 0;
+}
+
+.statblock.compact .deed {
+  flex: 1 1 100%;
+  padding: 8px 0;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  background: transparent !important;
+}
+
+.statblock.compact .deed:last-child {
+  border-bottom: none;
+}
+
+.statblock.compact .deed-header {
+  display: inline;
+  background: none;
+  color: #333;
+  font-size: 0.85em;
+  font-weight: bold;
+  padding: 0;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.statblock.compact .deed-header::after {
+  content: " ";
+}
+
+.statblock.compact .deed-title-output {
+  display: inline;
+  font-size: 1em;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.statblock.compact .deed-title-output + hr {
+  display: none;
+}
+
+.statblock.compact .deed .line-indent {
+  display: block;
+  margin-left: 0;
+  padding-left: 0;
+  font-size: 1em !important;
+}
+
+/* Color indicators for compact deeds */
+.statblock.compact .deed.light .deed-header {
+  color: #00838f;
+}
+.statblock.compact .deed.heavy .deed-header {
+  color: #f57f17;
+}
+.statblock.compact .deed.mighty .deed-header {
+  color: #c62828;
+}
+.statblock.compact .deed.tyrant .deed-header {
+  color: #6a1b9a;
+}
+.statblock.compact .deed.special .deed-header {
+  color: #2e7d32;
+}
+
+/* Hide custom stats row in compact (will be in inline stats) */
+.statblock.compact .custom-stats-row {
+  display: none;
+}
+
+/* Compact description */
+.statblock.compact .statblock-description {
+  margin: 2px 0 5px 0;
+  padding-bottom: 3px;
+}
+
+/* Compact IDs */
+.statblock.compact #dsb-ids {
+  margin-top: 3px;
+}

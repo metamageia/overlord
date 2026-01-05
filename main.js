@@ -1,6 +1,6 @@
 import { masterYamlData, updateMasterYamlData, resetMasterYamlData, hiddenStats, DEFAULT_STATS } from "./js/yamlDataState.mjs";
 import { updateYamlTextArea, updateMasterYamlDataFromYaml, updateUIFromMasterYaml, updateMasterYamlDataFromUI, uiFieldChanged, addDeed, addFeature } from "./js/masterYamlData.mjs";
-import { updateRenderedStatblock, renderDefaultDetail } from "./js/statblockRender.mjs";
+import { updateRenderedStatblock, renderDefaultDetail, setCompactMode } from "./js/statblockRender.mjs";
 import { statblocks, uploadedBundles, loadFromLocalStorage, saveToLocalStorage, loadUploadedBundles, saveUploadedBundles, exportBackup, importBackup, clearLocalStorage, initSearch, statblockComponents} from "./js/libraryData.mjs";
 import { handleUpload, renderCreateBundleList, renderBundleList, downloadCurrentBundle, mergeSelectedBundles, getBundleName, confirmOverwrite, cancelOverwrite, fillManageMergeSelect, renderUploadedBundles, cbFilterName, cbFilterBundle, cbFilterLV, cbFilterRole, cbFilterTR, cbFilterTemplate, cbFilterType, addToBundleList, clearBundleList} from './js/bundleManagement.mjs';
 import { matchesNumericQuery, matchesStringQuery } from './js/utilityFunctions.mjs';
@@ -154,6 +154,11 @@ function attachEventHandlers() {
   });
   document.getElementById("importBackupFile").addEventListener("change", importBackup);
   document.getElementById("uploadBtn").addEventListener("click", handleUpload);
+
+  // Compact view toggle
+  document.getElementById("compactToggle").addEventListener("change", (e) => {
+    setCompactMode(e.target.checked);
+  });
 
   ["monsterName","role","template","level","tr","hp","init","acc","grd","res","roll","spd"].forEach(id => {
     const el = document.getElementById(id);
