@@ -1484,7 +1484,7 @@ body {
   padding: 0 3px;
   font-style: normal;
   font-size: 0.95em;
-  line-height: .1;
+  line-height: 1.4;
   border-bottom: 1px solid #ddd;
   padding-bottom: 1px;
 }
